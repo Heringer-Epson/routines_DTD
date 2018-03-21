@@ -1,4 +1,4 @@
-name: DTDtest
+name: DTD
 dependencies:
 - python=2.7
 - numpy=1.13.1
@@ -6,7 +6,6 @@ dependencies:
 - pandas=0.20.3
 - matplotlib=2.0.2
 - astropy=2.0.1
-- gfortran=6.4.0
 - h5py=2.7.0
 - numexpr=2.6.2
 - pyyaml=3.12
