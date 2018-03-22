@@ -69,11 +69,8 @@ class Plot_AgeDcolor(object):
               logage_exp, Dcolor_exp, color=colors[i], dashes=dashes[i], lw=3.,
               label=r'$\tau = ' + str(int(tau)) + '$')
 
-        #Reverse order of legend labels to make it in the same vertical order
-        #as plotted.
-        self.ax.legend(
-          frameon=False, fontsize=self.fs,
-          numpoints=1, ncol=1, labelspacing=-0.2, loc=2)
+        self.ax.legend(frameon=False, fontsize=self.fs, numpoints=1, ncol=1,
+                       labelspacing=-0.2, loc=2)
                   
     def save_figure(self, extension='pdf', dpi=360):        
         directory = './../OUTPUT_FILES/FIGURES/'
