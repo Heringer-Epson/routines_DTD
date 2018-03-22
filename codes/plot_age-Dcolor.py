@@ -67,7 +67,7 @@ class Plot_AgeDcolor(object):
             Dcolor_exp = sdss_g_exp - sdss_r_exp - RS_color
             self.ax.plot(
               logage_exp, Dcolor_exp, color=colors[i], dashes=dashes[i], lw=3.,
-              label=r'$\tau = ' + str(int(tau)) + '$')
+              label=r'$\tau = ' + str(int(tau)) + '\ \mathrm{Gyr}$')
 
         self.ax.legend(frameon=False, fontsize=self.fs, numpoints=1, ncol=1,
                        labelspacing=-0.2, loc=2)
