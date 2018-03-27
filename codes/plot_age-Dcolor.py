@@ -50,7 +50,7 @@ class Plot_AgeDcolor(object):
         #Get SSP data to compute RS color and for plotting.
         fpath = directory + 'SSP.dat'
         logage_SSP, sdss_g_SSP, sdss_r_SSP = np.loadtxt(
-        fpath, delimiter=',', skiprows=1, usecols=(0, 4, 5), unpack=True)        
+        fpath, delimiter=',', skiprows=1, usecols=(0, 5, 6), unpack=True)        
 
         RS_condition = (logage_SSP == 10.0)
         RS_color = sdss_g_SSP[RS_condition] - sdss_r_SSP[RS_condition]
@@ -63,7 +63,7 @@ class Plot_AgeDcolor(object):
             fpath = directory + 'exponential_tau-' + str(tau) + '.dat'
         
             logage_exp, sdss_g_exp, sdss_r_exp = np.loadtxt(
-            fpath, delimiter=',', skiprows=1, usecols=(0, 4, 5), unpack=True)
+            fpath, delimiter=',', skiprows=1, usecols=(0, 5, 6), unpack=True)
             Dcolor_exp = sdss_g_exp - sdss_r_exp - RS_color
             self.ax.plot(
               logage_exp, Dcolor_exp, color=colors[i], dashes=dashes[i], lw=3.,

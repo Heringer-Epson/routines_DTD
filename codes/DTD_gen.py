@@ -45,27 +45,13 @@ def make_DTD(s1, s2, t_onset, t_break):
     const_s1 = norm / t_norm**s1
     const_s2 = const_s1 * t_break**(s1 - s2)
     
-    def func_DTD(t):      
-        
-        #Use input as an array, even if input is a scalar.
-        t = np.asarray(t.to(u.yr))
-        
-        t_a = t[(t < t_onset)]
-        t_b = t[((t >= t_onset) & (t < t_break))]
-        t_c = t[(t >= t_break)]
-                
-        SNR_a = np.zeros(len(t_a))
-        SNR_b = const_s1 * t_b**s1        
-        SNR_c = const_s2 * t_c**s2        
-                
-        #Build output array from segments and replace zeros (for plotting
-        #purposes) with negligible number.
-        SNR = np.concatenate((SNR_a, SNR_b, SNR_c))
-        SNR[SNR == 0.] = 1.e-20
-        
-        return SNR * SNR_unit     
-            
-    return func_DTD          
+    def func_DTD(age):      
+        age = np.asarray(age.to(u.yr).value)
+        DTD = np.vectorize(lambda t: 1.e-40 if t < t_onset
+                           else const_s1 * t**s1 if t <= t_break
+                           else const_s2 * t**s2, otypes=[np.float64])
+        return DTD(age) * SNR_unit     
+    return func_DTD       
          
 
 class Plot_DTDs(object):
@@ -111,7 +97,10 @@ class Plot_DTDs(object):
                   (-1.00, -2.00, 1.e8 * u.yr, 1.e9 * u.yr),
                   (-1.00, -3.00, 1.e8 * u.yr, 1.e9 * u.yr)]
 
-        age_array = np.logspace(6., 10.2, 1000) * u.yr
+        #inputs = [(-1.00, -1.00, 1.e8 * u.yr, 1.e9 * u.yr),
+        #          (-1.00, -1.00, 1.e8 * u.yr, 2.e9 * u.yr)]
+        
+        age_array = np.logspace(6., 10.2, 100) * u.yr
         dashes = [(), (4,4), (4, 2, 1, 2, 1, 2), (4,2,1,2), (1,1), (3,2,3,2)]
         colors = ['#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854','#ffd92f']
         labels = [r'-0.5', r'-0.5/-1', r'-1', r'-1.25', r'-1/-2', r'-1/-3']
@@ -122,7 +111,7 @@ class Plot_DTDs(object):
             self.ax.plot(
               np.log10(age_array.value), np.log10(DTD_func(age_array).value),
               color=colors[i], dashes=dashes[i], lw=3., label=labels[i])
-
+        
         self.ax.legend(frameon=False, fontsize=self.fs, numpoints=1, ncol=1,
                        labelspacing=0.3, loc=1)
                   
@@ -146,5 +135,5 @@ class Plot_DTDs(object):
 if __name__ == '__main__':
     """If directly executed, then plot the selected DTDs.
     """            
-    Plot_DTDs(show_fig=True, save_fig=True)
+    Plot_DTDs(show_fig=True, save_fig=False)
  

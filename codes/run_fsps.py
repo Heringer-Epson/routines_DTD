@@ -7,7 +7,8 @@ import numpy as np
 
 taus = [1., 1.5, 2., 3., 4., 5., 7., 10.]
 out_dir = './../INPUT_FILES/STELLAR_POP/'
-header = 'log_age,stellar_mass,formed_mass,SDSS_u,SDSS_g,SDSS_r'
+header = ('log_age,instantaneous_sfr,integrated_stellar_mass,'\
+          'integrated_formed_mass,SDSS_u,SDSS_g,SDSS_r')
 
 class Make_FSPS(object):
     """Imports PythonFSPS (which makes use of FSPS v3.0) to compute a series
@@ -26,7 +27,7 @@ class Make_FSPS(object):
         #lines rather tahn columns.
         u_mag, g_mag, r_mag = zip(*sp.get_mags(
           bands=['sdss_u', 'sdss_g', 'sdss_r']))
-        out_data = (sp.log_age, sp.stellar_mass, sp.formed_mass,
+        out_data = (sp.log_age, sp.sfr, sp.stellar_mass, sp.formed_mass,
           u_mag, g_mag, r_mag)
         np.savetxt(fname, np.transpose(out_data), header=header,
           delimiter=',')          
