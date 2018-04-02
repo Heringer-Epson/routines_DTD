@@ -46,11 +46,11 @@ def make_DTD(s1, s2, t_onset, t_break):
     const_s2 = const_s1 * t_break**(s1 - s2)
     
     def func_DTD(age):      
-        age = np.asarray(age.to(u.yr).value)
+        _age = np.asarray(age)
         DTD = np.vectorize(lambda t: 1.e-40 if t < t_onset
                            else const_s1 * t**s1 if t <= t_break
                            else const_s2 * t**s2, otypes=[np.float64])
-        return DTD(age) * SNR_unit     
+        return DTD(_age)    
     return func_DTD       
          
 
@@ -96,6 +96,7 @@ class Plot_DTDs(object):
                   (-1.25, -1.25, 1.e8 * u.yr, 1.e9 * u.yr),
                   (-1.00, -2.00, 1.e8 * u.yr, 1.e9 * u.yr),
                   (-1.00, -3.00, 1.e8 * u.yr, 1.e9 * u.yr)]
+                  #(-3.00, -1.00, 1.e8 * u.yr, 1.e9 * u.yr)]
 
         #inputs = [(-1.00, -1.00, 1.e8 * u.yr, 1.e9 * u.yr),
         #          (-1.00, -1.00, 1.e8 * u.yr, 2.e9 * u.yr)]
@@ -109,7 +110,7 @@ class Plot_DTDs(object):
             s1, s2, t_onset, t_break = inp
             DTD_func = make_DTD(s1, s2, t_onset, t_break)
             self.ax.plot(
-              np.log10(age_array.value), np.log10(DTD_func(age_array).value),
+              np.log10(age_array.value), np.log10(DTD_func(age_array)),
               color=colors[i], dashes=dashes[i], lw=3., label=labels[i])
         
         self.ax.legend(frameon=False, fontsize=self.fs, numpoints=1, ncol=1,

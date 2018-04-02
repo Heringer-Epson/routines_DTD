@@ -1,2 +1,3 @@
 #Ignore most of the folders - to remain empty in the repository.
 ./codes/*.pyc
+./codes/*.lprof

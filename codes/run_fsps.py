@@ -46,10 +46,10 @@ class Make_FSPS(object):
           compute_vega_mags=False, zcontinuous=0, zmet=20,
           add_agb_dust_model=False, add_dust_emission=False,
           add_stellar_remnants=True, fbhb=0., pagb=0., zred=0., imf_type=1,
-          sfh=0, dust_type=0.)        
+          sfh=0, dust_type=0., tage=14.96)        
 
         if self.write_output:
-            fname = out_dir + 'SSP.dat'
+            fname = out_dir + 'SSP_2.dat'
             self.make_output(sp, fname)
 
         for tau in self.tau_list:
@@ -60,11 +60,11 @@ class Make_FSPS(object):
               compute_vega_mags=False, zcontinuous=0, zmet=20,
               add_agb_dust_model=False, add_dust_emission=False,
               add_stellar_remnants=True, fbhb=0., pagb=0., zred=0., imf_type=1,
-              sfh=1, tau=tau, const=0., fburst=0., dust_type=0.)
+              sfh=1, tau=tau, const=0., fburst=0., dust_type=0., tage=14.96)
 
             #Write output files.
             if self.write_output:
-                fname = out_dir + 'exponential_tau-' + str(tau) + '.dat'
+                fname = out_dir + 'exponential_tau-' + str(tau) + '_2.dat'
                 self.make_output(sp, fname)       
             
         #Print additional relevant information regarding FSPS setup.

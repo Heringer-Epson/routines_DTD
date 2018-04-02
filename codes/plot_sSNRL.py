@@ -46,30 +46,33 @@ class Plot_sSNRL(object):
 
     def plot_models(self):
 
-        for s1, s2 in zip([-0.5, -0.5, -1., -1.25, -1., -1.],
-                          [-0.5, -1., -1., -1.25, -2., -3.]):
+        #for s1, s2 in zip([-0.5, -0.5, -1., -1.25, -1., -1.],
+        #                  [-0.5, -1., -1., -1.25, -2., -3.]):
 
-        #for s1, s2 in zip([-1.], [-1.]):
+        #for s1, s2 in zip([-3.0, -1.], [-1.0, -2.]):
+        for s1, s2 in zip([-1.], [-1.]):
             
             x_10Gyr, y_10Gyr = [], []
         
             for tau in [1., 1.5, 2., 3., 4., 5., 7., 10.]:
-            #for tau in [1.]:
+            #for tau in [10.]:
                 fname = 'exponential_tau-' + str(tau) + '.dat'
                 
-                model = Model_Rates(s1, s2, t_onset, t_break, fname)
+                model = Model_Rates(s1, s2, t_onset, t_break, tau * 1.e9 * u.yr)
 
                 age_cond = (model.age.to(u.yr).value <= 1.e10)
                 
                 x = model.Dcolor[age_cond]
-                y = np.log10(model.sSNRL.value[age_cond])
+                sSNRL = model.sSNRL[age_cond]
+                sSNRL[sSNRL == 0.] = 1.e-40
+                y = np.log10(sSNRL)
             
                 self.ax.plot(x, y, color='r', ls='-', lw=1.5)
                 
                 #Get values at 10 Gyr for interpolation.
                 marker_cond = (model.age.to(u.yr).value == 1.e10)
                 x_marker = model.Dcolor[marker_cond]
-                y_marker = np.log10(model.sSNRL.value[marker_cond])
+                y_marker = np.log10(model.sSNRL[marker_cond])
             
                 x_10Gyr.append(x_marker), y_10Gyr.append(y_marker)
             

@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 
 import numpy as np
+from scipy.integrate import quad
+from scipy.interpolate import interp1d
 from astropy import units as u
 from DTD_gen import make_DTD
 
 class Model_Rates(object):
     
-    def __init__(self, s1, s2, t_onset, t_break, synpop_fname):
+    def __init__(self, s1, s2, t_onset, t_break, tau):
 
         self.s1 = s1
         self.s2 = s2
         self.t_onset = t_onset
         self.t_break = t_break
-        self.synpop_fname = synpop_fname
+        self.tau = tau
         
         self.age = None
         self.int_stellar_mass = None
@@ -26,7 +28,6 @@ class Model_Rates(object):
         self.sSNR = None
         self.sSNRm = None
         self.sSNRL = None
-        self.test = None
 
         self.make_model()
 
@@ -46,71 +47,85 @@ class Model_Rates(object):
         self.RS_color = sdss_g_SSP[RS_condition] - sdss_r_SSP[RS_condition]
         
         #Get data for the complex SFH (i.e. exponential.)
-        fpath = directory + self.synpop_fname
-        logage, int_stellar_mass, int_formed_mass, g_band, r_band = np.loadtxt(
-        fpath, delimiter=',', skiprows=1, usecols=(0,2,3,5,6), unpack=True)   
+        tau_suffix = str(self.tau.to(u.yr).value / 1.e9)
+        fpath = directory + 'exponential_tau-' + tau_suffix + '.dat'
+        logage, sfr, int_stellar_mass, int_formed_mass, g_band, r_band = np.loadtxt(
+        fpath, delimiter=',', skiprows=1, usecols=(0,1,2,3,5,6), unpack=True)   
         
         self.age = 10.**logage * u.yr
-        self.int_stellar_mass = int_stellar_mass * u.Msun
-        self.int_formed_mass = int_formed_mass * u.Msun
+        self.sfr = sfr
+        self.int_formed_mass = int_formed_mass
         self.g_band = g_band
         self.r_band = r_band
         
-        self.Dcolor = self.g_band - self.r_band - self.RS_color
-            
-        #Compute the amount of mass formed at each age of the SFH. This is the
-        #mass that physically matters when computing the SN rate via convolution.
-        self.mass_formed = np.append(self.int_stellar_mass[0].to(u.Msun).value,
-          np.diff(self.int_formed_mass.to(u.Msun).value)) * u.Msun
-        
-        #Perform check if mass formed sums up to 1.
-        if np.sum(self.mass_formed.to(u.Msun).value) - 1. > 1.e6:
-             raise ValueError('Error calculating how much mass was formed at'\
-                              'each age bin. Does not sum up to unity.')
+        self.Dcolor = self.g_band - self.r_band - self.RS_color               
 
-    def compute_DTD(self):
-        """Call the 'make_DTD' routine to compute the relevant DTD.
-        """
-        self.DTD_func = make_DTD(self.s1, self.s2, self.t_onset, self.t_break)        
-        
+    def compute_analytical_sfr(self, tau, upper_lim):
+        _tau = tau.to(u.yr).value
+        _upper_lim = upper_lim.to(u.yr).value
+        norm = 1. / (_tau * (1. - np.exp(-_upper_lim / _tau)))
+        def sfr_func(age):
+            return norm * np.exp(-age / _tau)
+        return sfr_func
+
+    def make_sfr_func(self, _t, _sfr):
+        interp_func = interp1d(_t, _sfr)
+        def sfr_func(age):
+            if age <= _t[0]:
+                return _sfr[0]
+            elif age > _t[0] and age < _t[-1]:
+                return interp_func(age)
+            elif age >= _t[-1]:
+                return _sfr[-1]
+        return np.vectorize(sfr_func)
+
+    def convolve_functions(self, func1, func2, x):
+        def out_func(xprime):
+            return func1(x - xprime) * func2(xprime)
+        return out_func
+
+    #@profile
     def compute_model_rates(self):
         """
         """
-        sSNR, sSNRm, sSNRL = [], [], []
-        
-        for i, t in enumerate(self.age):
-        
-            t_minus_tprime = t - self.age
-            integration_cond = ((self.age >= self.t_onset) & (self.age <= t))
-            DTD_ages = t_minus_tprime[integration_cond]
+        sSNR, sSNRm, sSNRL, self.L = [], [], [], []
 
-            DTD_component = self.DTD_func(DTD_ages)
-            mass_component = self.mass_formed[integration_cond]
+        _t_ons = self.t_onset.to(u.yr).value
+        _t_bre = self.t_break.to(u.yr).value
+    
+        self.DTD_func = make_DTD(self.s1, self.s2, self.t_onset, self.t_break)
+        self.sfr_func = self.compute_analytical_sfr(self.tau, self.age[-1])
+        #self.sfr_func = self.make_sfr_func(self.age.value, self.sfr)
+        
+        for i, t in enumerate(self.age.to(u.yr).value):
             
-            #Perform convolution. This will give the expected SNe / yr for the
-            #population used as input.  
-            _sSNR = np.sum(np.multiply(DTD_component,mass_component))
-            if _sSNR.value == 0.:
-                _sSNR = 1.e-40 * _sSNR.unit
+            t0 = self.age.to(u.yr).value[0]
+            self.conv_func = self.convolve_functions(self.sfr_func, self.DTD_func, t)
+            #self.conv_func = self.convolve_functions(self.DTD_func, self.sfr_func, t)
+     
+            #Since the DTD is discontinuous at t_onset, on has to be careful
+            #with the integration and do it piece-wise. Here, since the DTD is
+            #zero prior to t_ons, we start the integration at t_ons.            
+            _sSNR = quad(self.conv_func, _t_ons, t)[0] 
             
-            #To compute the expected SN rate per unit mass, one then ahs to divide
+            #To compute the expected SN rate per unit mass, one then has to divide
             #by the 'burst total mass', which for a complex SFH (i.e. exponential)
             #corresponds to the integrated formed mass up to the age being assessed. 
             _sSNRm = _sSNR / self.int_formed_mass[i]
             
             #To compute the SN rate per unit of luminosity, one can simply take
             #the sSNR and divide by the L derived from the synthetic stellar pop.
-            L = 10.**(-0.4*(self.r_band[i] - 5.)) * u.Lsun
+            L = 10.**(-0.4 * (self.r_band[i] - 5.))
             _sSNRL = _sSNR / L
             
-            sSNR.append(_sSNR), sSNRm.append(_sSNRm), sSNRL.append(_sSNRL)
+            sSNR.append(_sSNR), sSNRm.append(_sSNRm), sSNRL.append(_sSNRL), self.L.append(L)
         
         #Convert output lists to arrays preserving the units. 
-        self.sSNR = np.array([rate.value for rate in sSNR]) * sSNR[0].unit
-        self.sSNRm = np.array([rate.value for rate in sSNRm]) * sSNRm[0].unit
-        self.sSNRL = np.array([rate.value for rate in sSNRL]) * sSNRL[0].unit
+        self.sSNR = np.array(sSNR)
+        self.sSNRm = np.array(sSNRm)
+        self.sSNRL = np.array(sSNRL)
 
     def make_model(self):
         self.get_synpop_data()
-        self.compute_DTD()
         self.compute_model_rates()
+
