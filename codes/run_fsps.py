@@ -49,9 +49,10 @@ class Make_FSPS(object):
           sfh=0, dust_type=0., tage=14.96)        
 
         if self.write_output:
-            fname = out_dir + 'SSP_2.dat'
+            fname = out_dir + 'SSP.dat'
             self.make_output(sp, fname)
 
+        #Make exponential models.
         for tau in self.tau_list:
 
             print 'Calculating exponential SFH models. Tau=' + str(tau) + ' Gyr.'
@@ -64,9 +65,26 @@ class Make_FSPS(object):
 
             #Write output files.
             if self.write_output:
-                fname = out_dir + 'exponential_tau-' + str(tau) + '_2.dat'
+                fname = out_dir + 'exponential_tau-' + str(tau) + '.dat'
                 self.make_output(sp, fname)       
-            
+
+        #Make exponential models.
+        for tau in self.tau_list:
+
+            print ('Calculating delayed exponential SFH models.'\
+                   + 'Tau=' + str(tau) + ' Gyr.')
+            #Call FSPS to compute synthetic stellar populations 
+            sp = fsps.StellarPopulation(
+              compute_vega_mags=False, zcontinuous=0, zmet=20,
+              add_agb_dust_model=False, add_dust_emission=False,
+              add_stellar_remnants=True, fbhb=0., pagb=0., zred=0., imf_type=1,
+              sfh=4, tau=tau, const=0., fburst=0., dust_type=0., tage=14.96)
+
+            #Write output files.
+            if self.write_output:
+                fname = out_dir + 'delayed-exponential_tau-' + str(tau) + '.dat'
+                self.make_output(sp, fname)       
+                        
         #Print additional relevant information regarding FSPS setup.
         print '\nSettings used were:'
         print '  -Isochrones: ' + sp.libraries[0]

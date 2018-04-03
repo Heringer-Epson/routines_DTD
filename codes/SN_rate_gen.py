@@ -8,12 +8,13 @@ from DTD_gen import make_DTD
 
 class Model_Rates(object):
     
-    def __init__(self, s1, s2, t_onset, t_break, tau):
+    def __init__(self, s1, s2, t_onset, t_break, sfh_type, tau):
 
         self.s1 = s1
         self.s2 = s2
         self.t_onset = t_onset
         self.t_break = t_break
+        self.sfh_type = sfh_type
         self.tau = tau
         
         self.age = None
@@ -21,6 +22,7 @@ class Model_Rates(object):
         self.int_formed_mass = None
         self.g_band = None
         self.r_band = None
+        self.L = None
         self.mass_formed = None
         self.RS_color = None
         self.Dcolor = None
@@ -48,7 +50,7 @@ class Model_Rates(object):
         
         #Get data for the complex SFH (i.e. exponential.)
         tau_suffix = str(self.tau.to(u.yr).value / 1.e9)
-        fpath = directory + 'exponential_tau-' + tau_suffix + '.dat'
+        fpath = directory + self.sfh_type + '_tau-' + tau_suffix + '.dat'
         logage, sfr, int_stellar_mass, int_formed_mass, g_band, r_band = np.loadtxt(
         fpath, delimiter=',', skiprows=1, usecols=(0,1,2,3,5,6), unpack=True)   
         
@@ -84,18 +86,17 @@ class Model_Rates(object):
             return func1(x - xprime) * func2(xprime)
         return out_func
 
-    #@profile
     def compute_model_rates(self):
         """
         """
-        sSNR, sSNRm, sSNRL, self.L = [], [], [], []
+        sSNR, sSNRm, sSNRL, L = [], [], [], []
 
         _t_ons = self.t_onset.to(u.yr).value
         _t_bre = self.t_break.to(u.yr).value
     
         self.DTD_func = make_DTD(self.s1, self.s2, self.t_onset, self.t_break)
-        self.sfr_func = self.compute_analytical_sfr(self.tau, self.age[-1])
-        #self.sfr_func = self.make_sfr_func(self.age.value, self.sfr)
+        #self.sfr_func = self.compute_analytical_sfr(self.tau, self.age[-1])
+        self.sfr_func = self.make_sfr_func(self.age.value, self.sfr)
         
         for i, t in enumerate(self.age.to(u.yr).value):
             
@@ -106,7 +107,10 @@ class Model_Rates(object):
             #Since the DTD is discontinuous at t_onset, on has to be careful
             #with the integration and do it piece-wise. Here, since the DTD is
             #zero prior to t_ons, we start the integration at t_ons.            
-            _sSNR = quad(self.conv_func, _t_ons, t)[0] 
+            if t >= t0:
+                _sSNR = quad(self.conv_func, _t_ons, t)[0]
+            else:
+                _sSNR = 0.
             
             #To compute the expected SN rate per unit mass, one then has to divide
             #by the 'burst total mass', which for a complex SFH (i.e. exponential)
@@ -115,17 +119,20 @@ class Model_Rates(object):
             
             #To compute the SN rate per unit of luminosity, one can simply take
             #the sSNR and divide by the L derived from the synthetic stellar pop.
-            L = 10.**(-0.4 * (self.r_band[i] - 5.))
-            _sSNRL = _sSNR / L
+            _L = 10.**(-0.4 * (self.r_band[i] - 5.))
+            _sSNRL = _sSNR / _L
             
-            sSNR.append(_sSNR), sSNRm.append(_sSNRm), sSNRL.append(_sSNRL), self.L.append(L)
+            sSNR.append(_sSNR), sSNRm.append(_sSNRm), sSNRL.append(_sSNRL), L.append(_L)
         
         #Convert output lists to arrays preserving the units. 
         self.sSNR = np.array(sSNR)
         self.sSNRm = np.array(sSNRm)
         self.sSNRL = np.array(sSNRL)
+        self.L = np.array(L)
 
     def make_model(self):
         self.get_synpop_data()
         self.compute_model_rates()
-
+        
+if __name__ == '__main__':
+    Model_Rates(-1., -2., 1.e8 * u.yr, 1.e9 * u.yr, 'exponential', 1.e9 * u.yr)

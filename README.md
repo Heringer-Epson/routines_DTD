@@ -48,5 +48,7 @@ INSTALLATION NOTES:
    at $SPS_HOME/src/sps_vars.f90 before make.
    #define MILES 1 #define BASEL 0 -> #define MILES 0 #define BASEL 1
 
-
+RUNNING NOTES:
+  -Running SN_rate_gen_tests.py with the profile decorator requires the
+   code to be executed as kernprof -l -v SN_rate_gen_tests.py
 
