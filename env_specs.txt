@@ -9,4 +9,5 @@ dependencies:
 - h5py=2.7.0
 - numexpr=2.6.2
 - pyyaml=3.12
+- line_profiler=2.0
 
