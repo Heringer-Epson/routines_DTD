@@ -270,7 +270,7 @@ class Make_Several(object):
         self.ax_k.set_ylabel(sSNRm_label, fontsize=self.fs)
         self.ax_k.yaxis.set_label_position('right')
         self.ax_k.yaxis.tick_right()
-        self.ax_k.set_ylim(-14., -11.5)
+        self.ax_k.set_ylim(-14., -10.5)
         self.ax_k.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_k.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax_k.yaxis.set_major_locator(MultipleLocator(1.))  
@@ -307,7 +307,7 @@ class Make_Several(object):
         self.ax_m.set_ylabel(sSNRm_label, fontsize=self.fs)
         self.ax_m.yaxis.set_label_position('right')
         self.ax_m.yaxis.tick_right()
-        self.ax_m.set_ylim(-14., -12.)
+        self.ax_m.set_ylim(-14., -11.)
         self.ax_m.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_m.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax_m.yaxis.set_major_locator(MultipleLocator(1.))  
@@ -372,6 +372,6 @@ if __name__ == '__main__':
                          show_fig=False, save_fig=True)     
             Make_Several(s1, s2, 1.e8 * u.yr, 1.e9 * u.yr, 'delayed-exponential',
                          show_fig=False, save_fig=True) 
-            
-    #Make_Several(-1., -1., 1.e8 * u.yr, 1.e9 * u.yr, 'delayed-exponential',
+    
+    #Make_Several(-3., -1., 1.e8 * u.yr, 1.e9 * u.yr, 'delayed-exponential',
     #             show_fig=True, save_fig=True) 
