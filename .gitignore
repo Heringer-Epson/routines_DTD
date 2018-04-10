@@ -1,3 +1,7 @@
 #Ignore most of the folders - to remain empty in the repository.
 ./codes/*.pyc
 ./codes/*.lprof
+./OUTPUT_FILES/FILES/*.csv
+./OUTPUT_FILES/FIGURES/delayed-exponential/*.pdf
+./OUTPUT_FILES/FIGURES/exponential/*.pdf
+

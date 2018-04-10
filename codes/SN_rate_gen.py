@@ -33,6 +33,7 @@ class Model_Rates(object):
 
         self.make_model()
 
+    #@profile
     def get_synpop_data(self):
         """Read output data from FSPS runs. Besides the file specified by
         in self.synpop_fpath, always read data from a SSP run so that colors
@@ -62,6 +63,7 @@ class Model_Rates(object):
         
         self.Dcolor = self.g_band - self.r_band - self.RS_color               
 
+    #@profile
     def compute_analytical_sfr(self, tau, upper_lim):
         _tau = tau.to(u.yr).value
         _upper_lim = upper_lim.to(u.yr).value
@@ -70,6 +72,7 @@ class Model_Rates(object):
             return norm * np.exp(-age / _tau)
         return sfr_func
 
+    #@profile
     def make_sfr_func(self, _t, _sfr):
         interp_func = interp1d(_t, _sfr)
         def sfr_func(age):
@@ -81,11 +84,13 @@ class Model_Rates(object):
                 return _sfr[-1]
         return np.vectorize(sfr_func)
 
+    #@profile
     def convolve_functions(self, func1, func2, x):
         def out_func(xprime):
             return func1(x - xprime) * func2(xprime)
         return out_func
 
+    #@profile
     def compute_model_rates(self):
         """
         """
@@ -102,12 +107,10 @@ class Model_Rates(object):
             
             t0 = self.age.to(u.yr).value[0]
             self.conv_func = self.convolve_functions(self.sfr_func, self.DTD_func, t)
-            #self.conv_func = self.convolve_functions(self.DTD_func, self.sfr_func, t)
-     
-            #Since the DTD is discontinuous at t_onset, on has to be careful
-            #with the integration and do it piece-wise. Here, since the DTD is
-            #zero prior to t_ons, we start the integration at t_ons.            
-            if t >= t0:
+          
+            #Here, since the DTD is zero prior to t_ons, we start the
+            #integration at t_ons.            
+            if t >= _t_ons:
                 _sSNR = quad(self.conv_func, _t_ons, t)[0]
             else:
                 _sSNR = 0.

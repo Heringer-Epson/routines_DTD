@@ -95,7 +95,7 @@ class Model_Rates(object):
             return func1(x - xprime) * func2(xprime)
         return out_func
 
-    @profile
+    #@profile
     def compute_model_rates_simple(self):
 
         sSNR = []
@@ -115,13 +115,16 @@ class Model_Rates(object):
             cond = ((ages >= _t_ons) & (ages <= t))
             tprime = ages[cond]
             t_minus_tprime = t - tprime
+            
             dt = np.append(np.array([0.]), np.diff(tprime))
             
             sfh = self.sfr_func(t_minus_tprime)
             DTD = self.DTD_func(tprime)
+
             
             _sSNR = np.multiply(sfh,DTD)
-            _sSNR = np.sum(np.multiply(_sSNR,dt))
+            _sSNR = np.multiply(_sSNR,dt)
+            _sSNR = np.sum(_sSNR)
 
             sSNR.append(_sSNR)
                 
@@ -129,7 +132,7 @@ class Model_Rates(object):
         self.sSNR = np.array(sSNR)
 
         
-    @profile
+    #@profile
     def compute_model_rates(self):
         """
         """
@@ -162,7 +165,7 @@ class Model_Rates(object):
         
         self.sSNR = np.array(sSNR)
 
-    @profile
+    #@profile
     def compute_model_rates_parts(self):
 
         sSNR = []
@@ -204,7 +207,7 @@ class Model_Rates(object):
         
         self.sSNR = np.array(sSNR)
 
-    @profile
+    #@profile
     def compute_model_rates_invconv(self):
 
         sSNR = []
@@ -285,7 +288,8 @@ class Plot_Test(object):
             
             x_10Gyr, y_10Gyr = [], []
         
-            for tau in [1., 1.5, 2., 3., 4., 5., 7., 10.]:
+            #for tau in [1., 1.5, 2., 3., 4., 5., 7., 10.]:
+            for tau in [10.]:
                 
                 fname = 'exponential_tau-' + str(tau) + '.dat'
                 
@@ -343,7 +347,6 @@ class Plot_Test(object):
             
                 self.ax.plot(np.log10(x), y, color='m', ls='-', lw=1.5)   
 
-
             self.ax.plot(np.nan, np.nan, color='r', ls='-', lw=1.5, label='Array multp. 1000 bins')
             self.ax.plot(np.nan, np.nan, color='b', ls='-', lw=1.5, label='Quad integrat.')
             self.ax.plot(np.nan, np.nan, color='g', ls='-', lw=1.5, label='Segmented integrat SFH(t-t`)xDTD(t`).')
@@ -369,4 +372,4 @@ class Plot_Test(object):
         self.show_figure()  
 
 if __name__ == '__main__':
-    Plot_Test(show_fig=True, save_fig=True)
+    Plot_Test(show_fig=True, save_fig=False)

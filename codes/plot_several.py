@@ -372,6 +372,6 @@ if __name__ == '__main__':
                          show_fig=False, save_fig=True)     
             Make_Several(s1, s2, 1.e8 * u.yr, 1.e9 * u.yr, 'delayed-exponential',
                          show_fig=False, save_fig=True) 
-    
-    #Make_Several(-3., -1., 1.e8 * u.yr, 1.e9 * u.yr, 'delayed-exponential',
-    #             show_fig=True, save_fig=True) 
+
+    #Make_Several(-1., -1., 1.e8 * u.yr, 1.e9 * u.yr, 'exponential',
+    #             show_fig=True, save_fig=False) 

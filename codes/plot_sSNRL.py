@@ -47,8 +47,11 @@ class Plot_sSNRL(object):
 
     def plot_models(self):
 
-        for s1, s2 in zip([-0.5, -0.5, -1., -1.25, -1., -1.],
-                          [-0.5, -1., -1., -1.25, -2., -3.]):
+        #for s1, s2 in zip([-0.5, -0.5, -1., -1.25, -1., -1.],
+        #                  [-0.5, -1., -1., -1.25, -2., -3.]):
+
+        for s1, s2 in zip([-1., -1., -3.],
+                          [-1., -2., -1.]):
 
         #for s1, s2 in zip([-1.], [-1.]):
             
@@ -76,7 +79,14 @@ class Plot_sSNRL(object):
             
                 x_10Gyr.append(x_marker), y_10Gyr.append(y_marker)
             
+            #Plot markers at 10Gyrs for each of the SFH.
             self.ax.plot(x_10Gyr, y_10Gyr, color='b', ls='--', lw=1.5, marker='s')
+            
+            #Add label text for each DTD.
+            label = str(s1) + '/' + str(s2)
+            self.ax.text(x_10Gyr[0] + 0.02, y_10Gyr[0] - 0.1, label, color='k',
+                         fontsize=self.fs)
+            
                   
     def save_figure(self, extension='pdf', dpi=360):        
         directory = './../OUTPUT_FILES/FIGURES/'
@@ -96,5 +106,5 @@ class Plot_sSNRL(object):
         self.show_figure()  
 
 if __name__ == '__main__':
-    Plot_sSNRL(sfh_type='delayed-exponential', show_fig=True, save_fig=False)
+    Plot_sSNRL(sfh_type='delayed-exponential', show_fig=True, save_fig=True)
  
