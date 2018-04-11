@@ -84,11 +84,10 @@ class Compute_Rates(object):
         #ln L.
         _N_expected = np.sum(SNR_ctrl)
         A = self.N_obs / _N_expected
-        _ln_L = - self.N_obs + np.sum(A * SNR_host)
+        _lambda = np.log(A * SNR_host)
+        _ln_L = - self.N_obs + np.sum(_lambda)
         
-        return _N_expected, _ln_L
-
-        
+        return _N_expected, _ln_L       
         
     #@profile
     def write_output(self):
@@ -102,7 +101,7 @@ class Compute_Rates(object):
         
         directory = './../OUTPUT_FILES/FILES/'
         fname = ('likelihood_' + str(t_onset.to(u.yr).value / 1.e9) + '_'\
-                 + str(t_break.to(u.yr).value / 1.e9) + '_' + self.sfh_type) + '.csv'
+                 + str(t_break.to(u.yr).value / 1.e9) + '_' + self.sfh_type + '.csv')
         
         #Set header information.
         W['0'] = '-------- General info --------'
@@ -122,8 +121,8 @@ class Compute_Rates(object):
                 out.write(W[str(i)] + '\n')
 
             #Compute rates and write outputs.
-            for s2 in np.arange(-3., 0.01, 0.1):
-                for s1 in np.arange(-3., 0.01, 0.1): 
+            for s2 in np.arange(-3., 0.01, 0.1)[::-1]:
+                for s1 in np.arange(-3., 0.01, 0.1)[::-1]: 
                     print str(format(s1, '.1f')), str(format(s2, '.1f'))
                     N_expected, ln_L = self.calculate_likelihood(s1, s2)
                     line = (str(format(s1, '.1f')) + ',' + str(format(s2, '.1f'))\
@@ -136,5 +135,5 @@ class Compute_Rates(object):
         self.write_output()
 
 if __name__ == '__main__':
-    Compute_Rates(sfh_type='exponential')
+    Compute_Rates(sfh_type='delayed-exponential')
  
