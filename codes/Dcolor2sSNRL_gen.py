@@ -7,13 +7,18 @@ from SN_rate_gen import Model_Rates
 
 class Generate_Curve(object):
     
-    def __init__(self, s1, s2, t_onset, t_break, sfh_type, tau_list):
+    def __init__(self, s1, s2, t_onset, t_break, filter_1, filter_2, imf_type,
+                 sfh_type, Z, tau_list):
 
         self.s1 = s1
         self.s2 = s2
         self.t_onset = t_onset
         self.t_break = t_break
+        self.filter_1 = filter_1
+        self.filter_2 = filter_2
+        self.imf_type = imf_type
         self.sfh_type = sfh_type
+        self.Z = Z
         self.tau_list = tau_list
         
         self.Dcolor_at10Gyr = []
@@ -28,8 +33,9 @@ class Generate_Curve(object):
     def get_values_at10Gyr(self):
         
         for tau in self.tau_list:
-            model = Model_Rates(self.s1, self.s2, self.t_onset, self.t_break,
-                                self.sfh_type, tau)
+            model = Model_Rates(
+              self.s1, self.s2, self.t_onset, self.t_break, self.filter_1,
+              self.filter_2, self.imf_type, self.sfh_type, self.Z, tau)
             
             age_cond = (model.age.to(u.yr).value == 1.e10)
             self.Dcolor_at10Gyr.append(model.Dcolor[age_cond][0])
@@ -43,8 +49,11 @@ class Generate_Curve(object):
     def get_Dcolor_max(self):
         
         if 1.e9 * u.yr in self.tau_list:
-            model = Model_Rates(self.s1, self.s2, self.t_onset, self.t_break,
-                                self.sfh_type, 1.e9 * u.yr)
+            model = Model_Rates(
+              self.s1, self.s2, self.t_onset, self.t_break,
+              self.filter_1, self.filter_2, self.imf_type, self.sfh_type,
+              self.Z, 1.e9 * u.yr)
+            
             age_cond = (model.age.to(u.yr).value == 1.e10)
             self.Dcolor_max = model.Dcolor[age_cond][0]
             self.log_sSNRL_max = np.log10(model.sSNRL[age_cond][0])
@@ -79,7 +88,6 @@ class Generate_Curve(object):
 if __name__ == '__main__':
     tau_list = [1., 1.5, 2., 3., 4., 5., 7., 10.]
     tau_list = [tau * 1.e9 * u.yr for tau in tau_list]
-    generator = Generate_Curve(-1., -2., 1.e8 * u.yr, 1.e9 * u.yr,
-                               'exponential', tau_list)
-    
-
+    generator = Generate_Curve(
+      -1., -2., 1.e8 * u.yr, 1.e9 * u.yr, 'sdss_r', 'sdss_g', 'Chabrier',
+      'exponential', 0.0190, tau_list)
