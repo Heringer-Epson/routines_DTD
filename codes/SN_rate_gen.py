@@ -8,20 +8,25 @@ from DTD_gen import make_DTD
 
 class Model_Rates(object):
     
-    def __init__(self, s1, s2, t_onset, t_break, sfh_type, tau):
+    def __init__(self, s1, s2, t_onset, t_break, filter_1, filter_2, imf_type,
+                 sfh_type, Z, tau):
 
         self.s1 = s1
         self.s2 = s2
         self.t_onset = t_onset
         self.t_break = t_break
+        self.filter_1 = filter_1
+        self.filter_2 = filter_2
+        self.imf_type = imf_type
         self.sfh_type = sfh_type
+        self.Z = Z
         self.tau = tau
         
         self.age = None
         self.int_stellar_mass = None
         self.int_formed_mass = None
-        self.g_band = None
-        self.r_band = None
+        self.mag_1 = None
+        self.mag_2 = None
         self.L = None
         self.mass_formed = None
         self.RS_color = None
@@ -43,7 +48,7 @@ class Model_Rates(object):
         #Get SSP data.
         fpath = directory + 'SSP.dat'
         logage_SSP, sdss_g_SSP, sdss_r_SSP = np.loadtxt(
-        fpath, delimiter=',', skiprows=1, usecols=(0,5,6), unpack=True)         
+        fpath, delimiter=',', skiprows=1, usecols=(0,4,5), unpack=True)         
 
         #Retrieve RS color.
         RS_condition = (logage_SSP == 10.0)
@@ -51,17 +56,24 @@ class Model_Rates(object):
         
         #Get data for the complex SFH (i.e. exponential.)
         tau_suffix = str(self.tau.to(u.yr).value / 1.e9)
-        fpath = directory + self.sfh_type + '_tau-' + tau_suffix + '.dat'
-        logage, sfr, int_stellar_mass, int_formed_mass, g_band, r_band = np.loadtxt(
-        fpath, delimiter=',', skiprows=1, usecols=(0,1,2,3,5,6), unpack=True)   
+
+        fname = (
+          self.sfh_type + '_' + self.imf_type + '_' + str(self.Z) + '_'\
+          + self.filter_2 + '-' + self.filter_1 + '_tau-'
+          + str(self.tau.to(u.yr).value / 1.e9) + '.dat')
+
+        fpath = directory + fname
+
+        logage, sfr, int_stellar_mass, int_formed_mass, mag_2, mag_1 = np.loadtxt(
+        fpath, delimiter=',', skiprows=1, usecols=(0,1,2,3,4,5), unpack=True)   
         
         self.age = 10.**logage * u.yr
         self.sfr = sfr
         self.int_formed_mass = int_formed_mass
-        self.g_band = g_band
-        self.r_band = r_band
+        self.mag_1 = mag_1
+        self.mag_2 = mag_2
         
-        self.Dcolor = self.g_band - self.r_band - self.RS_color               
+        self.Dcolor = self.mag_2 - self.mag_1 - self.RS_color               
 
     #@profile
     def compute_analytical_sfr(self, tau, upper_lim):
@@ -122,7 +134,7 @@ class Model_Rates(object):
             
             #To compute the SN rate per unit of luminosity, one can simply take
             #the sSNR and divide by the L derived from the synthetic stellar pop.
-            _L = 10.**(-0.4 * (self.r_band[i] - 5.))
+            _L = 10.**(-0.4 * (self.mag_1[i] - 5.))
             _sSNRL = _sSNR / _L
             
             sSNR.append(_sSNR), sSNRm.append(_sSNRm), sSNRL.append(_sSNRL), L.append(_L)
@@ -138,4 +150,5 @@ class Model_Rates(object):
         self.compute_model_rates()
         
 if __name__ == '__main__':
-    Model_Rates(-1., -2., 1.e8 * u.yr, 1.e9 * u.yr, 'exponential', 1.e9 * u.yr)
+    Model_Rates(-1., -2., 1.e8 * u.yr, 1.e9 * u.yr, 'sdss_r', 'sdss_g',
+                'Chabrier', 'exponential', 0.0190, 1.e9 * u.yr)
