@@ -22,8 +22,6 @@ class Make_FSPS(object):
     def __init__(self, _inputs):
         self._inputs = _inputs
 
-        print '\n\n>RUNNING FSPS... (requires fsps and python-fsps installed!)\n'
-
     def make_output(self, sp, fname):
         """Given a FSPS object (sp), write an output file."""
         directory = self._inputs.subdir_fullpath + 'fsps_FILES/'
@@ -41,6 +39,7 @@ class Make_FSPS(object):
           delimiter=',')          
 
     def run_fsps(self):
+        print '\n\n>RUNNING FSPS... (requires fsps and python-fsps installed)\n'
         sfh_key = sfh_type2sfh_key[self._inputs.sfh_type]
         imf_key = imf_type2imf_key[self._inputs.imf_type]
         Z_key = Z2Z_key[self._inputs.Z]
@@ -70,7 +69,7 @@ class Make_FSPS(object):
               sfh=sfh_key, tau=tau, const=0., fburst=0., dust_type=0., tage=14.96)
 
             #Write output files.
-            fname = (self._inputs.sfh_type + '_tau-' + str(tau) + '.dat')
+            fname = self._inputs.sfh_type + '_tau-' + str(tau) + '.dat'
             self.make_output(sp, fname)
 
         print '\nSettings used were:'
@@ -81,7 +80,7 @@ class Make_FSPS(object):
         warning_msg = (
           'Only a few options are available when fsps files are not created'\
           ' during this run. Inputs have been re-set to: filter_1 = sdss_r'\
-          ', filter_2 = sdss_g, imf_type=Chabrier, Z=0.0190 and'\
+          ', filter_2 = sdss_g, imf_type=Chabrier, Z=0.0190 and '\
           'tau_list=[1, 1.5, 2, 3, 4, 5, 7, 10] Gyr.')
         warnings.warn(warning_msg)
         self._inputs.filter_1 = 'sdss_r'

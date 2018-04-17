@@ -1,36 +1,47 @@
 #!/usr/bin/env python
 
 import os
-from run_fsps import Make_FSPS
-from compute_likelihood import Get_Likelihood
+import fsps
 
 from input_params import Input_Parameters as class_input
+from util_tasks import Utility_Routines
+from run_fsps import Make_FSPS
+from compute_likelihood import Get_Likelihood
+from plot_likelihood import Plot_Likelihood
+from plot_several import Make_Panels
         
 class Master(object):
-    """This code performs three tasks:
-    1) If run_fsps_flag is True:
-         make synthetic stellar population files by calling fsps.
-         --This option requires fsps and python-fsps to be installed.
-       Else:
-         Use pre-made stellar population files for the particular case where
-         filter_1='sdss_r', filter_2='sdss_g', imf_type='Chabrier' and Z=0.0190.
-         sfh_type may still be passed as 'exponential' or 'delayed-exponential'.
+    """
+    Code Description
+    ----------    
+    This is the main script to be used to make SN rate models and use them
+    to analyze SDSS data. The input parameters are set under input_params.py.
+
+    Parameters
+    ----------
+    run_fsps_flag : ~boolean
+        Flag to determine whether or not to compute new FSPS synthetic stellar
+        populations. REQUIRES FSPS AND PYTHON-FSPS TO BE INSTALLED.
+
+    likelihood_flag : ~boolean
+        Flag to determine whether or not to compute likelihoods for each of
+        the parametrized DTDs. If True, an intensity map of the likelihood is
+        also produced.
     
-    
-    2) Computes the likelihood of parametrized DTD for given dataset. This is
-       done through the compute_likelihood routine, which in turn calls the
-       following routines: Dcolor2sSNRL |-> SN_rate_gen |-> DTD_gen.
-    
-    
-    3) Generates Figures, which includes the likelihood probability space and
-       a useful collection of panels.
+    panels_flag : ~boolean
+        Flag to determine whether or not to produce several figures, each
+        containing panels showing the relationship between relevant quantities,
+        such as age, color, mass and SN rate. Each figure produced here adopts
+        a unique parametrization (combination of slopes) of the DTD.    
     """
     
-    def __init__(self, case, run_fsps_flag, likelihood_flag):
-
-        self.inputs = class_input(case=case)
+    def __init__(self, case=None, run_fsps_flag=False, likelihood_flag=False,
+                 panels_flag=False):
+        self.case = case
         self.run_fsps_flag = run_fsps_flag
         self.likelihood_flag = likelihood_flag
+        self.panels_flag = panels_flag
+        self.inputs = None
 
     def verbose(self):
         os.system('clear')
@@ -39,19 +50,35 @@ class Master(object):
         print 'COMPUTE LIKELIHOODS------->', self.likelihood_flag
         print '\n\n'
 
+    def list_filters(self):
+        os.system('clear')
+        print '\n\n****************** FSPS FILTERS *****************\n'  
+        print fsps.list_filters(), '\n\n'
+
     def run_master(self):
         self.verbose()
+        self.inputs = class_input(case=self.case)
+        Utility_Routines(self.inputs)
         
-        fsps_maker  = Make_FSPS(self.inputs)
+        fsps_maker = Make_FSPS(self.inputs)
         if self.run_fsps_flag:
             fsps_maker.run_fsps()
         else:
             fsps_maker.copy_premade_files()
 
-        if self.likelihood_flag:
-            Get_Likelihood(self.inputs)
+        if (self.likelihood_flag and self.inputs.filter_1 == 'sdss_r' and
+            self.inputs.filter_2 == 'sdss_g'):
+                Get_Likelihood(self.inputs)
+                Plot_Likelihood(self.inputs, show_fig=False, save_fig=True)
+        
+        if self.panels_flag:
+            for s2 in self.inputs.slopes[::5]:
+                for s1 in self.inputs.slopes[::5]:
+                    Make_Panels(self.inputs, s1, s2, show_fig=False,
+                                save_fig=True)
                     
 if __name__ == '__main__':
-    Master(case='SDSS_gr_default', run_fsps_flag=False,
-           likelihood_flag=False).run_master()
+    #Master().list_filters()
+    Master(case='SDSS_gr_example1', run_fsps_flag=False,
+           likelihood_flag=True, panels_flag=True).run_master()
 

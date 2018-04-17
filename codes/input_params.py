@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import warnings
 import fsps
 import numpy as np
 from astropy import units as u
@@ -18,11 +19,11 @@ class Input_Parameters(object):
     ----------
     filter_1 : ~str
         filter_1 and filter_2 determine the color to be used as
-        (filter_2 - filter_1). A list of filters is available via the
-        fsps.list_filters() command.
+        (filter_2 - filter_1). A list of available filters can be shown by
+        calling Master().list_filters() in the master.py script.
    
     filter_2 : ~str
-        See filter_1.
+        Same as above.
         
     imf_type : ~str
         Choice of initial mass function for the fsps simulations.
@@ -31,7 +32,7 @@ class Input_Parameters(object):
     sfh_type : ~str
         Choice of star formation history for the fsps simulations.
         Accepts: 'exponential' (sfh propto exp(-t/tau)) or
-                 'delayed-exponential' (sfh propto t*exp(-t/tau)).
+                 'delayed-exponential' (sfh propto t*exp(-t/tau).
         
     Z : ~float
         Choice of metallicity for the fsps simulations.
@@ -40,11 +41,11 @@ class Input_Parameters(object):
                 0.0061, 0.0077, 0.0096, 0.0120, 0.0150, 0.0190, 0.0250 or
                 0.0300.
     
-    t_onset : ~astropy float (units of yr)
+    t_onset : ~astropy float (unit of time)
         Sets the time past which SN may occur. Determined by the lifetime of
         stars that may contribute to the SN rate.
 
-    t_cutoff : ~astropy float (units of yr)
+    t_cutoff : ~astropy float (unit of time)
         Sets the time at which the slope of the DTD may change. Determined by
         theoretical models.        
 
@@ -58,6 +59,14 @@ class Input_Parameters(object):
         that the red sequence. Originally determined by the uncertainty in
         fitting the red sequence.
 
+    slopes : ~np.array
+        Numpy array containing which DTD slopes to use to compute likelihoods.
+        This package adopts the same array for slopes pre and post cutoff time.
+
+    tau_list : ~astropy array (unit of time)
+        List containing the tau timescales (in yr) for the selected SFH. e.g.:
+        tau_list = np.array([1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+
     crtl_fpath : ~str
         Path to the dataset file which contains the information regarding the
         galaxies in the control sample.
@@ -66,10 +75,9 @@ class Input_Parameters(object):
         Path to the dataset file which contains the information regarding the
         galaxies in the sample of hosts.
 
-    Output
-    -------
-    Creates a 'record' file in the top level of the directory where the
-    information from the run is stored. This file contains the used inputs.
+    subdir : ~str
+        Name of the sub-directory where the outputs will be stored. For
+        organization purposes only. 
     """
     def __init__(self, case):
 
@@ -85,6 +93,7 @@ class Input_Parameters(object):
         self.t_cutoff = None
         self.Dcolor_min = None
         self.Dcolor_max = None
+        self.slopes = None
         self.crtl_fpath = None
         self.host_fpath = None
         
@@ -92,14 +101,13 @@ class Input_Parameters(object):
         self.subdir_fullpath = None
 
         self.set_params()
-        self.initialize_outfolder()
-        self.make_record()
                 
     def set_params(self):
-                
-        if self.case == 'SDSS_gr_default':   
-            self.subdir = 'test/'  
-            #Uses the same data set as in paper I. ADD ref.
+                        
+        if self.case == 'SDSS_gr_example1':   
+            self.subdir = 'example1/'  
+            #Uses the same data set as in paper I.
+            #http://adsabs.harvard.edu/abs/2017ApJ...834...15H
 
             data_dir = './../INPUT_FILES/sample_paper-I/'
             self.ctrl_fpath = data_dir + 'spec_sample_data.csv'
@@ -114,40 +122,34 @@ class Input_Parameters(object):
             self.t_cutoff = 1.e9 * u.yr
             self.Dcolor_min = -0.4
             self.Dcolor_max = 0.08   
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
 
-            _tau_list = [1., 1.5, 2., 3., 4., 5., 7., 10.]
-            self.tau_list = [tau * 1.e9 * u.yr for tau in _tau_list]
+        elif self.case == 'SDSS_gr_example2':   
+            self.subdir = 'example2/'  
+            #Uses the same data set as in paper I.
+            #http://adsabs.harvard.edu/abs/2017ApJ...834...15H
+
+            data_dir = './../INPUT_FILES/sample_paper-I/'
+            self.ctrl_fpath = data_dir + 'spec_sample_data.csv'
+            self.host_fpath = data_dir + 'hosts_SDSS_spec.csv'
+
+            self.filter_1 = 'sdss_r'
+            self.filter_2 = 'sdss_g'
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'delayed-exponential'
+            self.Z = 0.0190
+            self.t_onset = 1.e8 * u.yr
+            self.t_cutoff = 1.e9 * u.yr
+            self.Dcolor_min = -0.4
+            self.Dcolor_max = 0.08   
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
 
         else:
             raise ValueError('Case "%s" is not defined.\n\n' %(self.case))            
 
-    def initialize_outfolder(self):
-        """Create the directory if it doesn't already exist and dd a copy of
-        this input file in that directory."""
-        self.subdir_fullpath = './../OUTPUT_FILES/RUNS/' + self.subdir
-        if not os.path.exists(self.subdir_fullpath):
-            os.makedirs(self.subdir_fullpath)
-        if not os.path.exists(self.subdir_fullpath + 'fsps_FILES/'):
-            os.makedirs(self.subdir_fullpath + 'fsps_FILES/')        
-        if not os.path.exists(self.subdir_fullpath + 'FIGURES/'):
-            os.makedirs(self.subdir_fullpath + 'FIGURES/')
-
-    def make_record(self):
-        fpath = self.subdir_fullpath + 'record.dat'
-        with open(fpath, 'w') as rec:
-            rec.write('run date: ' + time.strftime('%d/%m/%Y') + '\n')
-            rec.write('FSPS version: ' + str(fsps.__version__) + '\n\n')
-            rec.write('---Model params---\n')
-            rec.write('Colour: ' + self.filter_2 + '-' + self.filter_1 + '\n')
-            rec.write('IMF: ' + self.imf_type + '\n')
-            rec.write('SFH: ' + self.sfh_type + '\n')
-            rec.write('Metallicity: ' + str(self.Z) + '\n')
-            rec.write('t_onset: ' + str(format(self.t_onset.to(u.yr).value
-                       / 1.e9, '.2f')) + ' Gyr \n')
-            rec.write('t_cutoff: ' + str(format(self.t_cutoff.to(u.yr).value
-                       / 1.e9, '.2f')) + ' Gyr \n')
-            rec.write('Dcolor_min: ' + str(self.Dcolor_min) + ' \n')
-            rec.write('Dcolor_max: ' + str(self.Dcolor_max) + ' \n\n')
-            rec.write('---Dataset---\n')
-            rec.write('Control galaxies: ' + self.ctrl_fpath + ' \n')
-            rec.write('Host galaxies: ' + self.host_fpath)

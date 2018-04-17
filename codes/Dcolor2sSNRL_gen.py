@@ -7,19 +7,11 @@ from SN_rate_gen import Model_Rates
 
 class Generate_Curve(object):
     
-    def __init__(self, s1, s2, t_onset, t_break, filter_1, filter_2, imf_type,
-                 sfh_type, Z, tau_list):
+    def __init__(self, _inputs, _s1, _s2):
 
-        self.s1 = s1
-        self.s2 = s2
-        self.t_onset = t_onset
-        self.t_break = t_break
-        self.filter_1 = filter_1
-        self.filter_2 = filter_2
-        self.imf_type = imf_type
-        self.sfh_type = sfh_type
-        self.Z = Z
-        self.tau_list = tau_list
+        self._inputs = _inputs
+        self._s1 = _s1
+        self._s2 = _s2
         
         self.Dcolor_at10Gyr = []
         self.sSNRL_at10Gyr = []
@@ -32,10 +24,17 @@ class Generate_Curve(object):
     #@profile
     def get_values_at10Gyr(self):
         
-        for tau in self.tau_list:
+        for tau in self._inputs.tau_list:
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)
+            synpop_dir = self._inputs.subdir_fullpath + 'fsps_FILES/'
+            synpop_fname = self._inputs.sfh_type + '_tau-' + tau_suffix + '.dat'
+            
             model = Model_Rates(
-              self.s1, self.s2, self.t_onset, self.t_break, self.filter_1,
-              self.filter_2, self.imf_type, self.sfh_type, self.Z, tau)
+              self._s1, self._s2, self._inputs.t_onset,
+              self._inputs.t_cutoff, self._inputs.filter_1,
+              self._inputs.filter_2, self._inputs.imf_type,
+              self._inputs.sfh_type, self._inputs.Z,
+              synpop_dir, synpop_fname)
             
             age_cond = (model.age.to(u.yr).value == 1.e10)
             self.Dcolor_at10Gyr.append(model.Dcolor[age_cond][0])
@@ -47,12 +46,15 @@ class Generate_Curve(object):
 
     #@profile
     def get_Dcolor_max(self):
-        
-        if 1.e9 * u.yr in self.tau_list:
+        synpop_dir = self._inputs.subdir_fullpath + 'fsps_FILES/'
+        synpop_fname = self._inputs.sfh_type + '_tau-1.0.dat'
+    
+        if 1.e9 * u.yr in self._inputs.tau_list:
             model = Model_Rates(
-              self.s1, self.s2, self.t_onset, self.t_break,
-              self.filter_1, self.filter_2, self.imf_type, self.sfh_type,
-              self.Z, 1.e9 * u.yr)
+              self._s1, self._s2, self._inputs.t_onset, self._inputs.t_cutoff,
+              self._inputs.filter_1, self._inputs.filter_2,
+              self._inputs.imf_type, self._inputs.sfh_type,
+              self._inputs.Z, synpop_dir, synpop_fname)
             
             age_cond = (model.age.to(u.yr).value == 1.e10)
             self.Dcolor_max = model.Dcolor[age_cond][0]

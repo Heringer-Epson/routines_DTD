@@ -1,0 +1,145 @@
+\documentclass[manuscript]{aastex}
+
+\usepackage{amsmath} 
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{array}
+\usepackage{hyperref}
+
+\newcommand\Tstrut{\rule{0pt}{2.6ex}}       % "top" strut 
+\newcommand\Bstrut{\rule[-0.9ex]{0pt}{0pt}} % "bottom" strut
+\newcommand{\TBstrut}{\Tstrut\Bstrut} % top&bottom struts
+\newcommand{\vdag}{(v)^\dagger}
+\newcommand{\myemail}{heringer@astro.utoronto.ca}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\begin{document}
+
+\section{Introduction note}
+\label{sec:intro}
+
+This purpose of this package is to make publicly available the supernova (SN) rate models used in \citet{Heringer2017_DTD} to compute the likelihood of parametrized delay time distributions (DTD) and assess the most likely DTD for a sample of galaxies and hosts surveyed by SDSS in the Stripe 82 region. Pertinent references are available in the original publication.
+
+\section{Installation requirements}
+\label{sec:requirements}
+
+It is suggested that a conda environment is created containing the packages specified under \textbf{env\_specs.txt} (located at the top level of this repository). This package has only been tested under Ubuntu 17.10.
+
+The codes here may be used as standalone routines, but they
+may depend on data produced by FSPS (v3.0) computed through the Python-FSPS package. A few test cases have been uploaded to this repository so that the user may bypass the installation of these packages.
+
+If the user wishes to explore models which include
+star formation histories (SFH) or filters different than provided in the test case, the installation of both FSPS and Python-FSPS will be required. Note that for the user to be able to create new FSPS files, an older version (6.4.0) of the gfortran compiler will also be required, since the default version (7.2.0) conflicts with Python-FSPS. Installing gfortran 6 can be done via: \textbf{sudo apt-get install gfortran-6}. Then it is necessary to change the compiler set to run FSPS in the \textbf{\$SPS\_HOME/src/Makefile} so that \textbf{F90 = gfortran $->$ F90 = gfortran-6}.
+
+A few notes on the installation of FSPS and Python-FSPS are given in \S \ref{sec:optional}.
+
+\section{Producing SN rate models}
+\label{sec:usage}
+
+The routines available here can be called through by running \texttt{python master.py}. The relevant input parameters are set in the \texttt{input\_params.py} file.
+
+The default flags in \texttt{master.py} and the default parameters in 
+\texttt{input\_params.py} should allow for the master code to run even if the FSPS and Python-FSPS packages are not installed.
+
+Note that at this moment, likelihoods calculations (which depend on the observational data) are only available if the selected filters are \texttt{filter\_1 = ``sdss\_r''} and \texttt{filter\_2 = ``sdss\_g''}. If FSPS and Python-FSPS are installed, the user may still build SN rate models for other colors.
+
+\subsection{input\_params.py}
+\label{subsec:input}
+
+This file stores the input parameters that are used by the \texttt{master.py} script. Specific combinations of parameters are stored as \texttt{cases}.
+
+\begin{itemize}
+\item filter\_1 (str): Filter\_1 and filter\_2 determine the color to be used as (filter\_2 - filter\_1). A list of available filters can be shown by calling Master().list\_filters() in the \texttt{master.py} script.
+\item filter\_2 (str): Same as above.
+\item imf\_type (str): Choice of initial mass function for the FSPS simulations. Accepts: \texttt{Salpeter}, \texttt{Chabrier} or \texttt{Kroupa}.
+\item sfh\_type (str): Choice of star formation history for the FSPS simulations. Accepts: \texttt{exponential} (SFR $\propto e^{-t/\tau}$) or \texttt{delayed-exponential} (SFR $\propto t\times e^{-t/\tau}$).
+\item Z (float): Choice of metallicity for the FSPS simulations. Accepts 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0008, 0.0010, 0.0012, 0.0016, 0.0020, 0.0025, 0.0031, 0.0039, 0.0049, 0.0061, 0.0077, 0.0096, 0.0120, 0.0150, 0.0190, 0.0250 or 0.0300.
+\item t\_onset (astropy float (unit of time)): Sets the time past which SN may occur. Determined by the lifetime of stars that may contribute to the SN rate.
+\item t\_cutoff (astropy float (unit of time)): Sets the time at which the slope of the DTD may change. Determined by theoretical models.
+\item Dcolor\_min (float): Sets the lower Dcolor (color with respect to the red sequence) limit, below which galaxies are not taken into account. Set by the typical Dcolor at which different SFH may not converge in the sSNRL models.
+\item Dcolor\_max (float): Dcolor cut to explode (a few) potential outliers that are much redder that the red sequence. Originally determined by the uncertainty in fitting the red sequence.
+\item slopes (np.array): Numpy array containing which DTD slopes to use to compute likelihoods. This package adopts the same array for slopes pre and post cutoff time.
+\item tau\_list (astropy array (unit of time)): List containing the tau timescales for the selected SFH. E.g.: tau\_list = np.array([1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+\item subdir (str): Name of the sub-directory where the outputs will be stored. For organization purposes only. Refereed henceforth as \texttt{\$subdir}.
+\end{itemize}
+
+Note that a side routine (\texttt{util\_tasks.py}) will create a LOG containing the input parameters for that run at:
+
+\texttt{\$INSTALLATION\_DIR/OUTPUT\_FILES/RUNS/\$subdir/record.dat}
+
+\subsection{master.py}
+\label{subsec:master}
+
+This code will call three routines to be executed:
+
+1) Make\_FSPS: controlled by \texttt{run\_fsps\_flag}.
+
+\begin{itemize}
+\item True: New FSPS files will be computed according to the parameters in \texttt{input\_params.py}. REQUIRES FSPS AND PYTHON-FSPS TO BE INSTALLED.
+\item False: Pre-made FSPS files will be used, but this option is only available for the combination of \texttt{filter\_1 = sdss\_r, filter\_2 = sdss\_g, imf\_type=Chabrier, Z=0.0190 and tau\_list=[1, 1.5, 2, 3, 4, 5, 7, 10] Gyr}. A warning will be issued and these variables will be reset to these values. \texttt{sfh\_type} may be \texttt{exponential} or \texttt{delayed-exponential}.
+\end{itemize}
+
+The synthetic stellar population files are stored at:
+
+\texttt{\$INSTALLATION\_DIR/OUTPUT\_FILES/RUNS/\$subdir/fsps\_FILES/}
+
+2) Get\_Likelihood and Plot\_Likelihood: controlled by \texttt{likelihood\_flag}.
+
+\begin{itemize}
+\item True: the routine will use the computed models and observed data to compute the likelihood of a set of DTD slopes. These likelihoods will then be plot as intensity as a function of the DTD slope pre and post cutoff. REQUIRES \texttt{filter\_1 = sdss\_r, filter\_2 = sdss\_g}. This may take several minutes.
+\item False: these tasks will simply be skipped.
+\end{itemize}
+
+The computed likelihoods are stored at: 
+
+\texttt{\$INSTALLATION\_DIR/OUTPUT\_FILES/RUNS/\$subdir/likelihood.csv}
+
+3)Make\_Panels: controlled by \texttt{panels\_flag}.
+
+\begin{itemize}
+\item True: the routine will create several plots with panels showing the relationship between multiple relevant variables, such as age, color, mass formed and SN rates.
+\item False: this task will simply be skipped.
+\end{itemize}
+
+The produced plots are stored at: 
+
+\texttt{\$INSTALLATION\_DIR/OUTPUT\_FILES/RUNS/\$subdir/FIGURES/PANELS/}
+
+\section{Optional: installing FSPS and Python-FSPS}
+\label{sec:optional}
+
+\subsection{FSPS}
+\label{subsec:fsps}
+
+Source code available at \href{https://github.com/cconroy20/fsps}{https://github.com/cconroy20/fsps}. Pertinent references are \citet{Conroy2009_fspsI} and \citet{Conroy2010_fspsII}.
+      
+Installation requires setting the \texttt{SPS\_HOME} variable at the
+bash file. e.g.: \texttt{export SPS\_HOME=``...''}
+
+Note 1) For Python-FSPS to compile, it might be necessary to change the following at \texttt{\$SPS\_HOME/src/Makefile}:
+\texttt{F90FLAGS = -O -cpp $->$ F90FLAGS = -O -cpp -fPIC}
+
+Note 2) The models computed in \citet{Heringer2017_DTD} adopted the \textit{BaSeL} spectral library, which needs to be changed at \texttt{\$SPS\_HOME/src/sps\_vars.f90}:
+\texttt{define MILES 1}
+\texttt{define BASEL 0}
+$->$
+\texttt{define MILES 0}
+\texttt{define BASEL 1}
+
+Finally, type \texttt{make} at the \texttt{\$SPS\_HOME/src} directory.
+
+\subsection{Python-FSPS}
+\label{subsec:Python-fsps}
+
+Source code available at \href{https://github.com/dfm/python-fsps}{https://github.com/dfm/python-fsps}.
+
+In the main directory, type \texttt{python setup.py install}.
+
+\bibliographystyle{apj}
+\bibliography{biblio}
+
+\end{document}
+
+
+
+

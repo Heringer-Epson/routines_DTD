@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -14,18 +16,15 @@ markers = ['^', 'o', 's']
 dashes = [(None,None), (4,4), (1,5), (4,2,1,2), (5,2,20,2)]
 colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00']
 
-class Make_Several(object):
+class Make_Panels(object):
     
-    def __init__(self, s1, s2, t_onset, t_break, sfh_type, show_fig=True,
-                 save_fig=False):
+    def __init__(self, _inputs, _s1, _s2, show_fig=True, save_fig=False):
         """Makes a figure where a set of DTDs is plotted as a function of age.
         """
 
-        self.s1 = s1
-        self.s2 = s2
-        self.t_onset = t_onset
-        self.t_break = t_break
-        self.sfh_type = sfh_type
+        self._inputs = _inputs
+        self._s1 = _s1
+        self._s2 = _s2
         
         self.show_fig = show_fig
         self.save_fig = save_fig 
@@ -47,22 +46,42 @@ class Make_Several(object):
         self.M = {}  
         self.fs = 20.
         self.marker_cond = None
+        self._taus = None
+        self.outdir = None
         
         self.make_plot()
 
+    def make_output_folder(self):
+        self.outdir = self._inputs.subdir_fullpath + 'FIGURES/PANELS/'
+        if not os.path.exists(self.outdir):
+            os.makedirs(self.outdir)
+
+    def select_taus_to_plot(self):
+        """Select a few of the SFH timescales to be plotted."""        
+        
+        try:
+            self._taus = np.array([self._inputs.tau_list[k].to(u.yr).value for k in
+                                  [0,2,5,6,7]]) * u.yr 
+        except:
+            warning_msg = (
+              'The SFH timescales that will be plotted under "plot_several"'\
+              + 'have been redefined to [1, 2, 5, 7, 10] Gyr.')
+            warnings.warn(warning_msg)
+            self._taus = np.array([1., 2., 5., 7., 10.]) * 1.e9 * u.yr
+
     def set_fig_frame(self):
 
-        if self.sfh_type == 'exponential':
+        if self._inputs.sfh_type == 'exponential':
             sfh_str = 'e^{-t/ \\tau}'
-        elif self.sfh_type == 'delayed-exponential':
+        elif self._inputs.sfh_type == 'delayed-exponential':
             sfh_str = 't\\times e^{-t/ \\tau}'
         
         title = (
-          r'$(s_1,s_2,t_{\rm{WD}},t_{\rm{c}},\rm{sfh_{type}})=(' + str(self.s1)\
-          + ',' + str(self.s2) + ',' + str(self.t_onset.to(u.yr).value / 1.e9)\
-          + ',' + str(self.t_break.to(u.yr).value / 1.e9) + ',' + sfh_str + ')$')   
+          r'$(s_1,s_2,t_{\rm{WD}},t_{\rm{c}},\rm{sfh_{type}})=(' + str(self._s1)\
+          + ',' + str(self._s2) + ',' + str(self._inputs.t_onset.to(u.yr).value\
+          / 1.e9) + ',' + str(self._inputs.t_cutoff.to(u.yr).value / 1.e9)
+          + ',' + sfh_str + ')$')   
 
-         
         self.FIG.suptitle(title, fontsize=self.fs, fontweight='bold')
         
         age_label = r'$\rm{log}\ t\ \rm{[yr]}$'
@@ -91,19 +110,25 @@ class Make_Several(object):
         
         self.ax_b.legend(frameon=False, fontsize=self.fs, numpoints=1, ncol=1,
                          loc=4)  
-
             
     def collect_data(self):
-        for tau in tau_list:
-            fname = self.sfh_type + '_tau-' + str(tau) + '.dat'
-            self.M['model' + str(tau)] = Model_Rates(
-              self.s1, self.s2, self.t_onset, self.t_break, self.sfh_type,
-              tau * 1.e9 * u.yr)
+        for tau in self._taus:
+
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)
+            synpop_dir = self._inputs.subdir_fullpath + 'fsps_FILES/'
+            synpop_fname = self._inputs.sfh_type + '_tau-' + tau_suffix + '.dat'
+
+            self.M['model' + tau_suffix] = Model_Rates(
+              self._s1, self._s2, self._inputs.t_onset,
+              self._inputs.t_cutoff, self._inputs.filter_1,
+              self._inputs.filter_2, self._inputs.imf_type,
+              self._inputs.sfh_type, self._inputs.Z,
+              synpop_dir, synpop_fname)
         
         #Collect the boolean array of where the array ages from fsps matches
         #the require ages where markers should be placed. Since all the fsps
         #are consistent for different simulations, any simulation will suffice.
-        _age = self.M['model' + str(tau)].age.to(u.yr).value
+        _age = self.M['model' + tau_suffix].age.to(u.yr).value
         self.marker_cond = np.in1d(_age,np.array(marker_ages))
             
     def plot_age_Dcolor(self):
@@ -128,11 +153,11 @@ class Make_Several(object):
         self.ax_b.tick_params('both', length=4, width=1., which='minor')
         self.ax_b.tick_params(labelbottom='off') 
         
-        for i, tau in enumerate(tau_list):
-            label = r'$\tau =' + str(tau) + '\ \mathrm{Gyr}$'
-            age = np.log10(self.M['model' + str(tau)].age.to(u.yr).value)
-
-            Dcolor = self.M['model' + str(tau)].Dcolor
+        for i, tau in enumerate(self._taus):
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)            
+            label = r'$\tau =' + tau_suffix + '\ \mathrm{Gyr}$'
+            age = np.log10(self.M['model' + tau_suffix].age.to(u.yr).value)
+            Dcolor = self.M['model' + tau_suffix].Dcolor
 
             self.ax_a.plot(age, Dcolor, lw=3., marker='None', color=colors[i],
                            dashes=dashes[i], label=label)
@@ -141,8 +166,8 @@ class Make_Several(object):
 
             for j, (x, y) in enumerate(zip(
               Dcolor[self.marker_cond], age[self.marker_cond])):
-                self.ax_b.plot(x, y, ls='None', marker=markers[j], fillstyle='none',
-                markersize=10., color=colors[i])        
+                self.ax_b.plot(x, y, ls='None', marker=markers[j],
+                fillstyle='none', markersize=10., color=colors[i])        
         
         self.ax_a.legend(frameon=False, fontsize=self.fs, numpoints=1, ncol=1,
                          loc=2)        
@@ -168,10 +193,11 @@ class Make_Several(object):
         self.ax_d.tick_params('both', length=4, width=1., which='minor')
         self.ax_d.tick_params(labelbottom='off') 
         
-        for i, tau in enumerate(tau_list):
-            age = np.log10(self.M['model' + str(tau)].age.to(u.yr).value)
-            Dcolor = self.M['model' + str(tau)].Dcolor
-            mass = self.M['model' + str(tau)].int_formed_mass
+        for i, tau in enumerate(self._taus):
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)            
+            age = np.log10(self.M['model' + tau_suffix].age.to(u.yr).value)
+            Dcolor = self.M['model' + tau_suffix].Dcolor
+            mass = self.M['model' + tau_suffix].int_formed_mass
             
             self.ax_c.plot(age, mass, lw=3., marker='None', color=colors[i],
                            dashes=dashes[i])
@@ -204,10 +230,11 @@ class Make_Several(object):
         self.ax_f.tick_params('both', length=4, width=1., which='minor')
         self.ax_f.tick_params(labelbottom='off') 
         
-        for i, tau in enumerate(tau_list):
-            age = np.log10(self.M['model' + str(tau)].age.to(u.yr).value)
-            Dcolor = self.M['model' + str(tau)].Dcolor
-            lum = self.M['model' + str(tau)].L
+        for i, tau in enumerate(self._taus):
+            tau_suffix = str(tau.to(u.yr).value / 1.e9) 
+            age = np.log10(self.M['model' + tau_suffix].age.to(u.yr).value)
+            Dcolor = self.M['model' + tau_suffix].Dcolor
+            lum = self.M['model' + tau_suffix].L
                         
             self.ax_e.plot(age, lum, lw=3., marker='None', color=colors[i],
                            dashes=dashes[i])
@@ -216,8 +243,8 @@ class Make_Several(object):
 
             for j, (x, y) in enumerate(zip(
               Dcolor[self.marker_cond], lum[self.marker_cond])):
-                self.ax_f.plot(x, y, ls='None', marker=markers[j], fillstyle='none',
-                markersize=10., color=colors[i]) 
+                self.ax_f.plot(x, y, ls='None', marker=markers[j],
+                fillstyle='none', markersize=10., color=colors[i]) 
 
     def plot_sSNR(self):
 
@@ -240,10 +267,11 @@ class Make_Several(object):
         self.ax_h.tick_params('both', length=4, width=1., which='minor')
         self.ax_h.tick_params(labelbottom='off') 
         
-        for i, tau in enumerate(tau_list):
-            age = np.log10(self.M['model' + str(tau)].age.to(u.yr).value)
-            Dcolor = self.M['model' + str(tau)].Dcolor
-            sSNR = self.M['model' + str(tau)].sSNR
+        for i, tau in enumerate(self._taus):
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)           
+            age = np.log10(self.M['model' + tau_suffix].age.to(u.yr).value)
+            Dcolor = self.M['model' + tau_suffix].Dcolor
+            sSNR = self.M['model' + tau_suffix].sSNR
             sSNR[sSNR <= 0.] = 1.e-40
             sSNR = np.log10(sSNR)
                                     
@@ -278,10 +306,11 @@ class Make_Several(object):
         self.ax_k.tick_params('both', length=4, width=1., which='minor')
         self.ax_k.tick_params(labelbottom='off') 
         
-        for i, tau in enumerate(tau_list):
-            age = np.log10(self.M['model' + str(tau)].age.to(u.yr).value)
-            Dcolor = self.M['model' + str(tau)].Dcolor
-            sSNRm = self.M['model' + str(tau)].sSNRm
+        for i, tau in enumerate(self._taus):
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)      
+            age = np.log10(self.M['model' + tau_suffix].age.to(u.yr).value)
+            Dcolor = self.M['model' + tau_suffix].Dcolor
+            sSNRm = self.M['model' + tau_suffix].sSNRm
             sSNRm[sSNRm <= 0.] = 1.e-40
             sSNRm = np.log10(sSNRm)
                                     
@@ -314,10 +343,11 @@ class Make_Several(object):
         self.ax_m.tick_params('both', length=8, width=1., which='major')
         self.ax_m.tick_params('both', length=4, width=1., which='minor')
         
-        for i, tau in enumerate(tau_list):
-            age = np.log10(self.M['model' + str(tau)].age.to(u.yr).value)
-            Dcolor = self.M['model' + str(tau)].Dcolor
-            sSNRL = self.M['model' + str(tau)].sSNRL
+        for i, tau in enumerate(self._taus):
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)          
+            age = np.log10(self.M['model' + tau_suffix].age.to(u.yr).value)
+            Dcolor = self.M['model' + tau_suffix].Dcolor
+            sSNRL = self.M['model' + tau_suffix].sSNRL
             sSNRL[sSNRL <= 0.] = 1.e-40
             sSNRL = np.log10(sSNRL)
                                     
@@ -332,20 +362,21 @@ class Make_Several(object):
                 markersize=10., color=colors[i])     
     
     def save_figure(self, extension='pdf', dpi=360):        
-        directory = './../OUTPUT_FILES/FIGURES/' + self.sfh_type + '/'
-        fname = (
-          'Fig_' + self.sfh_type + '_' + str(self.s1) + '_' + str(self.s2) + '_'\
-          + str(self.t_onset.to(u.yr).value / 1.e9) + '_'\
-          + str(self.t_break.to(u.yr).value / 1.e9) + '.')
+        fname = ('Fig_' + self._inputs.sfh_type + '_' + str(self._s1) + '_'\
+        + str(self._s2) + '_' + str(self._inputs.t_onset.to(u.yr).value/ 1.e9)\
+        + '_' + str(self._inputs.t_cutoff.to(u.yr).value / 1.e9) + '.')
         
         if self.save_fig:
-            plt.savefig(directory + fname + extension, format=extension, dpi=dpi)
+            plt.savefig(self.outdir + fname + extension,
+                        format=extension, dpi=dpi)
         
     def show_figure(self):
         if self.show_fig:
             plt.show()
                 
     def make_plot(self):
+        self.make_output_folder()
+        self.select_taus_to_plot()
         self.set_fig_frame()
         self.collect_data()
         self.plot_age_Dcolor()
@@ -359,19 +390,5 @@ class Make_Several(object):
         self.FIG.subplots_adjust(top=0.95)
         self.save_figure()
         self.show_figure()
-        plt.close(self.FIG) 
+        plt.close(self.FIG)
 
-if __name__ == '__main__':
-
-    slope_list = np.arange(-3., 0.01, 0.2)
-    for s2 in slope_list:
-        for s1 in slope_list:
-            s1, s2 = float(format(s1, '.1f')), float(format(s2, '.1f'))
-            print str(s1) + '/' + str(s2)
-            Make_Several(s1, s2, 1.e8 * u.yr, 1.e9 * u.yr, 'exponential',
-                         show_fig=False, save_fig=True)     
-            Make_Several(s1, s2, 1.e8 * u.yr, 1.e9 * u.yr, 'delayed-exponential',
-                         show_fig=False, save_fig=True) 
-
-    #Make_Several(-1., -1., 1.e8 * u.yr, 1.e9 * u.yr, 'exponential',
-    #             show_fig=True, save_fig=False) 
