@@ -9,7 +9,7 @@ from DTD_gen import make_DTD
 class Model_Rates(object):
     
     def __init__(self, s1, s2, t_onset, t_break, filter_1, filter_2, imf_type,
-                 sfh_type, Z, tau):
+                 sfh_type, Z, synpop_dir, synpop_fname):
 
         self.s1 = s1
         self.s2 = s2
@@ -20,7 +20,8 @@ class Model_Rates(object):
         self.imf_type = imf_type
         self.sfh_type = sfh_type
         self.Z = Z
-        self.tau = tau
+        self.synpop_dir = synpop_dir
+        self.synpop_fname = synpop_fname
         
         self.age = None
         self.int_stellar_mass = None
@@ -44,9 +45,8 @@ class Model_Rates(object):
         in self.synpop_fpath, always read data from a SSP run so that colors
         can be computed with respect to the red sequence. 
         """
-        directory = './../INPUT_FILES/STELLAR_POP/'
         #Get SSP data.
-        fpath = directory + 'SSP.dat'
+        fpath = self.synpop_dir + 'SSP.dat'
         logage_SSP, sdss_g_SSP, sdss_r_SSP = np.loadtxt(
         fpath, delimiter=',', skiprows=1, usecols=(0,4,5), unpack=True)         
 
@@ -55,15 +55,7 @@ class Model_Rates(object):
         self.RS_color = sdss_g_SSP[RS_condition] - sdss_r_SSP[RS_condition]
         
         #Get data for the complex SFH (i.e. exponential.)
-        tau_suffix = str(self.tau.to(u.yr).value / 1.e9)
-
-        fname = (
-          self.sfh_type + '_' + self.imf_type + '_' + str(self.Z) + '_'\
-          + self.filter_2 + '-' + self.filter_1 + '_tau-'
-          + str(self.tau.to(u.yr).value / 1.e9) + '.dat')
-
-        fpath = directory + fname
-
+        fpath = self.synpop_dir + self.synpop_fname
         logage, sfr, int_stellar_mass, int_formed_mass, mag_2, mag_1 = np.loadtxt(
         fpath, delimiter=',', skiprows=1, usecols=(0,1,2,3,4,5), unpack=True)   
         
@@ -74,15 +66,6 @@ class Model_Rates(object):
         self.mag_2 = mag_2
         
         self.Dcolor = self.mag_2 - self.mag_1 - self.RS_color               
-
-    #@profile
-    def compute_analytical_sfr(self, tau, upper_lim):
-        _tau = tau.to(u.yr).value
-        _upper_lim = upper_lim.to(u.yr).value
-        norm = 1. / (_tau * (1. - np.exp(-_upper_lim / _tau)))
-        def sfr_func(age):
-            return norm * np.exp(-age / _tau)
-        return sfr_func
 
     #@profile
     def make_sfr_func(self, _t, _sfr):
@@ -112,7 +95,6 @@ class Model_Rates(object):
         _t_bre = self.t_break.to(u.yr).value
     
         self.DTD_func = make_DTD(self.s1, self.s2, self.t_onset, self.t_break)
-        #self.sfr_func = self.compute_analytical_sfr(self.tau, self.age[-1])
         self.sfr_func = self.make_sfr_func(self.age.value, self.sfr)
         
         for i, t in enumerate(self.age.to(u.yr).value):
