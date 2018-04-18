@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import fsps
-
 from input_params import Input_Parameters as class_input
 from util_tasks import Utility_Routines
 from run_fsps import Make_FSPS
@@ -51,11 +49,6 @@ class Master(object):
         print 'GENERATE MODEL FIGURES------->', self.panels_flag
         print '\n\n'
 
-    def list_filters(self):
-        os.system('clear')
-        print '\n\n****************** FSPS FILTERS *****************\n'  
-        print fsps.list_filters(), '\n\n'
-
     def run_master(self):
         self.verbose()
         self.inputs = class_input(case=self.case)
@@ -83,7 +76,6 @@ class Master(object):
                                 save_fig=True)
                     
 if __name__ == '__main__':
-    #Master().list_filters()
     Master(case='SDSS_gr_example1', run_fsps_flag=False,
            likelihood_flag=True, panels_flag=True).run_master()
 

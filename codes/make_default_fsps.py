@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+import time
 import fsps
 import numpy as np
 from astropy import units as u
 
+directory = './../INPUT_FILES/STELLAR_POP/'
 sfh_type2sfh_key = {'exponential': 1, 'delayed-exponential': 4}
 imf_type2imf_key = {'Salpeter': 0, 'Chabrier': 1, 'Kroupa': 2}
 Z2Z_key = {0.0002: 1, 0.0003: 2, 0.0004: 3, 0.0005: 4, 0.0006: 5, 0.0008: 6,
@@ -30,7 +32,6 @@ class Make_FSPS(object):
         
     def make_output(self, sp, fname):
         """Given a FSPS object (sp), write an output file."""
-        directory = './../INPUT_FILES/STELLAR_POP/'
         header = ('log_age,instantaneous_sfr,integrated_stellar_mass,'\
                   + 'integrated_formed_mass,' + self.filter_2 + ','\
                   + self.filter_1)
@@ -79,12 +80,13 @@ class Make_FSPS(object):
                 #Write output files.
                 fname = _sfh_type + '_tau-' + str(tau) + '.dat'
                 self.make_output(sp, fname)            
-            
-        #Print additional relevant information regarding FSPS setup.
-        print '\nSettings used were:'
-        print '  -Isochrones: ' + sp.libraries[0]
-        print '  -Spectral library: ' + sp.libraries[1] + '\n\n'
 
+        #Make record file.
+        with open(directory + 'fsps_info.txt', 'w') as out:
+            out.write('Files created on: ' + time.strftime('%d/%m/%Y') + '\n')
+            out.write('FSPS version: ' + str(fsps.__version__) + '\n')
+            out.write('Isochrones: ' + sp.libraries[0] + '\n')
+            out.write('Spectral library: ' + sp.libraries[1])
+        
 if __name__ == '__main__':
     Make_FSPS()
-
