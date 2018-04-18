@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import warnings
-import fsps
 import numpy as np
 from astropy import units as u
 
@@ -20,7 +19,7 @@ class Input_Parameters(object):
     filter_1 : ~str
         filter_1 and filter_2 determine the color to be used as
         (filter_2 - filter_1). A list of available filters can be shown by
-        calling Master().list_filters() in the master.py script.
+        calling fsps.list_filters() under run_fsps.py.
    
     filter_2 : ~str
         Same as above.

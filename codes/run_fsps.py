@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import os
+import time
 import warnings
-import fsps
 import numpy as np
 from astropy import units as u
 from shutil import copyfile
@@ -17,8 +17,7 @@ Z2Z_key = {0.0002: 1, 0.0003: 2, 0.0004: 3, 0.0005: 4, 0.0006: 5, 0.0008: 6,
 class Make_FSPS(object):
     """Imports PythonFSPS (which makes use of FSPS v3.0) to compute a series
     synthetic stellar population and creates output files containing the
-    relevant magnitudes, ages and masses.
-    """
+    relevant magnitudes, ages and masses."""
     def __init__(self, _inputs):
         self._inputs = _inputs
 
@@ -40,6 +39,7 @@ class Make_FSPS(object):
 
     def run_fsps(self):
         print '\n\n>RUNNING FSPS... (requires fsps and python-fsps installed)\n'
+        import fsps
         sfh_key = sfh_type2sfh_key[self._inputs.sfh_type]
         imf_key = imf_type2imf_key[self._inputs.imf_type]
         Z_key = Z2Z_key[self._inputs.Z]
@@ -72,9 +72,13 @@ class Make_FSPS(object):
             fname = self._inputs.sfh_type + '_tau-' + str(tau) + '.dat'
             self.make_output(sp, fname)
 
-        print '\nSettings used were:'
-        print '  -Isochrones: ' + sp.libraries[0]
-        print '  -Spectral library: ' + sp.libraries[1] + '\n\n'
+        #Make record file.
+        directory = self._inputs.subdir_fullpath + 'fsps_FILES/'
+        with open(directory + 'fsps_info.txt', 'w') as out:
+            out.write('Files created on: ' + time.strftime('%d/%m/%Y') + '\n')
+            out.write('FSPS version: ' + str(fsps.__version__) + '\n')
+            out.write('Isochrones: ' + sp.libraries[0] + '\n')
+            out.write('Spectral library: ' + sp.libraries[1])
             
     def copy_premade_files(self):
         warning_msg = (
@@ -90,8 +94,8 @@ class Make_FSPS(object):
         _tau_list = [1., 1.5, 2., 3., 4., 5., 7., 10.]
         self._inputs.tau_list = [tau * 1.e9 * u.yr for tau in _tau_list]
         
-        for fname in os.listdir('./../INPUT_FILES/STELLAR_POP/'):
-            if fname.split('_')[0] == self._inputs.sfh_type or fname == 'SSP.dat':
-                copyfile('./../INPUT_FILES/STELLAR_POP/' + fname,
+        for fname in os.listdir('./../INPUT_FILES/fsps_FILES/'):
+            if ((fname.split('_')[0] == self._inputs.sfh_type)
+                or (fname == 'SSP.dat') or (fname == 'fsps_info.txt')):
+                copyfile('./../INPUT_FILES/fsps_FILES/' + fname,
                          self._inputs.subdir_fullpath + 'fsps_FILES/' + fname)       
-        

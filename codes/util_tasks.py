@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import warnings
-import fsps
 import numpy as np
 from astropy import units as u
 
@@ -55,7 +54,6 @@ class Utility_Routines(object):
         fpath = self._inputs.subdir_fullpath + 'record.dat'
         with open(fpath, 'w') as rec:
             rec.write('run date: ' + time.strftime('%d/%m/%Y') + '\n')
-            rec.write('FSPS version: ' + str(fsps.__version__) + '\n\n')
             rec.write('---Model params---\n')
             rec.write('Colour: ' + self._inputs.filter_2 + '-'\
                       + self._inputs.filter_1 + '\n')

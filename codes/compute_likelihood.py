@@ -41,7 +41,7 @@ class Get_Likelihood(object):
           usecols=(filter_1_absmag_col,Dcolor_col,Dcolor_err_col), unpack=True)   
         self.M['stretch_host'] = np.genfromtxt(np.loadtxt(
           self._inputs.host_fpath, delimiter=',', skiprows=1,
-          usecols=(stretch_col), unpack=True, dtype=str)) 
+          usecols=(stretch_col,), unpack=True, dtype=str)) 
 
     #@profile
     def trim_samples_by_Dcolor(self):
