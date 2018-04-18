@@ -49,7 +49,7 @@ Note that at this moment, likelihoods calculations (which depend on the observat
 This file stores the input parameters that are used by the \texttt{master.py} script. Specific combinations of parameters are stored as \texttt{cases}.
 
 \begin{itemize}
-\item filter\_1 (str): Filter\_1 and filter\_2 determine the color to be used as (filter\_2 - filter\_1). A list of available filters can be shown by calling Master().list\_filters() in the \texttt{master.py} script.
+\item filter\_1 (str): Filter\_1 and filter\_2 determine the color to be used as (filter\_2 - filter\_1). A list of available filters can be shown by calling fsps.list\_filters() under run\_fsps.py
 \item filter\_2 (str): Same as above.
 \item imf\_type (str): Choice of initial mass function for the FSPS simulations. Accepts: \texttt{Salpeter}, \texttt{Chabrier} or \texttt{Kroupa}.
 \item sfh\_type (str): Choice of star formation history for the FSPS simulations. Accepts: \texttt{exponential} (SFR $\propto e^{-t/\tau}$) or \texttt{delayed-exponential} (SFR $\propto t\times e^{-t/\tau}$).
