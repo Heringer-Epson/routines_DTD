@@ -12,7 +12,7 @@ No 'setup' nor 'make' installation is required. Input
 parameters may be set in the 'input_params.py' file and
 several standard routines may be executed via
 
->python master.py
+>python master.py (at $INSTALLATION_DIR/codes/)
 
 The default settings in master.py and input_params should
 allow for a simple execution case, which will reproduce
