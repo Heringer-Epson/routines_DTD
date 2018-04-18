@@ -362,10 +362,8 @@ class Make_Panels(object):
                 markersize=10., color=colors[i])     
     
     def save_figure(self, extension='pdf', dpi=360):        
-        fname = ('Fig_' + self._inputs.sfh_type + '_' + str(self._s1) + '_'\
-        + str(self._s2) + '_' + str(self._inputs.t_onset.to(u.yr).value/ 1.e9)\
-        + '_' + str(self._inputs.t_cutoff.to(u.yr).value / 1.e9) + '.')
-        
+        fname = ('Fig_' + str(format(self._s1, '.1f'))
+                 + '_' + str(format(self._s2, '.1f')) + '.')
         if self.save_fig:
             plt.savefig(self.outdir + fname + extension,
                         format=extension, dpi=dpi)

@@ -48,6 +48,7 @@ class Master(object):
         print '\n\n****************** SN RATE ANALYSIS *****************\n'                 
         print 'MAKE FSPS FILES------->', self.run_fsps_flag
         print 'COMPUTE LIKELIHOODS------->', self.likelihood_flag
+        print 'GENERATE MODEL FIGURES------->', self.panels_flag
         print '\n\n'
 
     def list_filters(self):
@@ -72,8 +73,12 @@ class Master(object):
                 Plot_Likelihood(self.inputs, show_fig=False, save_fig=True)
         
         if self.panels_flag:
+            print '\n\n>GENERATING MODEL FIGURES...\n'
             for s2 in self.inputs.slopes[::5]:
+                s2_str = str(format(s2, '.1f'))
                 for s1 in self.inputs.slopes[::5]:
+                    s1_str = str(format(s1, '.1f'))
+                    print '  *s1/s2=' + s1_str + '/' + s2_str 
                     Make_Panels(self.inputs, s1, s2, show_fig=False,
                                 save_fig=True)
                     
