@@ -1,4 +1,6 @@
 name: DTD
+channels:
+- astropy
 dependencies:
 - python=2.7
 - numpy=1.13.1
@@ -10,4 +12,5 @@ dependencies:
 - numexpr=2.6.2
 - pyyaml=3.12
 - line_profiler=2.0
+- astroquery=0.3
 

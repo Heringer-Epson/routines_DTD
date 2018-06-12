@@ -31,7 +31,10 @@ may depend on data produced by FSPS (v3.0) computed through the Python-FSPS pack
 If the user wishes to explore models which include
 star formation histories (SFH) or filters different than provided in the test case, the installation of both FSPS and Python-FSPS will be required. Note that for the user to be able to create new FSPS files, an older version (6.4.0) of the gfortran compiler will also be required, since the default version (7.2.0) conflicts with Python-FSPS. Installing gfortran 6 can be done via: \textbf{sudo apt-get install gfortran-6}. Then it is necessary to change the compiler set to run FSPS in the \textbf{\$SPS\_HOME/src/Makefile} so that \textbf{F90 = gfortran $->$ F90 = gfortran-6}.
 
-A few notes on the installation of FSPS and Python-FSPS are given in \S \ref{sec:optional}.
+
+Also, the calculation of $K$-correction to the data require the installation of the KCORRECT package \citep{Blanton2007_kcorrect} and a Python interface. Again, the user may bypass the installation of these packages by requesting access to the processed data.
+
+A few notes on the installation of FSPS, Python-FSPS and KCORRECT are given in \S \ref{sec:optional}.
 
 \section{Producing SN rate models}
 \label{sec:usage}
@@ -134,6 +137,17 @@ Finally, type \texttt{make} at the \texttt{\$SPS\_HOME/src} directory.
 Source code available at \href{https://github.com/dfm/python-fsps}{https://github.com/dfm/python-fsps}.
 
 In the main directory, type \texttt{python setup.py install}.
+
+\subsection{KCORRECT}
+\label{seubsec:kcorrect}
+
+Source code is available at \href{http://kcorrect.org/}{http://kcorrect.org/} under the ``Obtaining the Software'' tab. Version that is currently used is v4.3. Note that it will be necessary to set environment paths in the bash file.
+
+export KCORRECT\_DIR='/home/heringer/Programs/Kcorrect/kcorrect'
+
+export LD\_LIBRARY\_PATH=\$LD\_LIBRARY\_PATH:\$KCORRECT\_DIR/lib
+
+The Python interface can be downloaded at \href{https://pypi.org/project/kcorrect\_python/}{https://pypi.org/project/kcorrect\_python/}, but note that at the moment, the installation instructions are only available for an older version, at \href{https://pypi.org/project/kcorrect\_python/2013.10.12/}{https://pypi.org/project/kcorrect\_python/2013.10.12/}. Also note that the directory where the interface is installed must be added to the PYTHONPATH env variable in the bash file, so that Python knows where to import this package from.
 
 \section{Data}
 \label{sec:data}
