@@ -98,6 +98,10 @@ class Input_Parameters(object):
         
         self.subdir = None
         self.subdir_fullpath = None
+        self.data_dir = None
+
+        #Fontsize for plotting purposes.
+        self.fs = 20.
 
         self.set_params()
                 
@@ -105,15 +109,13 @@ class Input_Parameters(object):
                         
         if self.case == 'SDSS_gr_example1':   
             self.subdir = 'example1/'  
-            #Uses the same data set as in paper I.
-            #http://adsabs.harvard.edu/abs/2017ApJ...834...15H
+            #Uses the same data set as in Maoz+ 2102.
 
-            data_dir = './../INPUT_FILES/sample_paper-I/'
-            self.ctrl_fpath = data_dir + 'spec_sample_data.csv'
-            self.host_fpath = data_dir + 'hosts_SDSS_spec.csv'
+            self.data_dir = './../INPUT_FILES/paper1/'
 
-            self.filter_1 = 'sdss_r'
-            self.filter_2 = 'sdss_g'
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
             self.imf_type = 'Chabrier'
             self.sfh_type = 'exponential'
             self.Z = 0.0190
@@ -122,33 +124,82 @@ class Input_Parameters(object):
             self.Dcolor_min = -0.4
             self.Dcolor_max = 0.08   
             self.slopes = np.arange(-3., 0.01, 0.1)
-            
             self.tau_list = np.array(
               [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
 
-        elif self.case == 'SDSS_gr_example2':   
-            self.subdir = 'example2/'  
-            #Uses the same data set as in paper I.
-            #http://adsabs.harvard.edu/abs/2017ApJ...834...15H
+            #For sub-selecting data
+            self.redshift_min, self.redshift_max = 0.01, 0.2
+            self.ext_u_min, self.ext_u_max = -1000., 22.0
+            self.ext_g_min, self.ext_g_max = -1000., 22.2
+            self.ext_r_min, self.ext_r_max = 14., 17.77
+            self.ext_uERR_max = 1000.
+            self.ext_gERR_max = 0.2
+            self.ext_rERR_max = 0.2
 
-            data_dir = './../INPUT_FILES/sample_paper-I/'
-            self.ctrl_fpath = data_dir + 'spec_sample_data.csv'
-            self.host_fpath = data_dir + 'hosts_SDSS_spec.csv'
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+            
+            #Figure management.
+            self.show_fig = True
+            self.save_fig = True
 
-            self.filter_1 = 'sdss_r'
-            self.filter_2 = 'sdss_g'
+        elif self.case == 'SDSS_gr_Maoz':   
+            self.subdir = 'example3/'  
+            #Uses the same data set as in Maoz+ 2102.
+
+            self.data_dir = './../INPUT_FILES/Maoz_file/'
+            #self.fpath = data_dir + 'Maoz_processed.csv'
+
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
             self.imf_type = 'Chabrier'
-            self.sfh_type = 'delayed-exponential'
+            self.sfh_type = 'exponential'
             self.Z = 0.0190
             self.t_onset = 1.e8 * u.yr
             self.t_cutoff = 1.e9 * u.yr
             self.Dcolor_min = -0.4
             self.Dcolor_max = 0.08   
             self.slopes = np.arange(-3., 0.01, 0.1)
-            
             self.tau_list = np.array(
               [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+
+            #For sub-selecting data
+            self.redshift_min, self.redshift_max = 0., 0.4
+            self.ext_u_min, self.ext_u_max = -1000., 22.0
+            self.ext_g_min, self.ext_g_max = -1000., 22.2
+            self.ext_r_min, self.ext_r_max = 14., 17.77
+            self.ext_uERR_max = 1000.
+            self.ext_gERR_max = 0.2
+            self.ext_rERR_max = 0.2
+
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+            
+            #Figure management.
+            self.show_fig = True
+            self.save_fig = False
 
         else:
             raise ValueError('Case "%s" is not defined.\n\n' %(self.case))            
 
+        #Set relevant variables.
+        self.subdir_fullpath = './../OUTPUT_FILES/RUNS/' + self.subdir

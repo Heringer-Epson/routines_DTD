@@ -41,8 +41,6 @@ class Utility_Routines(object):
     def initialize_outfolder(self):
         """Create the directory if it doesn't already exist and dd a copy of
         this input file in that directory."""
-        self._inputs.subdir_fullpath = ('./../OUTPUT_FILES/RUNS/'\
-                                        + self._inputs.subdir)
         if not os.path.exists(self._inputs.subdir_fullpath):
             os.makedirs(self._inputs.subdir_fullpath)
         if not os.path.exists(self._inputs.subdir_fullpath + 'fsps_FILES/'):
@@ -67,8 +65,8 @@ class Utility_Routines(object):
             rec.write('Dcolor_min: ' + str(self._inputs.Dcolor_min) + ' \n')
             rec.write('Dcolor_max: ' + str(self._inputs.Dcolor_max) + ' \n\n')
             rec.write('---Dataset---\n')
-            rec.write('Control galaxies: ' + self._inputs.ctrl_fpath + ' \n')
-            rec.write('Host galaxies: ' + self._inputs.host_fpath)
+            #rec.write('Control galaxies: ' + self._inputs.ctrl_fpath + ' \n')
+            #rec.write('Host galaxies: ' + self._inputs.host_fpath)
 
     def run_utilities(self):
         self.check_variables()

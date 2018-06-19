@@ -88,5 +88,5 @@ class Make_FSPS(object):
             out.write('Isochrones: ' + sp.libraries[0] + '\n')
             out.write('Spectral library: ' + sp.libraries[1])
         
-#if __name__ == '__main__':
-#    Make_FSPS()
+if __name__ == '__main__':
+    Make_FSPS()
