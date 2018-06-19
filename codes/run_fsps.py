@@ -30,8 +30,8 @@ class Make_FSPS(object):
 
         #Data needs to be transposed, otherwise arrays are written as
         #lines rather than columns.
-        mag_1, mag_2 = zip(*sp.get_mags(
-          bands=[self._inputs.filter_1, self._inputs.filter_2]))
+        mag_1, mag_2 = zip(*sp.get_mags(bands=['sdss_' + self._inputs.filter_1,
+                                               'sdss_' + self._inputs.filter_2]))
         out_data = (sp.log_age, sp.sfr, sp.stellar_mass, sp.formed_mass,
           mag_2, mag_1)
         np.savetxt(directory + fname, np.transpose(out_data), header=header,
@@ -83,12 +83,12 @@ class Make_FSPS(object):
     def copy_premade_files(self):
         warning_msg = (
           'Only a few options are available when fsps files are not created'\
-          ' during this run. Inputs have been re-set to: filter_1 = sdss_r'\
-          ', filter_2 = sdss_g, imf_type=Chabrier, Z=0.0190 and '\
+          ' during this run. Inputs have been re-set to: filter_1 = r'\
+          ', filter_2 = g, imf_type=Chabrier, Z=0.0190 and '\
           'tau_list=[1, 1.5, 2, 3, 4, 5, 7, 10] Gyr.')
         warnings.warn(warning_msg)
-        self._inputs.filter_1 = 'sdss_r'
-        self._inputs.filter_2 = 'sdss_g'
+        self._inputs.filter_1 = 'r'
+        self._inputs.filter_2 = 'g'
         self._inputs.imf_type = 'Chabrier'
         self._inputs.Z = 0.0190
         _tau_list = [1., 1.5, 2., 3., 4., 5., 7., 10.]

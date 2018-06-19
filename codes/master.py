@@ -4,9 +4,10 @@ import os
 from input_params import Input_Parameters as class_input
 from util_tasks import Utility_Routines
 from run_fsps import Make_FSPS
+from process_data import Process_Data
+from fit_RS import Fit_RS
 from compute_likelihood import Get_Likelihood
-from plot_likelihood import Plot_Likelihood
-from plot_several import Make_Panels
+from main_plotter import Main_Plotter
         
 class Master(object):
     """
@@ -33,12 +34,13 @@ class Master(object):
         a unique parametrization (combination of slopes) of the DTD.    
     """
     
-    def __init__(self, case=None, run_fsps_flag=False, likelihood_flag=False,
-                 panels_flag=False):
+    def __init__(self, case=None, run_fsps_flag=False, process_data=True,
+                 likelihood_flag=False, plots_flag=False):
         self.case = case
         self.run_fsps_flag = run_fsps_flag
+        self.process_data = process_data
         self.likelihood_flag = likelihood_flag
-        self.panels_flag = panels_flag
+        self.plots_flag = plots_flag
         self.inputs = None
 
     def verbose(self):
@@ -46,7 +48,6 @@ class Master(object):
         print '\n\n****************** SN RATE ANALYSIS *****************\n'                 
         print 'MAKE FSPS FILES------->', self.run_fsps_flag
         print 'COMPUTE LIKELIHOODS------->', self.likelihood_flag
-        print 'GENERATE MODEL FIGURES------->', self.panels_flag
         print '\n\n'
 
     def run_master(self):
@@ -54,28 +55,28 @@ class Master(object):
         self.inputs = class_input(case=self.case)
         Utility_Routines(self.inputs)
         
+        #Get FSPS files to build Dcolour-rate models.
         fsps_maker = Make_FSPS(self.inputs)
         if self.run_fsps_flag:
             fsps_maker.run_fsps()
         else:
             fsps_maker.copy_premade_files()
+            
+        if self.process_data:
+            Process_Data(self.inputs)
+            Fit_RS(self.inputs)
 
-        if (self.likelihood_flag and self.inputs.filter_1 == 'sdss_r' and
-            self.inputs.filter_2 == 'sdss_g'):
-                Get_Likelihood(self.inputs)
-                Plot_Likelihood(self.inputs, show_fig=False, save_fig=True)
-        
-        if self.panels_flag:
-            print '\n\n>GENERATING MODEL FIGURES...\n'
-            for s2 in self.inputs.slopes[::5]:
-                s2_str = str(format(s2, '.1f'))
-                for s1 in self.inputs.slopes[::5]:
-                    s1_str = str(format(s1, '.1f'))
-                    print '  *s1/s2=' + s1_str + '/' + s2_str 
-                    Make_Panels(self.inputs, s1, s2, show_fig=False,
-                                save_fig=True)
-                    
+        if self.likelihood_flag:
+            Get_Likelihood(self.inputs)
+            #Plot_Likelihood(self.inputs, show_fig=True, save_fig=True)
+            pass
+
+        if self.plots_flag:
+            Main_Plotter(self.inputs)
+    
 if __name__ == '__main__':
-    Master(case='SDSS_gr_example1', run_fsps_flag=False,
-           likelihood_flag=True, panels_flag=True).run_master()
-
+    #Master(case='SDSS_gr_Maoz', run_fsps_flag=False,
+    #       likelihood_flag=True, panels_flag=False).run_master()
+    
+    Master(case='SDSS_gr_example1', run_fsps_flag=False, process_data=False,
+           likelihood_flag=False, plots_flag=True).run_master()

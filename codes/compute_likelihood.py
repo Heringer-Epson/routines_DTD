@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
 import numpy as np
+import pandas as pd
 from astropy import units as u
 from Dcolor2sSNRL_gen import Generate_Curve
-
-var2col_paperI = {
-  'sdss_u_abs': 19, 'sdss_g_abs': 20, 'sdss_r_abs': 21, 'sdss_i_abs': 22,
-  'sdss_z_abs': 23, 'Dcolor_sdss_g-sdss_r': 26, 'Dcolor_sdss_g-sdss_r_err': 27,
-  'stretch': 31}
 
 class Get_Likelihood(object):
     
@@ -16,66 +12,64 @@ class Get_Likelihood(object):
         """
         self._inputs = _inputs
                 
-        self.M = {}        
+        self.df = None        
         self.N_obs = None
 
         print '\n\n>COMPUTING LIKELIHOOD OF MODELS...\n'
         self.run_analysis()
 
-    #@profile
-    def get_data(self):
-        
-        filter_1_absmag_col = var2col_paperI[self._inputs.filter_1 + '_abs'] 
-        Dcolor_col = var2col_paperI[
-          'Dcolor_' + self._inputs.filter_2 + '-' + self._inputs.filter_1] 
-        Dcolor_err_col = var2col_paperI[
-          'Dcolor_' + self._inputs.filter_2 + '-' + self._inputs.filter_1 + '_err'] 
-        stretch_col = var2col_paperI['stretch']
-        
-        self.M['M_r_ctrl'], self.M['Dcolor_ctrl'], self.M['Dcolor_err_ctrl'] =\
-          np.loadtxt(self._inputs.ctrl_fpath, delimiter=',', skiprows=1,
-          usecols=(filter_1_absmag_col,Dcolor_col,Dcolor_err_col), unpack=True)   
-        
-        self.M['M_r_host'], self.M['Dcolor_host'], self.M['Dcolor_err_host'] =\
-          np.loadtxt(self._inputs.host_fpath, delimiter=',', skiprows=1,
-          usecols=(filter_1_absmag_col,Dcolor_col,Dcolor_err_col), unpack=True)   
-        self.M['stretch_host'] = np.genfromtxt(np.loadtxt(
-          self._inputs.host_fpath, delimiter=',', skiprows=1,
-          usecols=(stretch_col,), unpack=True, dtype=str)) 
+    def retrieve_data(self):
+        fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'
+        self.df = pd.read_csv(fpath, header=0)
+        f1, f2 = self._inputs.filter_1, self._inputs.filter_2
+        photo1 = self.df['abs_' + f1]
+        photo2 = self.df['abs_' + f2]
+        self.Dcolor = self.df['Dcolor_' + f2 + f1]
+        self.hosts = self.df['n_SN']
+        self.abs_mag = photo1
 
     #@profile
-    def trim_samples_by_Dcolor(self):
+    def subselect_data(self):
         
-        #Control sample.
-        Dcolor_cond = ((self.M['Dcolor_ctrl'] >= self._inputs.Dcolor_min) &
-                       (self.M['Dcolor_ctrl'] <= self._inputs.Dcolor_max))
-        self.M['M_r_ctrl'] = self.M['M_r_ctrl'][Dcolor_cond]
-        self.M['Dcolor_err_ctrl'] = self.M['Dcolor_err_ctrl'][Dcolor_cond]
-        self.M['Dcolor_ctrl'] = self.M['Dcolor_ctrl'][Dcolor_cond]
-        
-        #Hosts.
-        Dcolor_cond = ((self.M['Dcolor_host'] >= self._inputs.Dcolor_min) &
-                       (self.M['Dcolor_host'] <= self._inputs.Dcolor_max))     
-        self.M['M_r_host'] = self.M['M_r_host'][Dcolor_cond]
-        self.M['Dcolor_err_host'] = self.M['Dcolor_err_host'][Dcolor_cond]
-        self.M['stretch_host'] = self.M['stretch_host'][Dcolor_cond]
-        self.M['Dcolor_host'] = self.M['Dcolor_host'][Dcolor_cond]        
+        fpath = self._inputs.subdir_fullpath + 'RS_fit.csv'
+        RS_std = abs(float(np.loadtxt(fpath, delimiter=',', skiprows=1,
+                                      usecols=(1,), unpack=True)))
+                               
+        Dcolor_cond = ((self.Dcolor >= -10. * RS_std) &
+                       (self.Dcolor <= 2. * RS_std))
 
-        self.N_obs = len(self.M['Dcolor_host'])
+        self.hosts = self.hosts[Dcolor_cond].values
+        self.abs_mag = self.abs_mag[Dcolor_cond].values
+        self.Dcolor = self.Dcolor[Dcolor_cond].values
+
+        host_cond = self.hosts
+        ctrl_cond = np.logical_not(self.hosts)
+
+        self.host_abs_mag = self.abs_mag[host_cond]
+        self.host_Dcolor = self.Dcolor[host_cond]
+        self.ctrl_abs_mag = self.abs_mag[ctrl_cond]
+        self.ctrl_Dcolor = self.Dcolor[ctrl_cond]
+        
+        self.N_obs = len(self.host_Dcolor)
+        
+        #np.logical_not(_acc_cond)
+
+        #print len(self.Dcolor[self.hosts].values)
+        #print len(self.Dcolor.values)
 
     #@profile
     def calculate_likelihood(self, _s1, _s2):
 
         generator = Generate_Curve(self._inputs, _s1, _s2)
-          
+
         #Control sample.
-        sSNRL_ctrl = generator.Dcolor2sSNRL(self.M['Dcolor_ctrl'])
-        L_ctrl = 10.**(-0.4 * (self.M['M_r_ctrl'] - 5.))
+        sSNRL_ctrl = generator.Dcolor2sSNRL(self.ctrl_Dcolor)
+        L_ctrl = 10.**(-0.4 * (self.ctrl_abs_mag - 5.))
         SNR_ctrl = np.multiply(sSNRL_ctrl,L_ctrl)
         
         #Hosts.
-        sSNRL_host = generator.Dcolor2sSNRL(self.M['Dcolor_host'])
-        L_host = 10.**(-0.4 * (self.M['M_r_host'] - 5.))
+        sSNRL_host = generator.Dcolor2sSNRL(self.host_Dcolor)
+        L_host = 10.**(-0.4 * (self.host_abs_mag - 5.))
         SNR_host = np.multiply(sSNRL_host,L_host)
         
         #ln L.
@@ -122,6 +116,6 @@ class Get_Likelihood(object):
                     out.write(line)
 
     def run_analysis(self):
-        self.get_data()
-        self.trim_samples_by_Dcolor()
+        self.retrieve_data()
+        self.subselect_data()
         self.write_output()
