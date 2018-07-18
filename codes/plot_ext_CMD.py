@@ -41,7 +41,7 @@ class Ext_CMD(object):
         self.ax.yaxis.set_major_locator(MultipleLocator(.2))  
 
     def retrieve_data(self):
-        fpath = self._inputs.subdir_fullpath + 'data_processed.csv'
+        fpath = self._inputs.subdir_fullpath + 'data_absmag.csv'
         self.df = pd.read_csv(fpath, header=0)
         f1 = self.df['ext_' + self._inputs.filter_1].values
         f2 = self.df['ext_' + self._inputs.filter_2].values

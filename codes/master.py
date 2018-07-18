@@ -7,6 +7,8 @@ from run_fsps import Make_FSPS
 from process_data import Process_Data
 from fit_RS import Fit_RS
 from compute_likelihood import Get_Likelihood
+from compute_best_models import Compute_Best
+from simple_stats import Simple_Stats
 from main_plotter import Main_Plotter
         
 class Master(object):
@@ -26,21 +28,16 @@ class Master(object):
         Flag to determine whether or not to compute likelihoods for each of
         the parametrized DTDs. If True, an intensity map of the likelihood is
         also produced.
-    
-    panels_flag : ~boolean
-        Flag to determine whether or not to produce several figures, each
-        containing panels showing the relationship between relevant quantities,
-        such as age, color, mass and SN rate. Each figure produced here adopts
-        a unique parametrization (combination of slopes) of the DTD.    
     """
     
     def __init__(self, case=None, run_fsps_flag=False, process_data=True,
-                 likelihood_flag=False, plots_flag=False):
+                 likelihood_flag=False, plots_flag=False, stats_flag=True):
         self.case = case
         self.run_fsps_flag = run_fsps_flag
         self.process_data = process_data
         self.likelihood_flag = likelihood_flag
         self.plots_flag = plots_flag
+        self.stats_flag = stats_flag
         self.inputs = None
 
     def verbose(self):
@@ -68,15 +65,38 @@ class Master(object):
 
         if self.likelihood_flag:
             Get_Likelihood(self.inputs)
-            #Plot_Likelihood(self.inputs, show_fig=True, save_fig=True)
-            pass
+            Compute_Best(self.inputs)
 
+        if self.stats_flag:
+            Simple_Stats(self.inputs, self.case)
+            
         if self.plots_flag:
             Main_Plotter(self.inputs)
-    
+
+
+            
 if __name__ == '__main__':
-    #Master(case='SDSS_gr_Maoz', run_fsps_flag=False,
-    #       likelihood_flag=True, panels_flag=False).run_master()
     
-    Master(case='SDSS_gr_example1', run_fsps_flag=False, process_data=False,
-           likelihood_flag=False, plots_flag=True).run_master()
+    Master(case='test-case', run_fsps_flag=False, process_data=True,
+           likelihood_flag=True, stats_flag=True, plots_flag=True).run_master()
+        
+    #Master(case='SDSS_gr_paper1_test', run_fsps_flag=False, process_data=False,
+    #       likelihood_flag=True, stats_flag=False, plots_flag=False).run_master()
+
+    #Master(case='SDSS_gr_paper1', run_fsps_flag=False, process_data=True,
+    #       likelihood_flag=True, stats_flag=True, plots_flag=True).run_master()
+
+    #Master(case='SDSS_gr_paper1_vistime', run_fsps_flag=False, process_data=True,
+    #       likelihood_flag=True, stats_flag=True, plots_flag=True).run_master()
+    
+    #Master(case='SDSS_gr_paper1_kcorrect', run_fsps_flag=False, process_data=True,
+    #       likelihood_flag=True, stats_flag=True, plots_flag=True).run_master()
+
+    #Master(case='SDSS_gr_improved', run_fsps_flag=False, process_data=True,
+    #       likelihood_flag=True, stats_flag=True, plots_flag=True).run_master()
+    
+    #Master(case='SDSS_gr_Maoz', run_fsps_flag=False, process_data=False,
+    #       likelihood_flag=False, stats_flag=False, plots_flag=True).run_master()
+
+    #Master(case='SDSS_gr_Maoz_aspaper1', run_fsps_flag=False, process_data=True,
+    #       likelihood_flag=True, stats_flag=True, plots_flag=True).run_master()

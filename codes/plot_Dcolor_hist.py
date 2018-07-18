@@ -58,6 +58,11 @@ class Plot_Dcolor(object):
         Dcolor_rej = self.Dcolor[np.logical_not(acc_cond)]
         Dcolor_hosts = self.Dcolor[self.hosts]
 
+        #Further remove spurious objects which are outside the plotting range.
+        rej_cond = ((Dcolor_rej >= self._inputs.bin_range[0])
+                    & (Dcolor_rej <= self._inputs.bin_range[1]))
+        Dcolor_rej = Dcolor_rej[rej_cond]
+        
         bins = np.arange(self._inputs.bin_range[0], self._inputs.bin_range[1]
                          + 1.e-5, self._inputs.bin_size)
         

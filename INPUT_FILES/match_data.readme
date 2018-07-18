@@ -14,25 +14,68 @@ Then, under the 'query' tab, select the DR14 'context'.
 Note: I'm not entirely sure why only a fraction of the objects
 (~18000 out of 67000) are retrieved under the DR7 context.
 
-Type the following query:
+Note: the number of events matched will depend on whether one uses
+the SpecPhoto View of the SpecPhotoAll Table. Unsure what the actual
+difference between them is, but to recover all of Maoz obejcts,
+one has to resort to the SpecPhotoAll Table.
 
-SELECT ALL into mydb.data_matched_Maoz
+Note: after downloading the data from MyDB, rename the file at the appropriate
+directory, keeping the 'View' ot 'Tabl'e prefix.
+e.g.: /home/heringer/Research/routines_DTD/INPUT_FILES/paper1/data_Viewmatched.csv
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+For retrieving data directly from DR7
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+SELECT ALL into mydb.data_Tablematched_Maoz
+  sp.objID, sp.specObjID, m.mjd, m.plateID, m.fiberID, m.ra, m.dec, m.redshift, sp.z, sp.zErr, m.vespa1, m.vespa2, m.vespa3, m.vespa4, m.n_SN,
+  sp.petroMag_u, sp.petroMagErr_u, extinction_u, sp.petroMag_g, sp.petroMagErr_g, extinction_g, sp.petroMag_r, sp.petroMagErr_r, extinction_r,
+  sp.petroMag_i, sp.petroMagErr_i, extinction_i, sp.petroMag_z, sp.petroMagErr_z, extinction_z
+FROM SpecPhotoAll sp, mydb.Maoz m
+WHERE m.mjd = sp.mjd and m.plateID = sp.plate and m.fiberID = sp.fiberID
+
+SELECT ALL into mydb.data_Viewmatched_Maoz
   sp.objID, sp.specObjID, m.mjd, m.plateID, m.fiberID, m.ra, m.dec, m.redshift, sp.z, sp.zErr, m.vespa1, m.vespa2, m.vespa3, m.vespa4, m.n_SN,
   sp.petroMag_u, sp.petroMagErr_u, extinction_u, sp.petroMag_g, sp.petroMagErr_g, extinction_g, sp.petroMag_r, sp.petroMagErr_r, extinction_r,
   sp.petroMag_i, sp.petroMagErr_i, extinction_i, sp.petroMag_z, sp.petroMagErr_z, extinction_z
 FROM SpecPhoto sp, mydb.Maoz m
 WHERE m.mjd = sp.mjd and m.plateID = sp.plate and m.fiberID = sp.fiberID
 
-The matched file contains 65000 entries.
 Note: The number of supernovae in the original file is always 0 or 1;
 when uploaded, CasJobs automatically converts this column to a boolean
 value--not sure how to avoid this.
 
-For the paper I data: on DR7
 
-SELECT ALL into mydb.data_matched_paper1
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+For the paper I data: on DR7
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Note: the original work seemly used View matched objects.
+
+SELECT ALL into mydb.data_Tablematched_paper1
+  m.objID, m.specObjID, sp.mjd, sp.plateID, sp.fiberID, sp.ra, sp.dec, sp.z, sp.zErr, m.n_SN,
+  sp.petroMag_u, sp.petroMagErr_u, extinction_u, sp.petroMag_g, sp.petroMagErr_g, extinction_g, sp.petroMag_r, sp.petroMagErr_r, extinction_r,
+  sp.petroMag_i, sp.petroMagErr_i, extinction_i, sp.petroMag_z, sp.petroMagErr_z, extinction_z
+FROM SpecPhotoAll sp, mydb.PaperI_orig m
+WHERE m.objID = sp.objId
+
+SELECT ALL into mydb.data_Viewmatched_paper1
   m.objID, m.specObjID, sp.mjd, sp.plateID, sp.fiberID, sp.ra, sp.dec, sp.z, sp.zErr, m.n_SN,
   sp.petroMag_u, sp.petroMagErr_u, extinction_u, sp.petroMag_g, sp.petroMagErr_g, extinction_g, sp.petroMag_r, sp.petroMagErr_r, extinction_r,
   sp.petroMag_i, sp.petroMagErr_i, extinction_i, sp.petroMag_z, sp.petroMagErr_z, extinction_z
 FROM SpecPhoto sp, mydb.PaperI_orig m
 WHERE m.objID = sp.objId
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+For adding ra and dec to the Filematched data
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+SELECT ALL into mydb.data_FileCASmatched
+  f.objID, f.specObjID, sp.mjd, sp.plateID, sp.fiberID, sp.ra, sp.dec, sp.z, sp.zErr, f.n_SN,
+  f.petroMag_u, f.petroMagErr_u, f.extinction_u, f.petroMag_g, f.petroMagErr_g, f.extinction_g, f.petroMag_r, f.petroMagErr_r, f.extinction_r,
+  f.petroMag_i, f.petroMagErr_i, f.extinction_i, f.petroMag_z, f.petroMagErr_z, f.extinction_z
+FROM SpecPhoto sp, mydb.data_Filematched f
+WHERE f.objID = sp.objId
+
+
+

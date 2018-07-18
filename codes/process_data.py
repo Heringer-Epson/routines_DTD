@@ -5,47 +5,71 @@ import numpy as np
 import pandas as pd
 from astropy.cosmology import FlatLambdaCDM
 
-cosmo = FlatLambdaCDM(H0=70, Om0=0.32)
+cosmo = FlatLambdaCDM(H0=67.04, Om0=0.3183)
 Q_factor = 1.6
-z_ref = 0.
 
 #http://www.sdss.org/dr12/algorithms/magnitudes/
 b_u, b_g, b_r, b_i, b_z = 1.4e-10, 0.9e-10, 1.2e-10, 1.8e-10, 7.4e-10
+ab_u, ab_g, ab_r, ab_i, ab_z = -0.036, 0.012, 0.010, 0.028, 0.040
 quadErr_u, quadErr_g, quadErr_r, quadErr_i, quadErr_z = .05, .02, .02, .02, .03 
 
-def mag2maggy(mag, magErr, b, quadErr):
+def lup2maggy(mag, magErr, b, quadErr, ab_corr):
     """
-    maggies[b,*]=2.D*bvalues[b]*sinh(-alog(bvalues[b])-0.4D*alog(10.D)*lups[b,*])
-
-    maggies_err[b,*]=2.D*bvalues[b]*cosh(-alog(bvalues[b])- $
-                                       0.4D*alog(10.D)*lups[b,*])* $
-    0.4*alog(10.)*lups_err[b,*]
-
+    This follows the description available in the following codes that are
+    part of the KCORRECT package:
+    
+    sdss_kcorrect.pro
+    k_lups2maggies.pro
+    k_sdssfix.pro
+    k_minerror
+    k_abfix
+    sdss_to_maggies.pro
+    kcorrect.pro
+    
+    In practice, this ensures three procedures:
+    
+    1) SDSS photometry is given in luptides (rather than magnitudes) and the
+    transformation to maggies (linear scale) is slightly different.
+    2) Photometry corrections to the AB system.
+    3) A minimum error in each band is added in quadrature.
+    
+    Note, paper I used (erroneously) a simpler transformation as in the
+    function 'mag2maggies' below, which does not perform any of the corrections
+    mentioned above. 
     """
     try:
-        _magErr = np.sqrt(magErr**2. + quadErr**2.)
         maggy = 2. * b * np.sinh(-np.log(b) - 0.4 * np.log(10.) * mag)
-        
         maggyErr = (2. * b * np.cosh(-np.log(b) - 0.4 * np.log(10.) * mag)
-                    * 0.4 * np.log(10.) * _magErr)
-        invvar = maggyErr**-2. 
+                    * 0.4 * np.log(10.) * magErr)
+        
+        invvar = maggyErr**-2.                 
+
+        #Make AB corrections (see k_abfix.pro)
+        maggy *= 10.**(-0.4 * ab_corr)
+        invvar *= 10.**(-0.8 * ab_corr)
+
+        #Add error in quadratrue.
+        factor = 2.5 / np.log(10.)
+        err = factor / np.sqrt(invvar) / maggy
+        err2 = err**2. + quadErr**2.
+        invvar = factor**2. / (maggy**2. * err2)
+    
     except:
         maggy, invvar = np.nan, np.nan
     return maggy, invvar
 
-def kcorr2mag(maggy, maggy_kcorr):
-    return -2.5 * np.log10(maggy / maggy_kcorr)
-
-
-# maggies = 2 b sinh(-lnb -0.4 ln10 luptitudes)
-#maggies_err = 2 b cosh(-lnb - 0.4 ln10 luptitudes) (0.4 ln10) luptitudes_err
-#Warning: k_sdssfix adds errors in quadrature sigma(ugriz)=[0.05, 0.02, 0.02, 0.02, 0.03] to account for calibration uncertainties. 
-
+def mag2maggy(mag, magErr):
+    """Simple correction from magnitudes to maggies."""
+    try:
+        maggy = 10.**(-0.4 * mag)
+        invvar = 1. / (0.4 * np.log(10.) * maggy * magErr)**2.
+    except:
+        maggy, invvar = np.nan, np.nan
+    return maggy, invvar
 
 class Process_Data(object):
-    """Compute absolute magnitudes and necessary corrections to the data used
-    Maox+2012 (http://adsabs.harvard.edu/abs/2012MNRAS.426.3282M). This data
-    was provided in priv. comm.
+    """Compute absolute magnitudes and necessary corrections to the
+    photometry.
     
     Dependencies: To compute Kcorrection, the package KCORRECT
     (Blanton & Roweis 2007) and a Python wrapper are required.
@@ -56,17 +80,16 @@ class Process_Data(object):
         self.perform_run()
 
     def read_data(self):
-        fpath = self._inputs.data_dir + 'data_matched.csv'
+        fpath = (self._inputs.data_dir + 'data_' + self._inputs.matching
+                 + 'matched.csv')
         self.df = pd.read_csv(fpath, header=0)
-
-    '''
-    def perform_redshift_check(self):
-        fail_cond = (self.df.redshift - self.df.z > 1.e-3)
-        if len(self.df[fail_cond]) > 0:
-            error = 'Error: The photometry matched to Maoz data may be wrong,'\
-                    ' as the given and retrieved redshifts do not agree.'
-            raise ValueError(error)
-    '''    
+        #Some values retrieved by SDSS might be 'null' strings, which are then
+        #read as strings. Replace those with np.nan and convert columns to floats.
+        self.df = self.df.replace('null', np.nan)
+        for key in self.df.keys():
+            if key != 'objID' and key != 'specobjID':
+                self.df[key] = self.df[key].astype(float) 
+        self.df['n_SN'] = self.df['n_SN'].astype(bool)
 
     def extinction_correction(self):
         """Compute extinction corrections. This is simply done by using the
@@ -76,54 +99,70 @@ class Process_Data(object):
         Subtraction sign is correct; e.g. see quantity 'dered_u' under DR7,
         Views, SpecPhoto, http://skyserver.sdss.org/CasJobs/SchemaBrowser.aspx
         """
-        for fltr in ['u', 'g', 'r', 'i', 'z']:
+        for fltr in ['u', 'g', 'r', 'i', 'z']:         
             self.df['ext_' + fltr] = (
-              self.df['petroMag_' + fltr] - self.df['extinction_' + fltr])
+              self.df['petroMag_' + fltr].astype(float)
+              - self.df['extinction_' + fltr].astype(float))
 
     def trim_data(self):
         """Perform data cuts similar to the original publication."""
 
-        self.df = self.df[(self.df['ra'] > 360. - 57.) | (self.df['ra'] < 57.0)]
+        if self._inputs.matching is not 'File':
+            print min(self.df['dec'].values), max(self.df['dec'].values)
+            self.df = self.df[(self.df['ra'] > self._inputs.ra_min)
+                              | (self.df['ra'] < self._inputs.ra_max)]
+            self.df = self.df[(self.df['dec'] > self._inputs.dec_min)
+                              & (self.df['dec'] < self._inputs.dec_max)]
         self.df = self.df[(self.df['z'] >= self._inputs.redshift_min) &
-                          (self.df['z'] <= self._inputs.redshift_max)]
-        self.df = self.df[(self.df['ext_u'] >= self._inputs.ext_u_min) &
-                          (self.df['ext_u'] < self._inputs.ext_u_max)]   
-        self.df = self.df[(self.df['ext_g'] >= self._inputs.ext_g_min) &
-                          (self.df['ext_g'] < self._inputs.ext_g_max)]
-        self.df = self.df[(self.df['ext_r'] >= self._inputs.ext_r_min) &
+                          (self.df['z'] < self._inputs.redshift_max)]
+        self.df = self.df[(self.df['petroMag_u'] >= self._inputs.petroMag_u_min) &
+                          (self.df['petroMag_u'] < self._inputs.petroMag_u_max)]
+        self.df = self.df[(self.df['petroMag_g'] >= self._inputs.petroMag_g_min) &
+                          (self.df['petroMag_g'] < self._inputs.petroMag_g_max)]
+        self.df = self.df[(self.df['ext_r'] > self._inputs.ext_r_min) &
                           (self.df['ext_r'] < self._inputs.ext_r_max)]                                  
-        self.df = self.df[(self.df['petroMagErr_u'] <= self._inputs.ext_uERR_max)]
-        self.df = self.df[(self.df['petroMagErr_g'] <= self._inputs.ext_gERR_max)]
-        self.df = self.df[(self.df['petroMagErr_r'] <= self._inputs.ext_rERR_max)]
+        self.df = self.df[(self.df['petroMagErr_u'] <= self._inputs.uERR_max)]
+        self.df = self.df[(self.df['petroMagErr_g'] <= self._inputs.gERR_max)]
+        self.df = self.df[(self.df['petroMagErr_r'] <= self._inputs.rERR_max)]
 
     def make_Kcorrections(self):
+        import kcorrect
         """Make the appropriate kcorrections using the package KCORRECT by
         Blanton & Roweis 2007. Code is available at http://kcorrect.org/ (v4_3)
         Note that a Python wrap around is also used; developed by nirinA and
         mantained at https://pypi.org/project/kcorrect_python. (v2017.07.05)         
         """
         kcorrect.load_templates()
-        kcorrect.load_filters(f='sdss_filters.dat', band_shift=z_ref)
+        kcorrect.load_filters(f='sdss_filters.dat',
+                              band_shift=self._inputs.z_ref)
         
         def compute_kcorrection(redshift, u, g, r, i, z,
                                 uErr, gErr, rErr, iErr, zErr):           
             
-            _u, _uI = mag2maggy(u, uErr, b_u, quadErr_u)
-            _g, _gI = mag2maggy(g, gErr, b_g, quadErr_g)
-            _r, _rI = mag2maggy(r, rErr, b_r, quadErr_r)
-            _i, _iI = mag2maggy(i, iErr, b_i, quadErr_i)
-            _z, _zI = mag2maggy(z, zErr, b_z, quadErr_z)
-            
+            if self._inputs.kcorr_type == 'simple':
+                _u, _uI = mag2maggy(u, uErr)
+                _g, _gI = mag2maggy(g, gErr)
+                _r, _rI = mag2maggy(r, rErr)
+                _i, _iI = mag2maggy(i, iErr)
+                _z, _zI = mag2maggy(z, zErr)
+            elif self._inputs.kcorr_type == 'complete':
+                _u, _uI = lup2maggy(u, uErr, b_u, quadErr_u, ab_u)
+                _g, _gI = lup2maggy(g, gErr, b_g, quadErr_g, ab_g)
+                _r, _rI = lup2maggy(r, rErr, b_r, quadErr_r, ab_r)
+                _i, _iI = lup2maggy(i, iErr, b_i, quadErr_i, ab_i)
+                _z, _zI = lup2maggy(z, zErr, b_z, quadErr_z, ab_z)
+                            
             inp_array = np.array(
               [redshift, _u, _g, _r, _i, _z, _uI, _gI, _rI, _iI, _zI])
             out_coeffs = kcorrect.fit_coeffs(inp_array)
-            out_kcorrection = kcorrect.reconstruct_maggies(
-              out_coeffs, redshift=z_ref)
             
-            #Convert kcorrections for maggies to magnitudes.
-            u_kcorr, g_kcorr, r_kcorr, i_kcorr, z_kcorr = [
-              kcorr2mag(inp_maggy, kcorr) for (inp_maggy, kcorr) in\
-              zip(inp_array[1:6], out_kcorrection[1::])]
+            rec_maggies = kcorrect.reconstruct_maggies(
+              out_coeffs, redshift=self._inputs.z_ref)
+            rmaggies = kcorrect.reconstruct_maggies(
+              out_coeffs, redshift=redshift)            
+            
+            u_kcorr, g_kcorr, r_kcorr, i_kcorr, z_kcorr = (
+              2.5 * np.log10(np.divide(rec_maggies[1:6],rmaggies[1:6])))
             
             return u_kcorr, g_kcorr, r_kcorr, i_kcorr, z_kcorr
         
@@ -146,7 +185,7 @@ class Process_Data(object):
             #lum_dist is returned in Mpc, as needed for the calculation below.
             lum_dist = cosmo.luminosity_distance(z).value                        
             M = (m - 5. * np.log10(lum_dist) - 25. - kcorr
-                 + (z - z_ref) * Q_factor)
+                 + (z - self._inputs.z_ref) * Q_factor)
             return M
                         
         for fltr in ['u', 'g', 'r', 'i', 'z']:
@@ -159,81 +198,9 @@ class Process_Data(object):
         self.df.to_csv(fpath)
 
     def perform_run(self):
-        import kcorrect
         self.read_data()
         self.extinction_correction()
         self.trim_data()
         self.make_Kcorrections()
         self.compute_abs_mags()
         self.save_output()
-
-'''
-class Plot_CMD(object):
-    
-    def __init__(self, _df):
-        
-        self._df = _df
-        self.fig = plt.figure(figsize=(10,10))
-        self.ax = self.fig.add_subplot(111)
-        
-        self.make_plot()
-        
-    def set_fig_frame(self):
-        
-        f1 = 'r'
-        f2 = 'g'
-
-        x_label = r'$' +f1 + '$'
-        y_label = r'$' + f2 + '-' +f1 + '$'
-        self.ax.set_xlabel(x_label, fontsize=20.)
-        self.ax.set_ylabel(y_label, fontsize=20.)
-        self.ax.set_xlim(10., 25.)
-        self.ax.set_ylim(-1., 3.)
-        self.ax.tick_params(axis='y', which='major', labelsize=20., pad=8)      
-        self.ax.tick_params(axis='x', which='major', labelsize=20., pad=8)
-        self.ax.minorticks_off()
-        self.ax.tick_params('both', length=8, width=1., which='major')
-        self.ax.tick_params('both', length=4, width=1., which='minor')    
-        #self.ax.yaxis.set_minor_locator(MultipleLocator(100))
-        #self.ax.yaxis.set_major_locator(MultipleLocator(500))  
-
-    def retrieve_data(self):
-        self.df = pd.read_csv(self._inputs.fpath, header=0)
-        
-        #Make rough cut to exclude spurious objects.
-        self.df = self.df[(self.df.ext_r > 10.) & (self.df.ext_r < 25.0)]        
-        f1 = self.df['ext_r'].values
-        f2 = self.df['ext_g'].values
-        self.mag = f1
-        self.color = f2 - f1  
-        self.hosts = self.df['n_SN'].values
-    
-    def plot_quantities(self):
-
-        #For the legend.
-        self.ax.plot(self.mag, self.color, ls='None', marker=',', color='k', 
-                     label='Control')
-        
-        #N_ctrl = str(len(self.x_acc) + len(self.x_rej))
-        ##N_hosts = str(len(self.x_hosts))
-        #plt.title(
-        #  r'$\mu = ' + str(format(self.mu, '.3f')) + ', \sigma = '
-        #  + str(format(self.std, '.3f')) + ', \mathrm{N_{ctrl}} = ' + N_ctrl
-        #  + ', \mathrm{N_{host}} = ' + N_hosts + '$', fontsize=20.)
-        
-        self.ax.legend(frameon=True, fontsize=20., numpoints=1, loc=2)
-
-    def manage_output(self):
-        if self._inputs.save_fig:
-            fpath = self._inputs.subdir_fullpath + 'FIGURES/CMD.pdf'
-            plt.savefig(fpath, format='pdf')
-        if self._inputs.show_fig:
-            plt.show()
-
-    def make_plot(self):
-        self.set_fig_frame()
-        self.retrieve_data()
-        self.plot_quantities()
-        self.manage_output()             
-        plt.close(self.fig)    
-'''        

@@ -76,9 +76,10 @@ class Generate_Curve(object):
         def Dcolor2sSNRL_builder(Dcolor):
             if Dcolor <= self.Dcolor_max:
                 log_sSNRL = Dcolor2sSNRL_interp(Dcolor)
-            else:
+            elif Dcolor > self.Dcolor_max:
                 log_sSNRL = self.log_sSNRL_max
-            return 10.**log_sSNRL   
+            _sSNRL = 10.**log_sSNRL
+            return _sSNRL   
         
         self.Dcolor2sSNRL = np.vectorize(Dcolor2sSNRL_builder)
         
