@@ -107,12 +107,17 @@ class Input_Parameters(object):
                 
     def set_params(self):
                         
-        if self.case == 'SDSS_gr_example1':   
-            self.subdir = 'example1/'  
-            #Uses the same data set as in Maoz+ 2102.
+        if self.case == 'test-case':   
+            self.subdir = 'test/'  
+            #Uses the same data set as in Heringer+ 2017 and reproduces Fig. 9.
 
             self.data_dir = './../INPUT_FILES/paper1/'
+            self.matching = 'File'
 
+            #Kcorrection
+            self.kcorr_type = 'simple'
+            self.z_ref = 0.0
+            
             #For building Dcolour-rate models.
             self.filter_1 = 'r'
             self.filter_2 = 'g'
@@ -121,20 +126,24 @@ class Input_Parameters(object):
             self.Z = 0.0190
             self.t_onset = 1.e8 * u.yr
             self.t_cutoff = 1.e9 * u.yr
-            self.Dcolor_min = -0.4
-            self.Dcolor_max = 0.08   
             self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.01)
             self.tau_list = np.array(
               [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
-
+            
             #For sub-selecting data
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.dec_min, self.dec_max = -1.25, 1.25
             self.redshift_min, self.redshift_max = 0.01, 0.2
-            self.ext_u_min, self.ext_u_max = -1000., 22.0
-            self.ext_g_min, self.ext_g_max = -1000., 22.2
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 22.2
             self.ext_r_min, self.ext_r_max = 14., 17.77
-            self.ext_uERR_max = 1000.
-            self.ext_gERR_max = 0.2
-            self.ext_rERR_max = 0.2
+            self.uERR_max = 1000.
+            self.gERR_max = 0.05
+            self.rERR_max = 0.05
+
+            #Take into account visibility time.
+            self.visibility_flag = True
 
             #For fitting the RS.
             self.x_ref = 0.
@@ -147,17 +156,371 @@ class Input_Parameters(object):
             self.Dcolor_range = [-0.08, .1]
             self.bin_size = 0.005
             self.bin_range = [-.8, .4]
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
             
+            #Figure management.
+            self.show_fig = False
+            self.save_fig = True        
+        
+        elif self.case == 'SDSS_gr_paper1':   
+            self.subdir = 'paper1/'  
+            #Uses the same data set as in Heringer+ 2017 and reproduces Fig. 9.
+
+            self.data_dir = './../INPUT_FILES/paper1/'
+            self.matching = 'File'
+            #self.matching = 'FileCAS' #For testing of ra and dec only.
+
+            #Kcorrection
+            self.kcorr_type = 'simple'
+            self.z_ref = 0.0
+            
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'exponential'
+            self.Z = 0.0190
+            self.t_onset = 1.e8 * u.yr
+            self.t_cutoff = 1.e9 * u.yr
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.01)
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+            
+            #For sub-selecting data
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.dec_min, self.dec_max = -1.25, 1.25
+            self.redshift_min, self.redshift_max = 0.01, 0.2
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 22.2
+            self.ext_r_min, self.ext_r_max = 14., 17.77
+            self.uERR_max = 1000.
+            self.gERR_max = 0.2
+            self.rERR_max = 0.2
+
+            #Take into account visibility time.
+            self.visibility_flag = False
+
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
+            
+            #Figure management.
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'SDSS_gr_paper1_test':   
+            self.subdir = 'paper1_test/'  
+            #Uses the same data set as in Heringer+ 2017 and reproduces Fig. 9.
+
+            self.data_dir = './../INPUT_FILES/paper1/'
+            self.matching = 'File'
+            #self.matching = 'FileCAS' #For testing of ra and dec only.
+
+            #Kcorrection
+            self.kcorr_type = 'simple'
+            self.z_ref = 0.0
+            
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'exponential'
+            self.Z = 0.0190
+            self.t_onset = 1.e8 * u.yr
+            self.t_cutoff = 1.e9 * u.yr
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.1)
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+            
+            #For sub-selecting data
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.dec_min, self.dec_max = -1.25, 1.25
+            self.redshift_min, self.redshift_max = 0.01, 0.2
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 22.2
+            self.ext_r_min, self.ext_r_max = 14., 17.77
+            self.uERR_max = 1000.
+            self.gERR_max = 0.2
+            self.rERR_max = 0.2
+
+            #Take into account visibility time.
+            self.visibility_flag = False
+
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
+            
+            #Figure management.
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'SDSS_gr_paper1_vistime':   
+            self.subdir = 'paper1_vistime/'  
+            #Uses the same data set as in Heringer+ 2017 and reproduces Fig. 9.
+
+            self.data_dir = './../INPUT_FILES/paper1/'
+            self.matching = 'File'
+            #self.matching = 'FileCAS' #For testing of ra and dec only.
+
+            #Kcorrection
+            self.kcorr_type = 'simple'
+            self.z_ref = 0.0
+            
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'exponential'
+            self.Z = 0.0190
+            self.t_onset = 1.e8 * u.yr
+            self.t_cutoff = 1.e9 * u.yr
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.01)
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+            
+            #For sub-selecting data
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.dec_min, self.dec_max = -1.25, 1.25
+            self.redshift_min, self.redshift_max = 0.01, 0.2
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 22.2
+            self.ext_r_min, self.ext_r_max = 14., 17.77
+            self.uERR_max = 1000.
+            self.gERR_max = 0.2
+            self.rERR_max = 0.2
+
+            #Take into account visibility time.
+            self.visibility_flag = True
+
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
+            
+            #Figure management.
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'SDSS_gr_paper1_kcorrect':   
+            self.subdir = 'paper1_kcorrect/'  
+            #Uses the same data set as in Heringer+ 2017 and reproduces Fig. 9.
+
+            self.data_dir = './../INPUT_FILES/paper1/'
+            self.matching = 'File'
+            #self.matching = 'FileCAS' #For testing of ra and dec only.
+
+            #Kcorrection
+            self.kcorr_type = 'complete'
+            self.z_ref = 0.0
+            
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'exponential'
+            self.Z = 0.0190
+            self.t_onset = 1.e8 * u.yr
+            self.t_cutoff = 1.e9 * u.yr
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.01)
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+            
+            #For sub-selecting data
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.dec_min, self.dec_max = -1.25, 1.25
+            self.redshift_min, self.redshift_max = 0.01, 0.2
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 22.2
+            self.ext_r_min, self.ext_r_max = 14., 17.77
+            self.uERR_max = 1000.
+            self.gERR_max = 0.2
+            self.rERR_max = 0.2
+
+            #Take into account visibility time.
+            self.visibility_flag = False
+
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
+            
+            #Figure management.
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'SDSS_gr_improved':   
+            self.subdir = 'paper1_improved/'  
+
+            self.data_dir = './../INPUT_FILES/paper1/'
+            self.matching = 'View'
+
+            #Kcorrection
+            self.kcorr_type = 'complete'
+            self.z_ref = 0.0
+                        
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'exponential'
+            self.Z = 0.0190
+            self.t_onset = 1.e8 * u.yr
+            self.t_cutoff = 1.e9 * u.yr
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.01)
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+
+            #For sub-selecting data
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.dec_min, self.dec_max = -1.25, 1.25
+            self.redshift_min, self.redshift_max = 0.01, 0.2
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 22.2
+            self.ext_r_min, self.ext_r_max = 14., 17.77
+            self.uERR_max = 1000.
+            self.gERR_max = 0.2
+            self.rERR_max = 0.2
+
+            #Take into account visibility time.
+            self.visibility_flag = True
+
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
+                        
+            #Figure management.
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'SDSS_gr_Maoz':   
+            self.subdir = 'Maoz_sample/'  
+            #Uses the same data set as in Maoz+ 2102.
+
+            self.matching = 'Table'
+
+            self.data_dir = './../INPUT_FILES/Maoz_file/'
+
+            #Kcorrection
+            self.kcorr_type = 'complete'
+            self.z_ref = 0.0
+
+            #For building Dcolour-rate models.
+            self.filter_1 = 'r'
+            self.filter_2 = 'g'
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'exponential'
+            self.Z = 0.0190
+            self.t_onset = 1.e8 * u.yr
+            self.t_cutoff = 1.e9 * u.yr 
+            self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.01)
+            self.tau_list = np.array(
+              [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+
+            #For sub-selecting data
+            self.ra_min, self.ra_max = 360. - 51., 57.
+            self.dec_min, self.dec_max = -1.25, 1.25
+            self.redshift_min, self.redshift_max = 0., 0.4
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 1000.
+            self.ext_r_min, self.ext_r_max = -1000., 1000.
+            self.uERR_max = 1000.
+            self.gERR_max = 1000.
+            self.rERR_max = 1000.
+
+            #Take into account visibility time.
+            self.visibility_flag = True
+
+            #For fitting the RS.
+            self.x_ref = 0.
+            self.tol = 2.
+            self.slope_guess = -0.0188
+            self.intercept_guess = 0.346
+            
+            #For fitting a gaussian to the RS.
+            #Physical.
+            self.Dcolor_range = [-0.08, .1]
+            self.bin_size = 0.005
+            self.bin_range = [-.8, .4]
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
+                        
             #Figure management.
             self.show_fig = True
             self.save_fig = True
 
-        elif self.case == 'SDSS_gr_Maoz':   
-            self.subdir = 'example3/'  
+        elif self.case == 'SDSS_gr_Maoz_aspaper1':   
+            self.subdir = 'Maoz_paper1/'  
             #Uses the same data set as in Maoz+ 2102.
 
+            self.matching = 'Table'
+
             self.data_dir = './../INPUT_FILES/Maoz_file/'
-            #self.fpath = data_dir + 'Maoz_processed.csv'
+
+            #Kcorrection
+            self.kcorr_type = 'complete'
+            self.z_ref = 0.0
 
             #For building Dcolour-rate models.
             self.filter_1 = 'r'
@@ -166,21 +529,25 @@ class Input_Parameters(object):
             self.sfh_type = 'exponential'
             self.Z = 0.0190
             self.t_onset = 1.e8 * u.yr
-            self.t_cutoff = 1.e9 * u.yr
-            self.Dcolor_min = -0.4
-            self.Dcolor_max = 0.08   
+            self.t_cutoff = 1.e9 * u.yr 
             self.slopes = np.arange(-3., 0.01, 0.1)
+            self.slopes_fine = np.arange(-3., 0.01, 0.01)
             self.tau_list = np.array(
               [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
 
             #For sub-selecting data
-            self.redshift_min, self.redshift_max = 0., 0.4
-            self.ext_u_min, self.ext_u_max = -1000., 22.0
-            self.ext_g_min, self.ext_g_max = -1000., 22.2
+            self.ra_min, self.ra_max = 360. - 51., 57.
+            self.dec_min, self.dec_max = -1.25, 1.25
+            self.redshift_min, self.redshift_max = 0.01, 0.2
+            self.petroMag_u_min, self.petroMag_u_max = -1000., 1000.
+            self.petroMag_g_min, self.petroMag_g_max = -1000., 22.2
             self.ext_r_min, self.ext_r_max = 14., 17.77
-            self.ext_uERR_max = 1000.
-            self.ext_gERR_max = 0.2
-            self.ext_rERR_max = 0.2
+            self.uERR_max = 1000.
+            self.gERR_max = 0.2
+            self.rERR_max = 0.2
+
+            #Take into account visibility time.
+            self.visibility_flag = True
 
             #For fitting the RS.
             self.x_ref = 0.
@@ -193,10 +560,13 @@ class Input_Parameters(object):
             self.Dcolor_range = [-0.08, .1]
             self.bin_size = 0.005
             self.bin_range = [-.8, .4]
-            
+
+            #For Selecting the Dcolors accepted to compute likelihoods.
+            self.Dcolor_min = -0.4 #Note that Dcolor max is set by the RS fit.
+                        
             #Figure management.
-            self.show_fig = True
-            self.save_fig = False
+            self.show_fig = False
+            self.save_fig = True
 
         else:
             raise ValueError('Case "%s" is not defined.\n\n' %(self.case))            

@@ -17,11 +17,12 @@ class Fit_RS(object):
         self.x_data, self.y_data, self.hosts = None, None, None
         self.x_rej, self.y_rej, self.hosts_rej = [], [], []
         self.fit_func = None
+        self.fit_coeffs = None
         
         self.run_fit()
         
     def retrieve_data(self):
-        fpath = self._inputs.subdir_fullpath + 'data_processed.csv'
+        fpath = self._inputs.subdir_fullpath + 'data_absmag.csv'
         self.df = pd.read_csv(fpath, header=0)
         self.f1, self.f2 = self._inputs.filter_1, self._inputs.filter_2
         photo1, photo2 = self.df['abs_' + self.f1], self.df['abs_' + self.f2]
@@ -45,10 +46,10 @@ class Fit_RS(object):
         self.hosts = self.hosts[trim_cond]
 
     def make_fit(self, _x, _y):
-        fit_coeffs, cov_matrix = np.polyfit(_x, _y, 1, cov=True)
+        self.fit_coeffs, cov_matrix = np.polyfit(_x, _y, 1, cov=True)
         slope_unc = np.sqrt(cov_matrix[0][0])
         intercept_unc = np.sqrt(cov_matrix[1][1])
-        _fit_func = np.poly1d(fit_coeffs)
+        _fit_func = np.poly1d(self.fit_coeffs)
         return _fit_func
 
     def compute_std(self, _x, _y, _fit_func):
@@ -126,8 +127,11 @@ class Fit_RS(object):
         
         fpath = self._inputs.subdir_fullpath + 'RS_fit.csv'
         with open(fpath, 'w') as out:
-            out.write('RS_mu,RS_std\n')
-            out.write(str(format(mu, '.3f')) + ',' +  str(format(std, '.2f')))
+            a = str(format(self.fit_coeffs[0], '.3f'))
+            b = str(format(self.fit_coeffs[1], '.3f'))
+            out.write('RS_mu,RS_std,slope,intercept\n')
+            out.write(str(format(mu, '.3f')) + ',' +  str(format(std, '.2f'))
+                      + ',' + a + ',' + b)
         
     def save_output(self):
         fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'

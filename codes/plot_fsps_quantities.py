@@ -386,7 +386,7 @@ class Make_Panels(object):
         self.show_figure()
         plt.close(self.FIG)
 
-class Run_Plotter(object):
+class FSPS_Plotter(object):
     
     def __init__(self, _inputs):
 

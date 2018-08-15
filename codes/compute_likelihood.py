@@ -26,6 +26,7 @@ class Get_Likelihood(object):
         photo2 = self.df['abs_' + f2]
         self.Dcolor = self.df['Dcolor_' + f2 + f1]
         self.hosts = self.df['n_SN']
+        self.redshift = self.df['z']
         self.abs_mag = photo1
 
     #@profile
@@ -35,11 +36,12 @@ class Get_Likelihood(object):
         RS_std = abs(float(np.loadtxt(fpath, delimiter=',', skiprows=1,
                                       usecols=(1,), unpack=True)))
                                
-        Dcolor_cond = ((self.Dcolor >= -10. * RS_std) &
+        Dcolor_cond = ((self.Dcolor >= self._inputs.Dcolor_min) &
                        (self.Dcolor <= 2. * RS_std))
 
         self.hosts = self.hosts[Dcolor_cond].values
         self.abs_mag = self.abs_mag[Dcolor_cond].values
+        self.redshift = self.redshift[Dcolor_cond].values
         self.Dcolor = self.Dcolor[Dcolor_cond].values
 
         host_cond = self.hosts
@@ -47,15 +49,31 @@ class Get_Likelihood(object):
 
         self.host_abs_mag = self.abs_mag[host_cond]
         self.host_Dcolor = self.Dcolor[host_cond]
+        self.host_redshift = self.redshift[host_cond]
         self.ctrl_abs_mag = self.abs_mag[ctrl_cond]
+        self.ctrl_redshift = self.redshift[ctrl_cond]
         self.ctrl_Dcolor = self.Dcolor[ctrl_cond]
-        
+                
         self.N_obs = len(self.host_Dcolor)
-        
-        #np.logical_not(_acc_cond)
 
-        #print len(self.Dcolor[self.hosts].values)
-        #print len(self.Dcolor.values)
+    def visibility_time(self, redshift):
+
+        def detection_eff_func(_z):
+            if _z < 0.175:
+                detection_eff = 0.72
+            else:
+                detection_eff = -3.2 * _z + 1.28
+            return detection_eff
+        
+        survey_duration = 269. * u.day
+        survey_duration = survey_duration.to(u.year).value
+        _time = np.ones(len(redshift)) * survey_duration        
+        _time = np.divide(_time,(1. + redshift)) #In the galaxy rest frame.
+        
+        vec_func = np.vectorize(detection_eff_func)
+        eff_correction = vec_func(redshift)
+        _time = np.multiply(_time,eff_correction)
+        return _time
 
     #@profile
     def calculate_likelihood(self, _s1, _s2):
@@ -66,27 +84,33 @@ class Get_Likelihood(object):
         sSNRL_ctrl = generator.Dcolor2sSNRL(self.ctrl_Dcolor)
         L_ctrl = 10.**(-0.4 * (self.ctrl_abs_mag - 5.))
         SNR_ctrl = np.multiply(sSNRL_ctrl,L_ctrl)
+        if self._inputs.visibility_flag:
+            correction_factor = self.visibility_time(self.ctrl_redshift)
+            SNR_ctrl = np.multiply(SNR_ctrl,correction_factor)
         
         #Hosts.
         sSNRL_host = generator.Dcolor2sSNRL(self.host_Dcolor)
         L_host = 10.**(-0.4 * (self.host_abs_mag - 5.))
         SNR_host = np.multiply(sSNRL_host,L_host)
+        if self._inputs.visibility_flag:
+            correction_factor = self.visibility_time(self.host_redshift)
+            SNR_host = np.multiply(SNR_host,correction_factor)
         
         #ln L.
         _N_expected = np.sum(SNR_ctrl)
         A = self.N_obs / _N_expected
         _lambda = np.log(A * SNR_host)
         _ln_L = - self.N_obs + np.sum(_lambda)
-        
+        #print A, self.N_obs, np.sum(_lambda), _ln_L, A * SNR_host
         return _N_expected, _ln_L       
         
     #@profile
-    def write_output(self):
+    def write_output_for_grid(self):
         """Copmute SN rates for the control sample (required for normalization)
         and the hosts. Then compute the likelihood for each model. The
         equations and notations follow paper I. Write output within the loop.
         """
-        fpath = self._inputs.subdir_fullpath + 'likelihood.csv'
+        fpath = self._inputs.subdir_fullpath + 'likelihood_grid.csv'
 
         W = {} #Dictironary for header information.
         W['0'] = '-------- General info --------'
@@ -94,10 +118,8 @@ class Get_Likelihood(object):
         W['2'] = 't_onset [yr]: ' + str(int(self._inputs.t_onset.to(u.yr).value))
         W['3'] = 't_cutoff [yr]: ' + str(int(self._inputs.t_cutoff.to(u.yr).value))
         W['4'] = 'N_obs: ' + str(self.N_obs)
-        W['5'] = 'min(D(g-r)): ' + str(self._inputs.Dcolor_min)
-        W['6'] = 'max(D(g-r)): ' + str(self._inputs.Dcolor_max)
-        W['7'] = '-------- Columns --------'
-        W['8'] = 'slope1,slope2,N_expected,ln_L' 
+        W['5'] = '-------- Columns --------'
+        W['6'] = 'slope1,slope2,N_expected,ln_L' 
         
         with open(fpath, 'w') as out:           
             for i in range(len(W.keys())): #Write header.
@@ -115,7 +137,69 @@ class Get_Likelihood(object):
                             + ',' + str(ln_L) + '\n')
                     out.write(line)
 
+    def write_output_for_stats_def(self):
+        """Copmute SN rates for the control sample (required for normalization)
+        and the hosts. Then compute the likelihood for each model. The
+        equations and notations follow paper I. Write output within the loop.
+        """
+        fpath = self._inputs.subdir_fullpath + 'likelihood_def.csv'
+
+        W = {} #Dictironary for header information.
+        W['0'] = '-------- General info --------'
+        W['1'] = 'sfh_type: ' + self._inputs.sfh_type
+        W['2'] = 't_onset [yr]: ' + str(int(self._inputs.t_onset.to(u.yr).value))
+        W['3'] = 't_cutoff [yr]: ' + str(int(self._inputs.t_cutoff.to(u.yr).value))
+        W['4'] = 'N_obs: ' + str(self.N_obs)
+        W['5'] = '-------- Columns --------'
+        W['6'] = 'slope1,slope2,N_expected,ln_L' 
+        
+        with open(fpath, 'w') as out:           
+            for i in range(len(W.keys())): #Write header.
+                out.write(W[str(i)] + '\n')
+
+            #Compute rates and write outputs. Note that the order here matters
+            #to later read the data and produce the likelihood figure.
+            for s in self._inputs.slopes_fine[::-1]:
+                s_str = str(format(s, '.1f'))
+                print '  *s1/s2=-1/' + s_str
+                N_expected, ln_L = self.calculate_likelihood(-1., s)
+                line = ('-1,' + s_str + ',' + str(N_expected)
+                        + ',' + str(ln_L) + '\n')
+                out.write(line)
+
+    def write_output_for_stats_cont(self):
+        """Copmute SN rates for the control sample (required for normalization)
+        and the hosts. Then compute the likelihood for each model. The
+        equations and notations follow paper I. Write output within the loop.
+        """
+        fpath = self._inputs.subdir_fullpath + 'likelihood_cont.csv'
+
+        W = {} #Dictironary for header information.
+        W['0'] = '-------- General info --------'
+        W['1'] = 'sfh_type: ' + self._inputs.sfh_type
+        W['2'] = 't_onset [yr]: ' + str(int(self._inputs.t_onset.to(u.yr).value))
+        W['3'] = 't_cutoff [yr]: ' + str(int(self._inputs.t_cutoff.to(u.yr).value))
+        W['4'] = 'N_obs: ' + str(self.N_obs)
+        W['5'] = '-------- Columns --------'
+        W['6'] = 'slope1,slope2,N_expected,ln_L' 
+        
+        with open(fpath, 'w') as out:           
+            for i in range(len(W.keys())): #Write header.
+                out.write(W[str(i)] + '\n')
+
+            #Compute rates and write outputs. Note that the order here matters
+            #to later read the data and produce the likelihood figure.
+            for s in self._inputs.slopes_fine[::-1]:
+                s_str = str(format(s, '.1f'))
+                print '  *s1/s2=' + s_str + '/' + s_str
+                N_expected, ln_L = self.calculate_likelihood(s, s)
+                line = (s_str + ',' + s_str + ',' + str(N_expected)
+                        + ',' + str(ln_L) + '\n')
+                out.write(line)
+
     def run_analysis(self):
         self.retrieve_data()
         self.subselect_data()
-        self.write_output()
+        #self.write_output_for_grid()
+        self.write_output_for_stats_def()
+        self.write_output_for_stats_cont()

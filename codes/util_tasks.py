@@ -61,12 +61,23 @@ class Utility_Routines(object):
             rec.write('t_onset: ' + str(format(
               self._inputs.t_onset.to(u.yr).value / 1.e9, '.2f')) + ' Gyr \n')
             rec.write('t_cutoff: ' + str(format(
-              self._inputs.t_cutoff.to(u.yr).value / 1.e9, '.2f')) + ' Gyr \n')
-            rec.write('Dcolor_min: ' + str(self._inputs.Dcolor_min) + ' \n')
-            rec.write('Dcolor_max: ' + str(self._inputs.Dcolor_max) + ' \n\n')
-            rec.write('---Dataset---\n')
-            #rec.write('Control galaxies: ' + self._inputs.ctrl_fpath + ' \n')
-            #rec.write('Host galaxies: ' + self._inputs.host_fpath)
+              self._inputs.t_cutoff.to(u.yr).value / 1.e9, '.2f')) + ' Gyr \n\n')
+            rec.write('---Data Selection---\n')
+            rec.write(str(self._inputs.ra_min) + ' < ra < '
+                      + str(self._inputs.ra_max) + ' \n')            
+            rec.write(str(self._inputs.dec_min) + ' < dec < '
+                      + str(self._inputs.dec_max) + ' \n') 
+            rec.write(str(self._inputs.redshift_min) + ' <= redshift <= '
+                      + str(self._inputs.redshift_max) + ' \n')
+            rec.write(str(self._inputs.petroMag_u_min) + ' <= u_ext < '
+                      + str(self._inputs.petroMag_u_max) + ' \n')
+            rec.write(str(self._inputs.petroMag_g_min) + ' <= g_ext < '
+                      + str(self._inputs.petroMag_g_max) + ' \n')
+            rec.write(str(self._inputs.ext_r_min) + ' <= r_ext < '
+                      + str(self._inputs.ext_r_max) + ' \n')
+            rec.write('u_err <= ' + str(self._inputs.uERR_max) + '\n')
+            rec.write('g_err <= ' + str(self._inputs.gERR_max) + '\n')
+            rec.write('r_err <= ' + str(self._inputs.rERR_max) + '\n')
 
     def run_utilities(self):
         self.check_variables()
