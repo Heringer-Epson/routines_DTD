@@ -22,12 +22,12 @@ class Main_Plotter(object):
         Instance of the Input_Parameters class defined in input_params.py.
     """    
     def __init__(self, _inputs):
-        FSPS_Plotter(_inputs)
-        Ext_CMD(_inputs)        
-        Abs_CMD(_inputs)
-        Plot_Dcolor(_inputs)
+        #FSPS_Plotter(_inputs)
+        #Ext_CMD(_inputs)        
+        #Abs_CMD(_inputs)
+        #Plot_Dcolor(_inputs)
         Plot_As(_inputs)
         Plot_s1s2(_inputs)
-        Plot_s1s2_II(_inputs)
-        Plot_Vespa(_inputs)
+        #Plot_s1s2_II(_inputs)
+        #Plot_Vespa(_inputs)
 

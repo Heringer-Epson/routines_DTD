@@ -23,8 +23,7 @@ def visibility_time(redshift):
 def detection_eff(redshift):
     """The approximate effiency for detecting SNe Ia as a function of redshidft.
     As in M12."""
-    if redshift < 0.175:
-        detection_eff = 0.72
-    else:
-        detection_eff = -3.2 * redshift + 1.28
+    detection_eff = np.piecewise(
+      redshift, [redshift < 0.175, redshift >= 0.175],
+      [0.72, lambda x: -3.2 * x + 1.28])   
     return detection_eff 

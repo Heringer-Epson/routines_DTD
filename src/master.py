@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import itertools
 from input_params import Input_Parameters as class_input
 from run_fsps import Make_FSPS
 from acquire_hosts import Acquire_Hosts
@@ -30,13 +31,14 @@ class Master(object):
         also produced.   
     """
     
-    def __init__(self, case=None, run_fsps_flag=False, process_data=True,
-                 likelihood_flag=False, plots_flag=False):
+    def __init__(self, case, run_fsps_flag, process_data, likelihood_flag,
+                 plots_flag, custom_pars=None):
         self.case = case
         self.run_fsps_flag = run_fsps_flag
         self.process_data = process_data
         self.likelihood_flag = likelihood_flag
         self.plots_flag = plots_flag
+        self.custom_pars = custom_pars
         self.inputs = None
 
     def verbose(self):
@@ -49,7 +51,7 @@ class Master(object):
 
     def run_master(self):
         self.verbose()
-        self.inputs = class_input(case=self.case)
+        self.inputs = class_input(case=self.case, custom_pars=self.custom_pars)
         Utility_Routines(self.inputs)
         
         #Get FSPS files to build Dcolour-rate models.
@@ -74,9 +76,32 @@ class Master(object):
         Write_Record(self.inputs)
             
 if __name__ == '__main__':
-    #Master(case='SDSS_gr_M12', run_fsps_flag=False, process_data=False,
-    #       likelihood_flag=False, plots_flag=False).run_master()
-    Master(case='test-case', run_fsps_flag=True, process_data=True,
-           likelihood_flag=True, plots_flag=True).run_master()
-    #Master(case='H17_with_M12_sample', run_fsps_flag=False, process_data=False,
-    #       likelihood_flag=False, plots_flag=True).run_master()
+    #Master(case='test-case', run_fsps_flag=False, process_data=False,
+    #       likelihood_flag=False, plots_flag=True).run_master()    
+
+    #Attempts to reproduce the original publications of H17 and M12.
+    Master(case='H17', run_fsps_flag=False, process_data=True,
+           likelihood_flag=True, plots_flag=True).run_master() 
+    #Master(case='M12', run_fsps_flag=False, process_data=True,
+    #       likelihood_flag=True, plots_flag=True).run_master()
+
+
+    #RUN several simulations for a suite of relevant parameters.
+    '''
+    ctrl = ['H17', 'M12']
+    SN = ['native', 'S18']
+    SN_type = [['SNIa'], ['SNIa', 'zSNIa']]
+    z = ['0.2', '0.4']
+    t_onset = ['40', '100']
+    
+    all_cases = list(itertools.product(ctrl, SN, SN_type, t_onset, z))
+    
+    for i, _pars in enumerate(all_cases):
+        print 'Running simulation ' + str(i + 1) + '/' + str(len(all_cases))
+        Master(case='custom', run_fsps_flag=False, process_data=False,
+               likelihood_flag=True, plots_flag=True, custom_pars=_pars
+               ).run_master()    
+    '''
+    #Master(case='best_3D', run_fsps_flag=False, process_data=False,
+    #       likelihood_flag=True, plots_flag=True).run_master()               
+            

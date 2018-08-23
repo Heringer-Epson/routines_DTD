@@ -29,8 +29,8 @@ class Make_FSPS(object):
 
     def __init__(self):
         print '\n\n>RUNNING FSPS... (requires fsps and python-fsps installed!)\n'
-        self.filter_1 = 'sdss_r'
-        self.filter_2 = 'sdss_g'
+        self.filter_1 = 'r'
+        self.filter_2 = 'g'
         self.imf_type = 'Chabrier'
         self.sfh_type = ['exponential', 'delayed-exponential']
         self.Z = 0.0190
@@ -49,7 +49,7 @@ class Make_FSPS(object):
         #Data needs to be transposed, otherwise arrays are written as
         #lines rather than columns.
         mag_1, mag_2 = zip(*sp.get_mags(
-          bands=[self.filter_1, self.filter_2]))
+          bands=['sdss_' + self.filter_1, 'sdss_' + self.filter_2]))
         out_data = (sp.log_age, sp.sfr, sp.stellar_mass, sp.formed_mass,
           mag_2, mag_1)
         np.savetxt(directory + fname, np.transpose(out_data), header=header,
