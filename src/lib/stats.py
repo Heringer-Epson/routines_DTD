@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
+import pandas as pd
 import survey_efficiency
 
 """
@@ -47,15 +48,20 @@ def binned_DTD_rate(A, s, t0):
     psi3 = A / (s + 1.) * (14.**(s + 1.) - 2.4**(s + 1.)) / (14. - 2.4)    
     return psi1, psi2, psi3
 
-def compute_L_from_DTDs(_A, _s, t0, mass1, mass2, mass3, eff_vistime, host_cond):
+def compute_L_from_DTDs(_A, _s, t0, mass1, mass2, mass3, redshift, host_cond,
+                        visibility_flag):
     """Compute likelihoods given a DTD parametrized by a multiplicative
     constant and a continuous slope. Time bins are as in M12, with the
     exception that 't0' (in Gyr) sets the arbirtrary starting age of the
     first bin."""
     psi1, psi2, psi3 = binned_DTD_rate(_A,_s, t0)
     rate = mass1 * psi1 + mass2 * psi2 + mass3 * psi3
-    lmbd = np.multiply(rate,eff_vistime)
-    ln_L = -np.sum(lmbd) + np.sum(np.log(lmbd[host_cond]))
+    if visibility_flag:
+        vistime = survey_efficiency.visibility_time(redshift) 
+        detect_eff = survey_efficiency.detection_eff(redshift)
+        correction_factor = np.multiply(vistime,detect_eff)
+        rate = np.multiply(rate,correction_factor)
+    ln_L = -np.sum(rate) + np.sum(np.log(rate[host_cond]))
     return ln_L
 
 def compute_L_using_sSNRL(Dcolor2sSNRL_func, Dcolor, absmag, redshift,
@@ -74,7 +80,7 @@ def compute_L_using_sSNRL(Dcolor2sSNRL_func, Dcolor, absmag, redshift,
     
     SNR_all = get_SN_rate(Dcolor, absmag, redshift) #Whole sample.
     SNR_host = get_SN_rate(
-      Dcolor[host_cond], absmag[host_cond], redshift[host_cond]) #Whole sample.
+      Dcolor[host_cond], absmag[host_cond], redshift[host_cond]) #hosts.
 
     if normalize_flag:
         _N_expected = np.sum(SNR_all)
@@ -88,3 +94,25 @@ def compute_L_using_sSNRL(Dcolor2sSNRL_func, Dcolor, absmag, redshift,
 
     return _N_expected, _ln_L
 
+#Tools for plotting likelihood contours.
+def read_lnL(_fpath, colx, coly, colz):
+    df = pd.read_csv(_fpath, header=0, dtype=float)
+    return df[colx].values, df[coly].values, df[colz].values
+
+def plot_contour(ax, x, y, z, c, label='', ao=0., ls=None, add_max=True):
+    contour_list = [0.95, 0.68, 0.] 
+    z = clean_array(z)
+    _x, _y = np.unique(x), np.unique(y)       
+    X = x.reshape(len(_x),len(_y))
+    Y = y.reshape(len(_x),len(_y))
+    qtty = z.reshape((len(_x), len(_y)))
+    levels = [get_contour_levels(z, contour) for contour in contour_list]
+    ax.contourf(X, Y, qtty, levels[0:2], colors=c, alpha=0.4 + ao)	 
+    ax.contourf(X, Y, qtty, levels[1:3], colors=c, alpha=0.6 + ao)	 
+
+    if add_max:
+        ax.plot(
+          x[np.argmax(z)], y[np.argmax(z)], ls='None', marker='+',
+          color=c, markersize=30.)
+    ax.plot([np.nan], [np.nan], color=c, ls='-', lw=15., marker='None',
+      label=label)

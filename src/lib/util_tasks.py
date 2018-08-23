@@ -4,6 +4,7 @@ import os
 import sys
 import warnings
 import numpy as np
+import pandas as pd
 from astropy import units as u
 
 class Utility_Routines(object):
@@ -56,6 +57,8 @@ class Utility_Routines(object):
             os.makedirs(self._inputs.subdir_fullpath + 'fsps_FILES/')        
         if not os.path.exists(self._inputs.subdir_fullpath + 'FIGURES/'):
             os.makedirs(self._inputs.subdir_fullpath + 'FIGURES/')
+        if not os.path.exists(self._inputs.subdir_fullpath + 'likelihoods/'):
+            os.makedirs(self._inputs.subdir_fullpath + 'likelihoods/')
 
     def run_utilities(self):
         self.check_variables()

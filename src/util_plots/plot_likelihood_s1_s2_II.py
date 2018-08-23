@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from matplotlib import colors
+import lib
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -60,22 +61,13 @@ class Plot_s1s2_II(object):
         self.ax.tick_params('both', length=4, width=1., which='minor') 
 
     def get_data(self):
-        
-        fpath = self._inputs.subdir_fullpath + 'likelihood_s1_s2.csv'
-        self.slopes_1, self.slopes_2, self.ln_L = np.loadtxt(
-          fpath, delimiter=',', skiprows=7, usecols=(0,1,3), unpack=True)           
+        fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
+        self.slopes_1, self.slopes_2, self.L = lib.stats.read_lnL(fpath)           
+        self.L = self.L[::-1]
 
         #Get how many slopes there is self.s1 and self.s2 
         self.slopes = np.unique(self.slopes_1)
         self.N_s = len(self.slopes)
-        
-    def normalize_likelihood(self):
-        #multiplicative factor to make exponentials small. Otherwise difficult
-        #to handle e^-1000.
-        _L = self.ln_L - min(self.ln_L) 
-        #Normalize in linear scale.
-        _L = np.exp(_L)
-        self.L = _L / sum(_L)
     
     def plot_data(self):
 
@@ -158,7 +150,6 @@ class Plot_s1s2_II(object):
     def make_plot(self):
         self.set_fig_frame()
         self.get_data()
-        self.normalize_likelihood()
         self.plot_data()
         self.find_sigma_fractions()
         self.plot_contour()

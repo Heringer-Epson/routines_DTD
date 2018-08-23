@@ -38,6 +38,12 @@ class Acquire_Hosts(object):
         df_hosts = pd.read_csv(
           fpath_hosts, header=0, dtype={'objID': str, 'CID': str})
 
+        #Remove or keep hosts of SNe observed during engineering time (2004).
+        if not self._inputs.hosts_from_2004:
+            year = np.array([x[0:4] for x in df_hosts['IAUName'].values])
+            cond = (year != '2004')
+            df_hosts = df_hosts[cond]
+
         #Some values retrieved by SDSS might be 'null' strings, which are then
         #read as strings. Replace those with np.nan and convert columns to floats.
         self.df = self.df.replace('null', np.nan)
