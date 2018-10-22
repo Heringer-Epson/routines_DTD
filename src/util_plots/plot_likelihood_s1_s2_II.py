@@ -62,12 +62,17 @@ class Plot_s1s2_II(object):
 
     def get_data(self):
         fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
-        self.slopes_1, self.slopes_2, self.L = lib.stats.read_lnL(fpath)           
-        self.L = self.L[::-1]
+        
+        N_obs, self.slopes_1, self.slopes_2, A, self.L = lib.stats.read_lnL(fpath)  
+        self.L = lib.stats.clean_array(self.L[::-1])
 
         #Get how many slopes there is self.s1 and self.s2 
         self.slopes = np.unique(self.slopes_1)
         self.N_s = len(self.slopes)
+
+        #Array of likelihoods needs to be transposed to match the re-named ticks.
+        aux = np.transpose(np.reshape(self.L, (self.N_s, self.N_s)))
+        self.L = aux.reshape(-1)
     
     def plot_data(self):
 

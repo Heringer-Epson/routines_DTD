@@ -12,7 +12,6 @@ from main_plotter import Main_Plotter
 from write_record import Write_Record
 from lib.util_tasks import Utility_Routines
 
-        
 class Master(object):
     """
     Code Description
@@ -75,26 +74,27 @@ class Master(object):
 
         Write_Record(self.inputs)
             
-if __name__ == '__main__':
-    #Master(case='test-case', run_fsps_flag=False, process_data=False,
-    #       likelihood_flag=False, plots_flag=True).run_master()    
+if __name__ == '__main__':  
 
+    Master(case='M12', run_fsps_flag=False, process_data=False,
+           likelihood_flag=False, plots_flag=True).run_master()    
+
+    '''
     #Attempts to reproduce the original publications of H17 and M12.
-    Master(case='H17', run_fsps_flag=False, process_data=True,
-           likelihood_flag=True, plots_flag=True).run_master() 
-    #Master(case='M12', run_fsps_flag=False, process_data=True,
-    #       likelihood_flag=True, plots_flag=True).run_master()
+    Master(case='H17', run_fsps_flag=False, process_data=False,
+           likelihood_flag=False, plots_flag=True).run_master() 
+    Master(case='M12', run_fsps_flag=False, process_data=False,
+           likelihood_flag=True, plots_flag=True).run_master()
 
 
     #RUN several simulations for a suite of relevant parameters.
-    '''
+
     ctrl = ['H17', 'M12']
     SN = ['native', 'S18']
     SN_type = [['SNIa'], ['SNIa', 'zSNIa']]
     z = ['0.2', '0.4']
-    t_onset = ['40', '100']
     
-    all_cases = list(itertools.product(ctrl, SN, SN_type, t_onset, z))
+    all_cases = list(itertools.product(ctrl, SN, SN_type, z))
     
     for i, _pars in enumerate(all_cases):
         print 'Running simulation ' + str(i + 1) + '/' + str(len(all_cases))
@@ -102,6 +102,37 @@ if __name__ == '__main__':
                likelihood_flag=True, plots_flag=True, custom_pars=_pars
                ).run_master()    
     '''
-    #Master(case='best_3D', run_fsps_flag=False, process_data=False,
-    #       likelihood_flag=True, plots_flag=True).run_master()               
-            
+    '''
+    #Series of runs to analyse systematic uncertainties. Those use
+    #fiducial parameters of 'H17', 'S18' (z)SN Ia and redshit_max=0.2.
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=False, plots_flag=True,
+      custom_pars=('100','1','exponential','Chabrier','0.0190','BASEL','PADOVA')).run_master()     
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('40','1','exponential','Chabrier','0.0190','BASEL','PADOVA')).run_master()     
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('70','1','exponential','Chabrier','0.0190','BASEL','PADOVA')).run_master()     
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('100','1','delayed-exponential','Chabrier','0.0190','BASEL','PADOVA')).run_master()                                                           
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('100','1','exponential','Kroupa','0.0190','BASEL','PADOVA')).run_master()  
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('100','1','exponential','Salpeter','0.0190','BASEL','PADOVA')).run_master()  
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('100','1','exponential','Chabrier','0.0150','BASEL','PADOVA')).run_master()  
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('100','1','exponential','Chabrier','0.0300','BASEL','PADOVA')).run_master()  
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('100','1','exponential','Chabrier','0.0190','BASEL','MIST')).run_master() 
+    Master(
+      case='sys', run_fsps_flag=False, process_data=False, likelihood_flag=True, plots_flag=True,
+      custom_pars=('100','1','exponential','Chabrier','0.0190','MILES','PADOVA')).run_master()     
+    '''

@@ -20,12 +20,23 @@ double DTD_func(double t, double A, double B, double s1, double s2,
         return B * pow(t, s2);
 }
 
-double SFR_func(double t, double tau, double norm){
+double SFR_exponential_func(double t, double tau, double norm){
     return norm * exp(-t / tau);    
 }
 
-double conv_sSNR(int n, double args[n]){
+double conv_exponential_sSNR(int n, double args[n]){
     return DTD_func(
       args[0], args[3], args[9], args[4], args[5],args[6], args[7])
-      * SFR_func(args[1] - args[0], args[2], args[8]);
+      * SFR_exponential_func(args[1] - args[0], args[2], args[8]);
+}
+
+
+double SFR_delayed_exponential_func(double t, double tau, double norm){
+    return norm * t * exp(-t / tau);    
+}
+
+double conv_delayed_exponential_sSNR(int n, double args[n]){
+    return DTD_func(
+      args[0], args[3], args[9], args[4], args[5],args[6], args[7])
+      * SFR_delayed_exponential_func(args[1] - args[0], args[2], args[8]);
 }

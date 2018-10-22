@@ -96,7 +96,7 @@ class Input_Parameters(object):
     Heringer+ 2017 (H17): http://adsabs.harvard.edu/abs/2017ApJ...834...15H
     Sako+ 2018 (S18): http://adsabs.harvard.edu/abs/2018PASP..130f4002S
     """
-    def __init__(self, case, custom_pars):
+    def __init__(self, case, custom_pars=None):
 
         self.case = case
         self.custom_pars = custom_pars
@@ -138,13 +138,15 @@ class Input_Parameters(object):
         #For building Dcolour-rate models.
         self.filter_1 = 'r'
         self.filter_2 = 'g'
+        self.spec_lib = 'BASEL'
+        self.isoc_lib = 'PADOVA'
         self.imf_type = 'Chabrier'
         self.sfh_type = 'exponential'
+        self.Z = '0.0190'
         self.t_cutoff = 1.e9 * u.yr
-        self.Z = 0.0190
-        self.slopes = np.arange(-3., 0.0001, 0.1)
-        self.A = np.logspace(-13.5, -11.5, len(self.slopes))
-        self.slopes_fine = np.arange(-3., 0.01, 0.01)
+        self.slopes = np.arange(-3., 0.0001, 0.01)
+        #self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
+        self.slopes[abs(self.slopes + 1.) < 1.e-6] = -0.9999
         self.tau_list = np.array(
           [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
           
@@ -191,12 +193,15 @@ class Input_Parameters(object):
             self.matching = 'File'
             self.hosts_from = 'H17'
             self.host_class = ['SNIa']
+            self.imf_type = 'Chabrier'
+            self.sfh_type = 'exponential'
+            self.Z = 0.0190
             self.t_onset = 1.e8 * u.yr
             self.kcorr_type = 'simple'
             self.visibility_flag = False
             self.ra_min, self.ra_max = 360. - 60., 60.
             self.likelihood_3D = False
-            self.show_fig = True
+            self.show_fig = False
             self.save_fig = True        
         
         elif self.case == 'H17':   #Same data set as in Heringer+ 2017.
@@ -244,11 +249,10 @@ class Input_Parameters(object):
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= CUSTOM =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         #Uses all default parameters, except those specifiec here.
         elif self.case == 'custom':
-            ctrl_samp, hosts_samp, self.host_class, t_onset, z = self.custom_pars
-
+            ctrl_samp, hosts_samp, self.host_class, z = self.custom_pars
 
             self.data_dir = './../INPUT_FILES/' + ctrl_samp + '/'
-            self.t_onset = float(t_onset) * u.Myr
+            self.t_onset = 100. * u.Myr
             self.redshift_max = float(z)
             self.redshift_min = 0.01 
 
@@ -264,7 +268,34 @@ class Input_Parameters(object):
 
             self.subdir = (
               ctrl_samp + '_' + self.hosts_from + '_' + self.host_class[-1]\
-              + '_' + t_onset + '_' + z + '/') 
+              + '_' + z + '/') 
+
+            self.show_fig = False
+            self.save_fig = True
+
+        #=-=-=-=-=-=-=-=-=-=-=-=-=-=-= SYSTEMATICS =-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.case == 'sys':
+            t_o, t_c, sfh, imf, Z, spec_lib, isoc_lib = self.custom_pars
+
+            self.spec_lib = spec_lib
+            self.isoc_lib = isoc_lib
+            self.imf_type = imf
+            self.sfh_type = sfh
+            self.Z = Z
+            self.t_cutoff = float(t_c) * u.Gyr
+            self.t_onset = float(t_o) * u.Myr
+
+            #Default parameters for the analysis of systematic uncertainties. 
+            self.data_dir = './../INPUT_FILES/H17/'
+            self.hosts_from = 'S18'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.matching = 'View'
+            self.redshift_max = 0.2
+            self.redshift_min = 0.01 
+
+            self.subdir = (
+              'sys_' + imf + '_' + sfh + '_' + Z + '_' + isoc_lib + '_'\
+              + spec_lib + '_' + t_o + '_' + t_c + '/') 
 
             self.show_fig = False
             self.save_fig = True

@@ -24,22 +24,15 @@ class Model_Rates(object):
     self.sSNRm: SN rate per unit mass
     self.sSNRL: SN rate per unit luminosity (in the r-band of SDSS).
     self.L = Luminosity
-
-    Notes:
-    ------
-    This code is a faster equivalent version of SN_rates_outdated.py. Note,
-    however, that this does not read the SFH directly from FSPS and thus
-    requires an analytic expression for it. Currently only works for the
-    'exponential' case.
     """       
-    def __init__(self, _inputs, A, s1, s2, tau):
+    def __init__(self, _inputs, s1, s2, tau):
 
         self._inputs = _inputs
-        self.A = A
         self.s1 = s1
         self.s2 = s2
         self.tau = tau
         
+        self.A = 1. #Arbitrary constant that is later renormalized.
         self.age = None
         self.int_stellar_mass = None
         self.int_formed_mass = None
@@ -76,7 +69,7 @@ class Model_Rates(object):
 
         #Get data for the complex SFH (i.e. exponential.)
         tau_suffix = str(self.tau.to(u.yr).value / 1.e9)
-        synpop_fname = self._inputs.sfh_type + '_tau-' + tau_suffix + '.dat'
+        synpop_fname = 'tau-' + tau_suffix + '.dat'
         fpath = synpop_dir + synpop_fname
         df = pd.read_csv(fpath, header=0)
         
@@ -96,9 +89,7 @@ class Model_Rates(object):
         _t_ons = self._inputs.t_onset.to(u.Gyr).value
         _t_bre = self._inputs.t_cutoff.to(u.Gyr).value
         _tau = self.tau.to(u.Gyr).value
-        
-        sfr_norm = (
-          1. / (_tau * (1. - np.exp(-self.age.to(u.Gyr).value[-1] / _tau))))
+        _t = self.age.to(u.Gyr).value
         
         const_s2 = self.A * np.power(_t_bre, self.s1 - self.s2)
 
@@ -107,17 +98,26 @@ class Model_Rates(object):
         except:
             lib = ctypes.CDLL('./../src/DTD_gen.so')
             
-        int_f = lib.conv_sSNR
+        if self._inputs.sfh_type == 'exponential':
+            sfr_norm = (
+              -1. / (_tau * (np.exp(-_t[-1] / _tau) - np.exp(-_t[0] / _tau))))     
+            int_f = lib.conv_exponential_sSNR
+
+        elif self._inputs.sfh_type == 'delayed-exponential':
+            sfr_norm = (
+              1. / (((-_tau * _t[-1] - _tau**2.) * np.exp(-_t[-1] / _tau)) -
+              ((-_tau * _t[0] - _tau**2.) * np.exp(-_t[0] / _tau))))
+            int_f = lib.conv_delayed_exponential_sSNR        
+        
         int_f.restype = ctypes.c_double
         int_f.argtypes = (ctypes.c_int, ctypes.c_double)
         
         self.sSNR = np.zeros(len(self.age))
-        inp_t = self.age.to(u.Gyr).value
-        age_cond = (inp_t >= _t_ons)
+        age_cond = (_t >= _t_ons)
         
         self.sSNR[age_cond] = [
           quad(int_f, _t_ons, t, (t, _tau, self.A, self.s1, self.s2, _t_ons,
-          _t_bre, sfr_norm, const_s2))[0] for t in inp_t[age_cond]]
+          _t_bre, sfr_norm, const_s2))[0] for t in _t[age_cond]]
         self.sSNRm = np.divide(self.sSNR,self.int_formed_mass)
         self.L = 10.**(-0.4 * (self.mag_1 - 5.))
         self.sSNRL = np.divide(self.sSNR,self.L)
@@ -129,5 +129,5 @@ class Model_Rates(object):
         
 if __name__ == '__main__':
     from input_params import Input_Parameters as class_input
-    Model_Rates(class_input(case='SDSS_gr_Maoz'), 1.e-12, -1., -2., 1. * u.Gyr)
+    Model_Rates(class_input(case='test-case'), -1., -2., 1. * u.Gyr)
 

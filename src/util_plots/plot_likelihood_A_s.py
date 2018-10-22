@@ -12,9 +12,8 @@ from lib import stats
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
-
 fs = 24.
-c = ['slateblue', 'orangered', 'limegreen']
+c = ['#1b9e77','#d95f02','#7570b3']
 
 class Plot_As(object):
     """
@@ -45,7 +44,7 @@ class Plot_As(object):
     def __init__(self, _inputs):
 
         self._inputs = _inputs
-        self.A = None
+        
         self.s = None
 
         self.fig = plt.figure(figsize=(10,10))
@@ -78,22 +77,25 @@ class Plot_As(object):
                 
     def plot_contours(self):
         
-        fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_A_s.csv'
-        x, y, z = lib.stats.read_lnL(fpath, colx='A', coly='s1', colz='ln_L')
-        lib.stats.plot_contour(self.ax, np.log10(x), y, z, c[0], r'$sSNR_L$ method')
-        
+        fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
+        N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
+        x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
+        a1, a2, a3, a4 = lib.stats.plot_contour(self.ax, np.log10(x), y, z, c[0], r'$sSNR_L$ method')
+                
         if self.add_vespa:
 
-            fpath = self._inputs.subdir_fullpath + 'likelihoods/vespa_A_s.csv'
-            x, y, z = lib.stats.read_lnL(fpath, colx='A', coly='s1', colz='ln_L')
+            fpath = self._inputs.subdir_fullpath + 'likelihoods/vespa_s1_s2.csv'
+            N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
+            x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
             lib.stats.plot_contour(
               self.ax, np.log10(x), y, z, c[1], r'Vespa method: all')
 
-            fpath = self._inputs.subdir_fullpath + 'likelihoods/vespatrim_A_s.csv'
-            x, y, z = lib.stats.read_lnL(fpath, colx='A', coly='s1', colz='ln_L')
+            fpath = self._inputs.subdir_fullpath + 'likelihoods/vespatrim_s1_s2.csv'
+            N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
+            x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
             lib.stats.plot_contour(
               self.ax, np.log10(x), y, z, c[2], r'Vespa method: $\Delta$')
-        
+
         self.ax.legend(
           frameon=False, fontsize=fs, numpoints=1, ncol=1,
           loc=2, labelspacing=-0.1, handlelength=1.5, handletextpad=.5)            

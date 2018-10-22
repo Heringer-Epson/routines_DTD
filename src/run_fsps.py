@@ -10,10 +10,20 @@ from shutil import copyfile
 
 sfh_type2sfh_key = {'exponential': 1, 'delayed-exponential': 4}
 imf_type2imf_key = {'Salpeter': 0, 'Chabrier': 1, 'Kroupa': 2}
-Z2Z_key = {0.0002: 1, 0.0003: 2, 0.0004: 3, 0.0005: 4, 0.0006: 5, 0.0008: 6,
-           0.0010: 7, 0.0012: 8, 0.0016: 9, 0.0020: 10, 0.0025: 11, 0.0031: 12,
-           0.0039: 13, 0.0049: 14, 0.0061: 15, 0.0077: 16, 0.0096: 17,
-           0.0120: 18, 0.0150: 19, 0.0190: 20, 0.0240: 21, 0.0300: 22}
+Z2Z_key_PADOVA = {
+  0.0002: 1, 0.0003: 2, 0.0004: 3, 0.0005: 4, 0.0006: 5, 0.0008: 6,
+  0.0010: 7, 0.0012: 8, 0.0016: 9, 0.0020: 10, 0.0025: 11, 0.0031: 12,
+  0.0039: 13, 0.0049: 14, 0.0061: 15, 0.0077: 16, 0.0096: 17,
+  0.0120: 18, 0.0150: 19, 0.0190: 20, 0.0240: 21, 0.0300: 22}
+Z2Z_key_BASTI = {
+  0.0003: 1, 0.0006: 2, 0.0010: 3, 0.0020: 4, 0.0040: 5, 0.0080: 6,
+  0.0100: 7, 0.0200: 8, 0.0300: 9, 0.0400: 10}
+Z2Z_key_GENEVA = {
+  0.0010: 1, 0.0040: 2, 0.0080: 3, 0.0200: 4, 0.0400: 5}
+Z2Z_key_PARSEC = {
+  0.0001: 1, 0.0002: 2, 0.0005: 3, 0.0010: 4, 0.0020: 5, 0.0040: 6,
+  0.0060: 7, 0.0080: 8, 0.0100: 9, 0.0140: 10, 0.0170: 11, 0.0200: 12,
+  0.0300: 13, 0.0400: 14, 0.0600: 15}
 
 class Make_FSPS(object):
     """
@@ -60,10 +70,18 @@ class Make_FSPS(object):
         print '\n\n>RUNNING FSPS... (requires fsps and python-fsps installed)\n'
         sys.path.append(os.environ['PY_FSPS_DIR'])
         import fsps
-        sfh_key = sfh_type2sfh_key[self._inputs.sfh_type]
+        
         imf_key = imf_type2imf_key[self._inputs.imf_type]
-        Z_key = Z2Z_key[self._inputs.Z]
-
+        sfh_key = sfh_type2sfh_key[self._inputs.sfh_type]
+        if self._inputs.isoc_lib == 'PADOVA':
+            Z_key = Z2Z_key_PADOVA[self._inputs.Z]
+        elif self._inputs.isoc_lib == 'BASTI':
+            Z_key = Z2Z_key_BASTI[self._inputs.Z]
+        elif self._inputs.isoc_lib == 'GENEVA':
+            Z_key = Z2Z_key_GENEVA[self._inputs.Z]
+        elif self._inputs.isoc_lib == 'PARSEC':
+            Z_key = Z2Z_key_PARSEC[self._inputs.Z]
+            
         #Make Simple Stellar Population (SSP).
         print '  *Calculating a SSP.'
         sp = fsps.StellarPopulation(
@@ -72,7 +90,7 @@ class Make_FSPS(object):
           add_stellar_remnants=True, fbhb=0., pagb=0., zred=0.,
           imf_type=imf_key, sfh=0, dust_type=0., tage=14.96)        
 
-            #Write output files.
+        #Write output files.
         fname = 'SSP.dat'
         self.make_output(sp, fname)
         
@@ -89,7 +107,7 @@ class Make_FSPS(object):
               sfh=sfh_key, tau=tau, const=0., fburst=0., dust_type=0., tage=14.96)
 
             #Write output files.
-            fname = self._inputs.sfh_type + '_tau-' + str(tau) + '.dat'
+            fname = 'tau-' + str(tau) + '.dat'
             self.make_output(sp, fname)
 
         #Make record file.
@@ -101,21 +119,10 @@ class Make_FSPS(object):
             out.write('Spectral library: ' + sp.libraries[1])
             
     def copy_premade_files(self):
-        warning_msg = (
-          'Only a few options are available when fsps files are not created'\
-          ' during this run. Inputs have been re-set to: filter_1 = r'\
-          ', filter_2 = g, imf_type=Chabrier, Z=0.0190 and '\
-          'tau_list=[1, 1.5, 2, 3, 4, 5, 7, 10] Gyr.')
-        warnings.warn(warning_msg)
-        self._inputs.filter_1 = 'r'
-        self._inputs.filter_2 = 'g'
-        self._inputs.imf_type = 'Chabrier'
-        self._inputs.Z = 0.0190
-        _tau_list = [1., 1.5, 2., 3., 4., 5., 7., 10.]
-        self._inputs.tau_list = [tau * 1.e9 * u.yr for tau in _tau_list]
-        
-        for fname in os.listdir('./../INPUT_FILES/fsps_FILES/'):
-            if ((fname.split('_')[0] == self._inputs.sfh_type)
-                or (fname == 'SSP.dat') or (fname == 'fsps_info.txt')):
-                copyfile('./../INPUT_FILES/fsps_FILES/' + fname,
-                         self._inputs.subdir_fullpath + 'fsps_FILES/' + fname)       
+        fsps_dir = (
+          self._inputs.imf_type + '_' + self._inputs.sfh_type + '_'
+          + self._inputs.Z + '_' + self._inputs.spec_lib + '_'
+          + self._inputs.isoc_lib + '/')
+        for fname in os.listdir('./../INPUT_FILES/fsps_FILES/' + fsps_dir):
+            copyfile('./../INPUT_FILES/fsps_FILES/' + fsps_dir + fname,
+                     self._inputs.subdir_fullpath + 'fsps_FILES/' + fname)       
