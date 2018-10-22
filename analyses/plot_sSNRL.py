@@ -149,7 +149,6 @@ class Plot_sSNRL(object):
     def make_plot(self):
         self.set_fig_frame()
         self.plot_models()
-        plt.tight_layout()
         self.manage_output()
 
 if __name__ == '__main__':

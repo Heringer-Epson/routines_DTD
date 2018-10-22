@@ -63,6 +63,8 @@ class Write_Record(object):
         self.out.write('---------------------Model params---------------------\n')
         self.out.write('Colour: ' + self._inputs.filter_2 + '-'\
                   + self._inputs.filter_1 + '\n')
+        self.out.write('Spectral_library: ' + self._inputs.spec_lib + '\n')
+        self.out.write('Isochrone_library: ' + self._inputs.isoc_lib + '\n')
         self.out.write('IMF: ' + self._inputs.imf_type + '\n')
         self.out.write('SFH: ' + self._inputs.sfh_type + '\n')
         self.out.write('Metallicity: ' + str(self._inputs.Z) + '\n')
@@ -109,11 +111,11 @@ class Write_Record(object):
 
     def subselected_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_merged.csv'
-        df = pd.read_csv(fpath, header=0, dtype=self.data_type)
+        df = pd.read_csv(fpath, header=0, dtype=self.data_type, low_memory=False)
         count_objs(df, fpath, 'Hosts Merged', self._inputs.host_class, self.out)
         
         fpath = self._inputs.subdir_fullpath + 'data_absmag.csv'
-        df = pd.read_csv(fpath, header=0, dtype=self.data_type)
+        df = pd.read_csv(fpath, header=0, dtype=self.data_type, low_memory=False)
         count_objs(df, fpath, 'Processed', self._inputs.host_class, self.out)
 
     def Dcolor_data(self):
@@ -125,7 +127,7 @@ class Write_Record(object):
         RS_mu, RS_std = float(RS_mu), float(abs(RS_std))
 
         fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'
-        df = pd.read_csv(fpath, header=0, dtype=self.data_type)
+        df = pd.read_csv(fpath, header=0, dtype=self.data_type, low_memory=False)
         f1, f2 = self._inputs.filter_1, self._inputs.filter_2
         Dcolor = df['Dcolor_' + f2 + f1].values
         Dcolor_cond = ((Dcolor >= self._inputs.Dcolor_min)

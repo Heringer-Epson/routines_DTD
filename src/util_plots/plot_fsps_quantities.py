@@ -159,7 +159,7 @@ class Make_Panels(object):
         for tau in self._taus:
             tau_suffix = str(tau.to(u.yr).value / 1.e9)
             self.M['model' + tau_suffix] = Model_Rates(
-              self._inputs, 1.e-12, self._s1, self._s2, tau)
+              self._inputs, self._s1, self._s2, tau)
         
         #Collect the boolean array of where the array ages from fsps matches
         #the require ages where markers should be placed. Since all the fsps
@@ -174,8 +174,10 @@ class Make_Panels(object):
         self.ax_a.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_a.yaxis.set_minor_locator(MultipleLocator(.2))
         self.ax_a.yaxis.set_major_locator(MultipleLocator(.4))  
-        self.ax_a.tick_params('both', length=8, width=1., which='major')
-        self.ax_a.tick_params('both', length=4, width=1., which='minor')
+        self.ax_a.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_a.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')
         self.ax_a.tick_params(labelbottom='off') 
 
         self.ax_b.set_ylabel(r'$\rm{log}\ t\ \rm{[yr]}$', fontsize=self.fs)
@@ -185,8 +187,10 @@ class Make_Panels(object):
         self.ax_b.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_b.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax_b.yaxis.set_major_locator(MultipleLocator(1.))  
-        self.ax_b.tick_params('both', length=8, width=1., which='major')
-        self.ax_b.tick_params('both', length=4, width=1., which='minor')
+        self.ax_b.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_b.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')
         self.ax_b.tick_params(labelbottom='off') 
         
         for i, tau in enumerate(self._taus):
@@ -214,8 +218,10 @@ class Make_Panels(object):
        
         self.ax_c.set_ylabel(mass_label, fontsize=self.fs)
         self.ax_c.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
-        self.ax_c.tick_params('both', length=8, width=1., which='major')
-        self.ax_c.tick_params('both', length=4, width=1., which='minor')        
+        self.ax_c.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_c.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')        
         self.ax_c.tick_params(labelbottom='off') 
       
         self.ax_d.set_ylabel(mass_label, fontsize=self.fs)
@@ -225,8 +231,10 @@ class Make_Panels(object):
         self.ax_d.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_d.yaxis.set_minor_locator(MultipleLocator(.1))
         self.ax_d.yaxis.set_major_locator(MultipleLocator(.2))  
-        self.ax_d.tick_params('both', length=8, width=1., which='major')
-        self.ax_d.tick_params('both', length=4, width=1., which='minor')
+        self.ax_d.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_d.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')
         self.ax_d.tick_params(labelbottom='off') 
         
         for i, tau in enumerate(self._taus):
@@ -251,8 +259,10 @@ class Make_Panels(object):
         
         self.ax_e.set_ylabel(lum_label, fontsize=self.fs)
         self.ax_e.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
-        self.ax_e.tick_params('both', length=8, width=1., which='major')
-        self.ax_e.tick_params('both', length=4, width=1., which='minor')        
+        self.ax_e.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_e.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')        
         self.ax_e.tick_params(labelbottom='off') 
       
         self.ax_f.set_ylabel(lum_label, fontsize=self.fs)
@@ -262,8 +272,10 @@ class Make_Panels(object):
         self.ax_f.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_f.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax_f.yaxis.set_major_locator(MultipleLocator(1.))  
-        self.ax_f.tick_params('both', length=8, width=1., which='major')
-        self.ax_f.tick_params('both', length=4, width=1., which='minor')
+        self.ax_f.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_f.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')
         self.ax_f.tick_params(labelbottom='off') 
         
         for i, tau in enumerate(self._taus):
@@ -288,19 +300,23 @@ class Make_Panels(object):
         
         self.ax_g.set_ylabel(sSNR_label, fontsize=self.fs)
         self.ax_g.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
-        self.ax_g.tick_params('both', length=8, width=1., which='major')
-        self.ax_g.tick_params('both', length=4, width=1., which='minor')        
+        self.ax_g.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_g.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')        
         self.ax_g.tick_params(labelbottom='off') 
       
         self.ax_h.set_ylabel(sSNR_label, fontsize=self.fs)
         self.ax_h.yaxis.set_label_position('right')
         self.ax_h.yaxis.tick_right()
-        self.ax_h.set_ylim(-14., -11.5)
+        self.ax_h.set_ylim(-14., -10.)
         self.ax_h.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_h.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax_h.yaxis.set_major_locator(MultipleLocator(1.))  
-        self.ax_h.tick_params('both', length=8, width=1., which='major')
-        self.ax_h.tick_params('both', length=4, width=1., which='minor')
+        self.ax_h.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_h.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')
         self.ax_h.tick_params(labelbottom='off') 
         
         for i, tau in enumerate(self._taus):
@@ -309,7 +325,7 @@ class Make_Panels(object):
             Dcolor = self.M['model' + tau_suffix].Dcolor
             sSNR = self.M['model' + tau_suffix].sSNR
             sSNR[sSNR <= 0.] = 1.e-40
-            sSNR = np.log10(sSNR)
+            sSNR = np.log10(sSNR)  - 12.
                                     
             self.ax_g.plot(age, sSNR, lw=3., marker='None',color=colors[i],
                            dashes=dashes[i])
@@ -327,19 +343,23 @@ class Make_Panels(object):
         
         self.ax_i.set_ylabel(sSNRm_label, fontsize=self.fs)
         self.ax_i.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
-        self.ax_i.tick_params('both', length=8, width=1., which='major')
-        self.ax_i.tick_params('both', length=4, width=1., which='minor')        
+        self.ax_i.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_i.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')        
         self.ax_i.tick_params(labelbottom='off') 
       
         self.ax_k.set_ylabel(sSNRm_label, fontsize=self.fs)
         self.ax_k.yaxis.set_label_position('right')
         self.ax_k.yaxis.tick_right()
-        self.ax_k.set_ylim(-14., -10.5)
+        self.ax_k.set_ylim(-14., -10.)
         self.ax_k.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_k.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax_k.yaxis.set_major_locator(MultipleLocator(1.))  
-        self.ax_k.tick_params('both', length=8, width=1., which='major')
-        self.ax_k.tick_params('both', length=4, width=1., which='minor')
+        self.ax_k.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_k.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')
         self.ax_k.tick_params(labelbottom='off') 
         
         for i, tau in enumerate(self._taus):
@@ -348,7 +368,7 @@ class Make_Panels(object):
             Dcolor = self.M['model' + tau_suffix].Dcolor
             sSNRm = self.M['model' + tau_suffix].sSNRm
             sSNRm[sSNRm <= 0.] = 1.e-40
-            sSNRm = np.log10(sSNRm)
+            sSNRm = np.log10(sSNRm) - 12.
                                     
             self.ax_i.plot(age, sSNRm, lw=3., marker='None', color=colors[i],
                            dashes=dashes[i])
@@ -366,18 +386,22 @@ class Make_Panels(object):
         
         self.ax_l.set_ylabel(sSNRm_label, fontsize=self.fs)
         self.ax_l.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
-        self.ax_l.tick_params('both', length=8, width=1., which='major')
-        self.ax_l.tick_params('both', length=4, width=1., which='minor')        
+        self.ax_l.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_l.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')        
       
         self.ax_m.set_ylabel(sSNRm_label, fontsize=self.fs)
         self.ax_m.yaxis.set_label_position('right')
         self.ax_m.yaxis.tick_right()
-        self.ax_m.set_ylim(-14., -11.)
+        self.ax_m.set_ylim(-14., -10.)
         self.ax_m.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
         self.ax_m.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax_m.yaxis.set_major_locator(MultipleLocator(1.))  
-        self.ax_m.tick_params('both', length=8, width=1., which='major')
-        self.ax_m.tick_params('both', length=4, width=1., which='minor')
+        self.ax_m.tick_params(
+          'both', length=8, width=1., which='major', direction='in')
+        self.ax_m.tick_params(
+          'both', length=4, width=1., which='minor', direction='in')
         
         for i, tau in enumerate(self._taus):
             tau_suffix = str(tau.to(u.yr).value / 1.e9)          
@@ -385,7 +409,7 @@ class Make_Panels(object):
             Dcolor = self.M['model' + tau_suffix].Dcolor
             sSNRL = self.M['model' + tau_suffix].sSNRL
             sSNRL[sSNRL <= 0.] = 1.e-40
-            sSNRL = np.log10(sSNRL)
+            sSNRL = np.log10(sSNRL) - 12.
                                     
             self.ax_l.plot(age, sSNRL, lw=3., marker='None', color=colors[i],
                            dashes=dashes[i])
@@ -428,4 +452,4 @@ class Make_Panels(object):
 
 if __name__ == '__main__':
     from input_params import Input_Parameters as class_input
-    Make_Panels(class_input(case='SDSS_gr_Maoz'), -1., -.8)
+    #Make_Panels(class_input(case='SDSS_gr_Maoz'), -1., -.8)

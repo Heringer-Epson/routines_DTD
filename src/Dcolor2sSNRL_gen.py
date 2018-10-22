@@ -3,7 +3,6 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from astropy import units as u
-#from SN_rate_outdated import Model_Rates
 from SN_rate import Model_Rates
 
 class Generate_Curve(object):
@@ -19,17 +18,14 @@ class Generate_Curve(object):
     -----------
     _inputs : ~instance
         Instance of the Input_Parameters class defined in input_params.py.
-    _A : ~float
-        Normalization of the DTD.
     _s1 : ~float
         DTD slope prior to t_onset.
     _s2 : ~float
         DTD slope after t_onset.
     """      
-    def __init__(self, _inputs, _A, _s1, _s2):
+    def __init__(self, _inputs, _s1, _s2):
 
         self._inputs = _inputs
-        self._A = _A
         self._s1 = _s1
         self._s2 = _s2
         
@@ -47,9 +43,9 @@ class Generate_Curve(object):
         for tau in self._inputs.tau_list:
             tau_suffix = str(tau.to(u.yr).value / 1.e9)
             synpop_dir = self._inputs.subdir_fullpath + 'fsps_FILES/'
-            synpop_fname = self._inputs.sfh_type + '_tau-' + tau_suffix + '.dat'
+            synpop_fname = 'tau-' + tau_suffix + '.dat'
             
-            model = Model_Rates(self._inputs, self._A, self._s1, self._s2, tau)
+            model = Model_Rates(self._inputs, self._s1, self._s2, tau)
             
             age_cond = (model.age.to(u.yr).value == 1.e10)
             self.Dcolor_at10Gyr.append(model.Dcolor[age_cond][0])
@@ -62,11 +58,11 @@ class Generate_Curve(object):
     #@profile
     def get_Dcolor_max(self):
         synpop_dir = self._inputs.subdir_fullpath + 'fsps_FILES/'
-        synpop_fname = self._inputs.sfh_type + '_tau-1.0.dat'
+        synpop_fname = 'tau-1.0.dat'
     
         tau = 1. * u.Gyr
         if tau in self._inputs.tau_list:
-            model = Model_Rates(self._inputs, self._A, self._s1, self._s2, tau)
+            model = Model_Rates(self._inputs, self._s1, self._s2, tau)
             
             age_cond = (model.age.to(u.yr).value == 1.e10)
             self.Dcolor_max = model.Dcolor[age_cond][0]
@@ -102,4 +98,4 @@ class Generate_Curve(object):
         
 if __name__ == '__main__':
     from input_params import Input_Parameters as class_input
-    Generate_Curve(class_input(case='SDSS_gr_Maoz'), 1.e-12, -1., -2.)
+    Generate_Curve(class_input(case='test-case'), -1., -2.)

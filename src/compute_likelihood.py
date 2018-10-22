@@ -8,40 +8,40 @@ from multiprocessing import Pool
 from functools import partial
 from lib import stats
 
-def calculate_likelihood(_inputs, df, mode, N_obs, norm, _v1, _v2):
-    if mode == 's1/s2':
-        _A, _s1, _s2 = 1.e-12, _v1, _v2
-    elif mode == 's1=s2':
-        _A, _s1, _s2 = _v1, _v2, _v2
-    generator = Generate_Curve(_inputs, _A, _s1, _s2)
-    N_expected, ln_L = stats.compute_L_using_sSNRL(
-      generator.Dcolor2sSNRL, df['Dcolor'], df['absmag'], df['z'],
-      df['is_host'], N_obs, _inputs.visibility_flag, norm)
-    line = '\n' + str(_A) + ',' + str(format(_s1, '.5e')) + ','\
-      + str(format(_s2, '.5e')) + ',' + str(N_expected) + ',' + str(ln_L)
+def calculate_likelihood(mode, _inputs, _df, _N_obs, _s1, _s2):
+    if mode == 'sSNRL':
+        generator = Generate_Curve(_inputs, _s1, _s2)
+        A, ln_L = stats.compute_L_using_sSNRL(
+          generator.Dcolor2sSNRL, _df['Dcolor'], _df['absmag'], _df['z'],
+          _df['is_host'], _N_obs, _inputs.visibility_flag)
+    elif mode == 'vespa':
+        _t_ons = _inputs.t_onset.to(u.Gyr).value
+        _t_cut = _inputs.t_cutoff.to(u.Gyr).value   
+        A, ln_L = stats.compute_L_from_DTDs(
+          _s1, _s2, _t_ons, _t_cut, _df['mass1'], _df['mass2'],  _df['mass3'],
+          _df['z'], _df['is_host'], _N_obs, _inputs.visibility_flag)
+    line = '\n' + str(format(_s1, '.5e')) + ',' + str(format(_s2, '.5e'))\
+      + ',' + str(A) + ','  + str(ln_L)
     return line 
-    
-def calculate_likelihood_3D(_inputs, df, N_obs, _A, _s1, _s2):
-    generator = Generate_Curve(_inputs, _A, _s1, _s2)
-    N_expected, ln_L = stats.compute_L_using_sSNRL(
-      generator.Dcolor2sSNRL, df['Dcolor'], df['absmag'], df['z'],
-      df['is_host'], N_obs, _inputs.visibility_flag, False)
-    line = '\n' + str(_A) + ',' + str(format(_s1, '.5e')) + ','\
-      + str(format(_s2, '.5e')) + ',' + str(N_expected) + ',' + str(ln_L)
-    return line 
+
+#def calculate_likelihood_vespa(_inputs, _df, _N_obs, _s1, _s2):
+#    A, ln_L = stats.compute_L_from_DTDs(
+#      _s1, _s2, _inputs.t_onset, _inputs.t_cutoff, _df['mass1'], _df['mass2'],
+#      _df['mass3'], _df['z'], _df['is_host'], _N_obs,  _inputs.visibility_flag)
+#    
+#    line = '\n' + str(format(_s1, '.5e')) + ',' + str(format(_s2, '.5e'))\
+#      + ',' + str(A) + ','  + str(ln_L)
+#    return line 
 
 class Get_Likelihood(object):
     """
     Description:
     ------------
     This code will create files containing the a list of likelihood values
-    computed for DTDs which assume different parameters. Two main cases are
-    currently considered: (i) SN rate = A*t**s, (ii) SN rate /propto t**s1/s2.
-    In the latter case, the rates are normalized to match the observed one and
-    the shape of the DTD is tested (break or not around 1Gyr). In the former
-    case, the normalization is also considered, assuming a continuous slope.
-    Ideally, one could perform a complete analysis in a 3D space, including
-    A, s1 and s2, but this is not yet implemented.
+    computed for DTDs is /propto t**s1/s2. The rates are normalized to match
+    the observed one and the shape of the DTD is tested (break or not
+    around 1Gyr). The likelihood for other DTD constants can be obtained
+    analytically.
 
     Parameters:
     -----------
@@ -51,7 +51,6 @@ class Get_Likelihood(object):
     Outputs:
     --------
     ./../../OUTPUT_FILES/RUNS/$RUN_DIR/likelihoods/sSNRL_s1_s2.csv'
-    ./../../OUTPUT_FILES/RUNS/$RUN_DIR/likelihoods/sSNRL_A_s.csv'
     """       
     def __init__(self, _inputs):
         self._inputs = _inputs
@@ -62,7 +61,7 @@ class Get_Likelihood(object):
         self.v_df = None        
         self.N_obs = None
 
-        if self._inputs.subdir.split('_')[0] == 'M12':
+        if self._inputs.subdir[:-1].split('_')[0] == 'M12':
             self.add_vespa = True
         else:
             self.add_vespa = False            
@@ -111,116 +110,89 @@ class Get_Likelihood(object):
               'is_host': hosts[Dcolor_cond]} 
 
                             
-    def write_sSNRL_outputs(self):
+    def write_sSNRL_output(self):
         """This assumes a continuous DTD, but leaves the constant
         (normalization) as a free parameter. Useful for comparing against
         results derived from the VESPA analyses. Write output within the loop.
         """
         slopes = self._inputs.slopes
-        As = self._inputs.A
-        t_ons = self._inputs.t_onset.to(u.Gyr).value
-        t_cut = self._inputs.t_cutoff.to(u.Gyr).value
-
-        fnames = ['s1_s2', 'A_s']
-        modes = ['s1/s2', 's1=s2']
-        norm_flags = [True, False]
-        pars = [(slopes, slopes), (As, slopes)]
-
-        for fname, mode, par, norm_flag in\
-            zip(fnames,modes,pars,norm_flags):
-            
-            par1, par2 = par[0], par[1]
-            
-            fpath = (self._inputs.subdir_fullpath + 'likelihoods/sSNRL_'
-                     + fname + '.csv')
-            out = open(fpath, 'w')
-            out.write('A,s1,s2,N_expected,ln_L') 
-
-            output = []
-            for i, v1 in enumerate(par1):
-                print 'Calculating set ' + str(i + 1) + '/' + str(len(par1))
-                L_of_v2 = partial(
-                  calculate_likelihood, self._inputs, self.reduced_df, mode,
-                  self.N_obs, norm_flag, v1)
-                pool = Pool(5)
-                output += pool.map(L_of_v2,par2)
-                pool.close()
-                pool.join()
-
-            for line in output:
-                out.write(line) 
-            out.close()
-
-    def write_sSNRL_outputs_3D(self):
-        """Allows the factor A and the slopes pre and post t_cutoff to vary.
-        """
-        slopes = self._inputs.slopes[::-1]
-        As = self._inputs.A[::-1]
-        t_ons = self._inputs.t_onset.to(u.Gyr).value
-        t_cut = self._inputs.t_cutoff.to(u.Gyr).value
-
-        fpath = (self._inputs.subdir_fullpath + 'likelihoods/sSNRL_3D.csv')
+        #t_ons = self._inputs.t_onset.to(u.Gyr).value
+        #t_cut = self._inputs.t_cutoff.to(u.Gyr).value       
+                
+        fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
         out = open(fpath, 'w')
-        out.write('A,s1,s2,N_expected,ln_L') 
+        out.write('N_obs=' + str(self.N_obs) + '\n')
+        out.write('s1,s2,norm_A,ln_L') 
 
         output = []
-        for i, A in enumerate(As):
-            print 'Calculating set ' + str(i + 1) + '/' + str(len(As))
-            for j, s1 in enumerate(slopes):
-                print '  -Calculating subset ' + str(j + 1) + '/' + str(len(slopes))
-                L_of_s2 = partial(
-                  calculate_likelihood_3D, self._inputs, self.reduced_df,
-                  self.N_obs, A, s1)
-                pool = Pool(5)
-                output += pool.map(L_of_s2,slopes)
-                pool.close()
-                pool.join()
-            
+        for i, v1 in enumerate(slopes):
+            print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
+            L_of_v2 = partial(calculate_likelihood, 'sSNRL', self._inputs,
+                              self.reduced_df, self.N_obs, v1)
+            pool = Pool(5)
+            output += pool.map(L_of_v2,slopes)
+            pool.close()
+            pool.join()
+
         for line in output:
             out.write(line) 
-       
         out.close()
 
-    def write_vespa_outputs(self):
+    def write_vespa_nottrim_outputs(self):
         print 'Calculating likelihoods using VESPA masses...'
-        slopes = self._inputs.slopes
-        As = self._inputs.A  
-        
-        t_ons = self._inputs.t_onset.to(u.Gyr).value
-        t_cut = self._inputs.t_cutoff.to(u.Gyr).value
-        
-        fpath_v = self._inputs.subdir_fullpath + 'likelihoods/vespa_A_s.csv'
-        fpath_v_trim = (self._inputs.subdir_fullpath + 'likelihoods/'\
-                        + 'vespatrim_A_s.csv')
-        
-        with open(fpath_v, 'w') as out1, open(fpath_v_trim, 'w') as out2:
-            out1.write('A,s1,s2,ln_L') 
-            out2.write('A,s1,s2,ln_L') 
-            for A in As:
-                for s in slopes:
-                    ln_L = stats.compute_L_from_DTDs(A, s, t_ons,
-                      self.v_df['mass1'], self.v_df['mass2'], self.v_df['mass3'],
-                      self.v_df['z'], self.v_df['is_host'], self._inputs.visibility_flag)
-                    out1.write('\n' + str(A) + ',' + str(s) + ',' + str(s)
-                               + ',' + str(ln_L))
-                    
-                    ln_L = stats.compute_L_from_DTDs(A, s, t_ons,
-                      self.v_trim_df['mass1'], self.v_trim_df['mass2'],
-                      self.v_trim_df['mass3'], self.v_trim_df['z'],
-                      self.v_trim_df['is_host'], self._inputs.visibility_flag)
-                    out2.write('\n' + str(A) + ',' + str(s) + ',' + str(s)
-                               + ',' + str(ln_L))
-                                    
+        slopes = self._inputs.slopes 
+                
+        fpath = self._inputs.subdir_fullpath + 'likelihoods/vespa_s1_s2.csv'
+        out = open(fpath, 'w')
+        out.write('N_obs=' + str(self.N_obs) + '\n')
+        out.write('s1,s2,norm_A,ln_L') 
+
+        output = []
+        for i, v1 in enumerate(slopes):
+            print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
+            L_of_v2 = partial(calculate_likelihood, 'vespa', self._inputs,
+                              self.v_df, self.N_obs, v1)
+            pool = Pool(5)
+            output += pool.map(L_of_v2,slopes)
+            pool.close()
+            pool.join()
+
+        for line in output:
+            out.write(line) 
+        out.close()
+
+    def write_vespa_trimmed_outputs(self):
+        print 'Calculating likelihoods using VESPA masses...'
+        slopes = self._inputs.slopes 
+                
+        fpath = self._inputs.subdir_fullpath + 'likelihoods/vespatrim_s1_s2.csv'
+        out = open(fpath, 'w')
+        out.write('N_obs=' + str(self.N_obs) + '\n')
+        out.write('s1,s2,norm_A,ln_L') 
+
+        output = []
+        for i, v1 in enumerate(slopes):
+            print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
+            L_of_v2 = partial(calculate_likelihood, 'vespa', self._inputs,
+                              self.v_trim_df, self.N_obs, v1)
+            pool = Pool(5)
+            output += pool.map(L_of_v2,slopes)
+            pool.close()
+            pool.join()
+
+        for line in output:
+            out.write(line) 
+        out.close()
+
     def run_analysis(self):
         self.retrieve_data()
         self.subselect_data()
-        self.write_sSNRL_outputs()
-        if self._inputs.likelihood_3D:
-            self.write_sSNRL_outputs_3D()
+        self.write_sSNRL_output()
         if self.add_vespa:
-            self.write_vespa_outputs()
+            self.write_vespa_nottrim_outputs()
+            self.write_vespa_trimmed_outputs()
 
 if __name__ == '__main__':
     from input_params import Input_Parameters as class_input
-    Get_Likelihood(class_input(case='SDSS_gr_Maoz'))
+    Get_Likelihood(class_input(case='test-case'))
 
