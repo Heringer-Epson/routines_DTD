@@ -133,7 +133,7 @@ class Make_Fig(object):
         draw(self.ax1,gpth('M12','M12','SNIa',self.z,'sSNRL'),s2c['M12-sSNRL'])
         draw(self.ax1,gpth('M12','M12','SNIa',self.z,'vespatrim'),s2c['M12-vespa'])
 
-        '''
+
         draw(self.ax2,gpth('H17','S18','SNIa',self.z,'sSNRL'),s2c['H17-sSNRL'])
         draw(self.ax2,gpth('M12','S18','SNIa',self.z,'sSNRL'),s2c['M12-sSNRL'])
         draw(self.ax2,gpth('M12','S18','SNIa',self.z,'vespatrim'),s2c['M12-vespa'])
@@ -145,7 +145,6 @@ class Make_Fig(object):
         draw(self.ax4,gpth('H17','S18','zSNIa',self.z,'sSNRL'),s2c['H17-sSNRL'])
         draw(self.ax4,gpth('M12','S18','zSNIa',self.z,'sSNRL'),s2c['M12-sSNRL'])
         draw(self.ax4,gpth('M12','S18','zSNIa',self.z,'vespatrim'),s2c['M12-vespa'])
-        '''
 
     def add_sample_sizes(self):
         

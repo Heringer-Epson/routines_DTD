@@ -175,39 +175,6 @@ def plot_contour(ax, x, y, z, c, label='', ao=0., ls=None, add_max=True):
     y_unc = (max(y_cont) - y_best, y_best - min(y_cont))
     return x_best, y_best, x_unc, y_unc
 
-def estimate_uncertainty_from_likelihood(par, nuis_par, ln_L):
-    #Does not currently work. not sure why. Not need/used.
-    '''
-    coll_likelihoods = []
-    coll_par = np.unique(par) 
-    
-    L = 10.**clean_array(ln_L)
-    for _par in coll_par:
-        cond = (par == _par)
-        nuis_par_sel, L_sel = nuis_par[cond], L[cond]
-        
-        integrate_L = simps(L_sel,x=nuis_par_sel)
-        normalization = simps(np.zeros(len(L_sel)) + 1.,x=nuis_par_sel)
-        
-        coll_likelihoods.append(integrate_L / normalization)
-    
-    coll_likelihoods = np.array(coll_likelihoods)
-    coll_likelihoods = clean_array(coll_likelihoods)
-    
-    L_at_contour = get_contour_levels(coll_likelihoods, 0.68)
-    par_max = coll_par[coll_likelihoods.argmax()]
-
-    left_cond = (coll_par <= par_max)
-    L2par_left = interp1d(coll_likelihoods[left_cond],coll_par[left_cond])
-    left_unc = L2par_left(L_at_contour)
-
-    right_cond = (coll_par >= par_max)
-    L2par_right = interp1d(coll_likelihoods[right_cond],coll_par[right_cond])
-    right_unc = L2par_right(L_at_contour)
-
-    return par_max, left_unc, right_unc          
-    '''
-
 def compute_rates_using_L(psi, masses, redshift, host_cond, visibility_flag):
     """Attempt to reproduce the method in M12. i.e. given the binned masses,
     compute the most likely rates that would explain the data. Then fit a 

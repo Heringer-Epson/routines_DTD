@@ -24,15 +24,6 @@ def calculate_likelihood(mode, _inputs, _df, _N_obs, _s1, _s2):
       + ',' + str(A) + ','  + str(ln_L)
     return line 
 
-#def calculate_likelihood_vespa(_inputs, _df, _N_obs, _s1, _s2):
-#    A, ln_L = stats.compute_L_from_DTDs(
-#      _s1, _s2, _inputs.t_onset, _inputs.t_cutoff, _df['mass1'], _df['mass2'],
-#      _df['mass3'], _df['z'], _df['is_host'], _N_obs,  _inputs.visibility_flag)
-#    
-#    line = '\n' + str(format(_s1, '.5e')) + ',' + str(format(_s2, '.5e'))\
-#      + ',' + str(A) + ','  + str(ln_L)
-#    return line 
-
 class Get_Likelihood(object):
     """
     Description:
