@@ -27,68 +27,92 @@ class Check_Hosts(object):
         self.run_check()
         
     def read_data(self):
-
-        #Read data used in Maoz+ 2012.
-        fpath = ('./../../INPUT_FILES/Maoz_file/data_Tablematched.csv')
-        self.df_M12 = pd.read_csv(fpath, header=0)
-        self.df_M12 = self.df_M12.replace('null', np.nan)
-        for key in self.df_M12.keys():
-            if key != 'objID' and key != 'specobjID':
-                self.df_M12[key] = self.df_M12[key].astype(float) 
-        self.df_M12['n_SN'] = self.df_M12['n_SN'].astype(bool)
-        self.df_M12['objID'] = self.df_M12['objID'].astype(str)
-
         #Read data used in Gao+ 2013.
-        fpath = ('./../../INPUT_FILES/Gao_hosts/Table_1_Gao2013.csv')
-        self.df_G13 = pd.read_csv(fpath, header=0)
-        self.df_G13 = self.df_G13.replace('null', np.nan)
-        self.df_G13['objID'] = self.df_G13['objID'].astype(str)
+        #fpath = './../INPUT_FILES/G13/Table_1_Gao2013.csv'
+        #self.df_G13 = pd.read_csv(fpath, header=0, low_memory=False)
+        #self.df_G13 = self.df_G13.replace('null', np.nan)
+        #self.df_G13['objID'] = self.df_G13['objID'].astype(str)
+        #self.host_ID_G13 = self.df_G13['objID'].values.astype(str)
+
                
         #Read data used in Heringer+ 2017.
-        #fpath = ('./../../INPUT_FILES/paper1/data_Filematched.csv')
-        fpath = ('./../../INPUT_FILES/paper1/data_FileCASmatched.csv')
-        self.df_H17 = pd.read_csv(fpath, header=0)
+        eng_SNe = ['2004ia', '2004il', '2004hu']
+        fpath = './../OUTPUT_FILES/RUNS/H17/data_merged.csv'
+        self.df_H17 = pd.read_csv(fpath, header=0, low_memory=False, dtype='str')
         self.df_H17 = self.df_H17.replace('null', np.nan)
-        for key in self.df_H17.keys():
-            if key != 'objID' and key != 'specobjID':
-                self.df_H17[key] = self.df_H17[key].astype(float) 
-        self.df_H17['n_SN'] = self.df_H17['n_SN'].astype(bool)
-        self.df_H17['objID'] = self.df_H17['objID'].astype(str)
+        self.H17_objID = self.df_H17['objID'].values
+        host_cond = ((self.df_H17['is_host'] == 'True')
+                     & (self.df_H17['IAUName'] != '2004ia')
+                     & (self.df_H17['IAUName'] != '2004il')
+                     & (self.df_H17['IAUName'] != '2004hu')).values
+        self.H17_host = self.H17_objID[host_cond]
+        self.H17_hname = self.df_H17['IAUName'].values[host_cond]
 
-        #Read extra data for the hosts used in Heringer+ 2017.
-        fpath = ('./../../INPUT_FILES/paper1/hosts_info.csv')
-        self.df_hostH17 = pd.read_csv(fpath, header=0)
-        self.df_hostH17 = self.df_hostH17.replace('null', np.nan)
-        self.df_hostH17['host_objID'] = self.df_hostH17['host_objID'].astype(str)
+        #Read data used in Maoz+ 2012.
+        fpath = './../OUTPUT_FILES/RUNS/M12/data_merged.csv'
+        self.df_M12 = pd.read_csv(fpath, header=0, low_memory=False, dtype='str')
+        self.df_M12 = self.df_M12.replace('null', np.nan)
+        self.M12_objID = self.df_M12['objID'].values
+        host_cond = (self.df_M12['is_host'] == 'True').values
+        self.M12_host = self.M12_objID[host_cond]
+        self.M12_hname = self.df_M12['IAUName'].values[host_cond]
+        
+        spec_cond = ((self.df_M12['is_host'] == 'True')
+                     & (self.df_M12['Classification'] == 'SNIa')).values
+        self.M12_host_s = self.M12_objID[spec_cond]
+        self.M12_hname_s = self.df_M12['IAUName'].values[spec_cond] 
 
-        #Read extra data for the spec hosts used in Maoz+ 2012.
-        fpath = ('./../../INPUT_FILES/Maoz_file/hosts_info_spec.csv')
-        self.df_hostM12 = pd.read_csv(fpath, header=0)
-        self.df_hostM12 = self.df_hostM12.replace('null', np.nan)
+        z_cond = ((self.df_M12['is_host'] == 'True')
+                     & (self.df_M12['Classification'] == 'zSNIa')).values
+        self.M12_host_z = self.M12_objID[z_cond]
+        self.M12_hname_z = self.df_M12['IAUName'].values[z_cond] 
+                
+        #Read data used in Sako+ 2018.
+        fpath = './../INPUT_FILES/S18/formatted_hosts.csv'
+        self.df_S18 = pd.read_csv(fpath, header=0, low_memory=False, dtype='str')
+        self.df_S18 = self.df_S18.replace('null', np.nan)
+        self.S18_host = self.df_S18['objID'].values
+        self.S18_hname = self.df_S18['IAUName'].values
+ 
+        spec_cond = (self.df_S18['Classification'] == 'SNIa').values
+        self.S18_host_s = self.S18_host[spec_cond]
+        self.S18_hname_s = self.S18_hname[spec_cond] 
 
+        z_cond = (self.df_S18['Classification'] == 'zSNIa').values
+        self.S18_host_z = self.S18_host[z_cond]
+        self.S18_hname_z = self.S18_hname[z_cond]         
+                        
     def compare_host_IDS(self):
-        host_M12 = self.df_M12['n_SN'].values
-        host_H17 = self.df_H17['n_SN'].values
-        
-        self.host_ID_M12 = self.df_M12['objID'].values[host_M12].astype(str)
-        self.host_ID_G13 = self.df_G13['objID'].values.astype(str)
-        self.host_ID_H17 = self.df_H17['objID'].values[host_H17].astype(str)
-        self.host_all_H17 = self.df_hostH17['host_objID'].values.astype(str)
-
-        ctrl_ID_M12 = self.df_M12['objID'].values.astype(str)
-        ctrl_ID_H17 = self.df_H17['objID'].values.astype(str)
-        
-
-        print 'M12, G13 and H17 # of hosts:', len(self.host_ID_M12), len(self.host_ID_G13), len(self.host_ID_H17)
-        print 'M12 and H17 # of ctrl:', len(ctrl_ID_M12), len(ctrl_ID_H17)
-        print 'Hosts in common:', len(set(self.host_ID_M12).intersection(self.host_ID_H17))
-        print 'Ctrl in common:', len(set(ctrl_ID_M12).intersection(ctrl_ID_H17))
+        print 'M12, H17 and S18 # of hosts:', len(self.M12_host), len(self.H17_host), len(self.S18_host)
+        print 'M12, H17 and S18 # of spec hosts:', len(self.M12_host_s), len(self.H17_host), len(self.S18_host_s)
+        print 'M12, H17 and S18 # of zSNIa hosts:', len(self.M12_host_z), 0, len(self.S18_host_z)
+        print 'M12 and H17 # of ctrl:', len(self.M12_objID), len(self.H17_objID)
         print '\n'
-        print 'H17 hosts in M12s whole sample:', len(set(self.host_ID_H17).intersection(ctrl_ID_M12))
-        print 'M12 hosts in H17s whole sample:', len(set(self.host_ID_M12).intersection(ctrl_ID_H17))        
-        print 'G13 hosts in H17s whole sample:', len(set(self.host_ID_G13).intersection(ctrl_ID_H17)) 
-        print 'G13 hosts in M12s whole sample:', len(set(self.host_ID_G13).intersection(ctrl_ID_M12)) 
-        #print np.sort(host_ID_G13.astype(str))
+        
+        print 'Hosts in common between H17 and M12:', len(set(self.M12_host).intersection(self.H17_host))
+        print 'Hosts in common between H17 and S18:', len(set(self.S18_host).intersection(self.H17_host))
+        print 'Hosts in common between M12 and S18:', len(set(self.S18_host).intersection(self.M12_host))
+        print '\n'
+
+        print 'Spec hosts in common between H17 and M12:', len(set(self.M12_host_s).intersection(self.H17_host))
+        print 'Spec hosts in common between H17 and S18:', len(set(self.S18_host_s).intersection(self.H17_host))
+        print 'Spec hosts in common between M12 and S18:', len(set(self.S18_host_s).intersection(self.M12_host_s))
+        print '\n'
+
+        print 'SNe in common between H17 and M12:', len(set(self.M12_hname).intersection(self.H17_hname))
+        print 'SNe in common between H17 and S18:', len(set(self.S18_hname).intersection(self.H17_hname))
+        print 'SNe in common between M12 and S18:', len(set(self.S18_hname).intersection(self.M12_hname))
+        print '\n'
+
+        print 'Spec SNe in common between H17 and M12:', len(set(self.M12_hname_s).intersection(self.H17_hname))
+        print 'Spec SNe in common between H17 and S18:', len(set(self.S18_hname_s).intersection(self.H17_hname))
+        print 'Spec SNe in common between M12 and S18:', len(set(self.S18_hname_s).intersection(self.M12_hname_s))
+        print '\n'
+
+        print 'Ctrl in common:', len(set(self.M12_objID).intersection(self.H17_objID))
+        print 'H17 hosts in M12s whole sample:', len(set(self.H17_host).intersection(self.M12_objID))
+        print 'M12 hosts in H17s whole sample:', len(set(self.M12_host).intersection(self.H17_objID))        
+
 
     def check_positions(self):
 
@@ -114,28 +138,30 @@ class Check_Hosts(object):
                     #print ra_H17, dec_H17, diff_in_H17['objID'].values[i], diff_in_H17['z'].values[i], ra_M12, dec_M12, diff_in_M12['objID'].values[j], diff_in_M12['redshift'].values[j], diff_in_M12['z'].values[j]
 
     def check_host_IDS(self):
-
-
-        spec_hostH17 = self.df_hostH17[self.df_hostH17['host_objID'].isin(list(self.host_ID_H17))]
-        SNID_H17 = np.array([ID[2::] for ID in spec_hostH17['SDSS_SN_ID'].values]).astype(str)
-        SNID_M12 = self.df_hostM12['SDSS_SN_ID'].values.astype(str)
-        unique_hostsM12 = list(set(SNID_M12) - set(SNID_H17))
-        unique_hostsH17 = list(set(SNID_H17) - set(SNID_M12))
-        common_SNe = list(set(SNID_H17).intersection(SNID_M12))
-        print '\n'
-        print 'SNe (spec) in M12', len(SNID_M12)
-        print 'SNe In M12 but not in H17:', len(unique_hostsM12)
-        print 'SNe In H17 but not in M12:', len(unique_hostsH17)
-        print 'common SNe', len(common_SNe)
         
-        print 'unique in M12', unique_hostsM12, '\n'
-        print 'unique in H17', unique_hostsH17
+        #unique_hostsM12 = list(set(self.M12_hname) - set(self.H17_hname))
+        unique_hostsM12 = list(set(self.M12_host) - set(self.H17_host))
+        
+        
+        
+        #print unique_hostsM12, len(unique_hostsM12)
+        #print list(self.M12_hname), list(self.H17_hname)
+        #unique_hostsH17 = list(set(SNID_H17) - set(SNID_M12))
+        #common_SNe = list(set(SNID_H17).intersection(SNID_M12))
+        #print '\n'
+        #print 'SNe (spec) in M12', len(SNID_M12)
+        #print 'SNe In M12 but not in H17:', len(unique_hostsM12)
+        #print 'SNe In H17 but not in M12:', len(unique_hostsH17)
+        #print 'common SNe', len(common_SNe)
+        
+        #print 'unique in M12', unique_hostsM12, '\n'
+        #print 'unique in H17', unique_hostsH17
             
     def run_check(self):
         self.read_data()
         self.compare_host_IDS()
-        self.check_positions()
-        self.check_host_IDS()
+        #self.check_positions()
+        #self.check_host_IDS()
 
 if __name__ == '__main__':
     Check_Hosts()

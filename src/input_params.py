@@ -218,6 +218,48 @@ class Input_Parameters(object):
             self.show_fig = False
             self.save_fig = True
 
+        elif self.case == 'H17_test':   #Same data set as in Heringer+ 2017.
+            self.subdir = 'H17_test/'   #and reproduces Fig. 9.  
+            self.data_dir = './../INPUT_FILES/H17/'
+            self.matching = 'FileExtended'
+            self.hosts_from = 'H17'
+            self.host_class = ['SNIa']
+            self.t_onset = 1.e8 * u.yr
+            self.kcorr_type = 'simple'
+            self.ra_min, self.ra_max = - 60., 60.
+            self.visibility_flag = False
+            self.hosts_from_2004 = True
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'H17_using_M12':   #Same data set as in Heringer+ 2017.
+            self.subdir = 'H17_using_M12/'   #and reproduces Fig. 9.  
+            self.data_dir = './../INPUT_FILES/H17/'
+            self.matching = 'File'
+            self.hosts_from = 'M12'
+            self.host_class = ['SNIa']
+            self.t_onset = 1.e8 * u.yr
+            self.kcorr_type = 'simple'
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.visibility_flag = False
+            self.hosts_from_2004 = True
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'H17_Table':   #Same data set as in Heringer+ 2017.
+            self.subdir = 'H17_Table/'   #and reproduces Fig. 9.  
+            self.data_dir = './../INPUT_FILES/H17/'
+            self.matching = 'Table'
+            self.hosts_from = 'H17'
+            self.host_class = ['SNIa']
+            self.t_onset = 1.e8 * u.yr
+            self.kcorr_type = 'simple'
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.visibility_flag = False
+            self.hosts_from_2004 = True
+            self.show_fig = False
+            self.save_fig = True
+
         elif self.case == 'M12': #Same data set as in Maoz+ 2012.  
             self.subdir = 'M12/'  
             self.matching = 'Table'
@@ -233,15 +275,13 @@ class Input_Parameters(object):
             self.show_fig = False
             self.save_fig = True
 
-        elif self.case == 'best_3D':
-            self.subdir = 'best_3D/'
+        elif self.case == 'default':
+            self.subdir = 'default/'
             self.matching = 'View'
             self.data_dir = './../INPUT_FILES/H17/'
             self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
             self.t_onset = 100. * u.Myr
-            self.redshift_max = 0.2
-            self.redshift_min = 0.01 
             self.likelihood_3D = True
             self.show_fig = False
             self.save_fig = True

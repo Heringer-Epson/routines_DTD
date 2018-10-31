@@ -34,7 +34,8 @@ class Acquire_Hosts(object):
           self._inputs.data_dir + 'data_' + self._inputs.matching + '.csv')
         fpath_hosts = ('./../INPUT_FILES/' + self._inputs.hosts_from
                        + '/formatted_hosts.csv')
-        self.df = pd.read_csv(fpath_all, header=0, dtype={'objID': str})
+        self.df = pd.read_csv(
+          fpath_all, header=0, low_memory=False, dtype={'objID': str})
         df_hosts = pd.read_csv(
           fpath_hosts, header=0, dtype={'objID': str, 'CID': str})
 

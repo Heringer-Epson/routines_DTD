@@ -102,15 +102,12 @@ class Process_Data(object):
 
     def read_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_merged.csv'
-        self.df = pd.read_csv(fpath, header=0)
-        keys_str = ['CID', 'IAUName', 'Classification', 'objID', 'specobjID']
+        self.df = pd.read_csv(fpath, header=0, low_memory=False, dtype='str')
+        keys_str = ['CID', 'IAUName', 'Classification', 'objID', 'specobjID', 'is_host', 'zErr']
         for key in self.df.keys():
-            if key in keys_str:
-                self.df[key] = self.df[key].astype(str) 
-            elif key == 'is_host':
-                self.df[key] = self.df[key].astype(bool)
-            else:
+            if key not in keys_str:
                 self.df[key] = self.df[key].astype(float) 
+        self.df['is_host'] = (self.df['is_host'] == 'True')
 
     def extinction_correction(self):
         """Compute extinction corrections. This is simply done by using the
@@ -128,8 +125,12 @@ class Process_Data(object):
     def trim_data(self):
         """Perform data cuts similar to the original publication."""
 
+
         if self._inputs.matching is not 'File':
-            #print min(self.df['dec'].values), max(self.df['dec'].values)
+            ra = self.df['ra'].values
+            ra_neg, ra_pos = ra[(ra > 200.)] - 360., ra[(ra < 200.)]
+            print 'dec', min(self.df['dec'].values), max(self.df['dec'].values)
+            print 'ra', min(ra_neg), max(ra_pos)
             self.df = self.df[(self.df['ra'] > self._inputs.ra_min)
                               | (self.df['ra'] < self._inputs.ra_max)]
             self.df = self.df[(self.df['dec'] > self._inputs.dec_min)
