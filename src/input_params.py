@@ -144,11 +144,14 @@ class Input_Parameters(object):
         self.sfh_type = 'exponential'
         self.Z = '0.0190'
         self.t_cutoff = 1.e9 * u.yr
-        self.slopes = np.arange(-3., 0.0001, 0.01)
-        #self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
+        #self.slopes = np.arange(-3., 0.0001, 0.01)
+        self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
+        #self.slopes = np.arange(-3., 0.0001, 0.5) #Coarse for testing.
         self.slopes[abs(self.slopes + 1.) < 1.e-6] = -0.9999
         self.tau_list = np.array(
           [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
+        self.interpolation = 'full'
+        self.sSNRL_gen_mode = 'extended'
           
         #For sub-selecting data
         self.ra_min, self.ra_max = 360. - 51., 57.
@@ -215,21 +218,25 @@ class Input_Parameters(object):
             self.ra_min, self.ra_max = 360. - 60., 60.
             self.visibility_flag = False
             self.hosts_from_2004 = True
+            self.interpolation = 'limited'
+            self.sSNRL_gen_mode = 'reduced'
             self.show_fig = False
             self.save_fig = True
 
-        elif self.case == 'H17_test':   #Same data set as in Heringer+ 2017.
-            self.subdir = 'H17_test/'   #and reproduces Fig. 9.  
+        elif self.case == 'H17_test-interp':   #Same data set as in Heringer+ 2017.
+            self.subdir = 'H17_test-interp/'   #and reproduces Fig. 9.  
             self.data_dir = './../INPUT_FILES/H17/'
-            self.matching = 'FileExtended'
+            self.matching = 'File'
             self.hosts_from = 'H17'
             self.host_class = ['SNIa']
             self.t_onset = 1.e8 * u.yr
             self.kcorr_type = 'simple'
-            self.ra_min, self.ra_max = - 60., 60.
+            self.ra_min, self.ra_max = 360. - 60., 60.
             self.visibility_flag = False
             self.hosts_from_2004 = True
-            self.show_fig = False
+            self.interpolation = 'full'
+            self.sSNRL_gen_mode = 'extended'
+            self.show_fig = True
             self.save_fig = True
 
         elif self.case == 'H17_using_M12':   #Same data set as in Heringer+ 2017.
@@ -257,6 +264,8 @@ class Input_Parameters(object):
             self.ra_min, self.ra_max = 360. - 60., 60.
             self.visibility_flag = False
             self.hosts_from_2004 = True
+            self.interpolation = 'limited'
+            self.sSNRL_gen_mode = 'reduced'
             self.show_fig = False
             self.save_fig = True
 
@@ -272,7 +281,7 @@ class Input_Parameters(object):
             self.ext_r_min, self.ext_r_max = -1000., 1000.
             self.gERR_max = 1000.
             self.rERR_max = 1000.
-            self.show_fig = False
+            self.show_fig = True
             self.save_fig = True
 
         elif self.case == 'default':
@@ -283,6 +292,7 @@ class Input_Parameters(object):
             self.host_class = ['SNIa', 'zSNIa']
             self.t_onset = 100. * u.Myr
             self.likelihood_3D = True
+            self.interpolation = 'limited'
             self.show_fig = False
             self.save_fig = True
 

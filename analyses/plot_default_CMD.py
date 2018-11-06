@@ -10,17 +10,27 @@ from matplotlib.ticker import MultipleLocator
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
-fs = 24.
-c = ['k', 'darkgray', 'dodgerblue']
-a = [.9, .8, 1.]
+fs = 28.
+#c = ['k', 'darkgray', 'dodgerblue']
+#c = ['#4daf4a', '#878787', '#377eb8']
+c = ['#fdae61', '#878787', '#3288bd']
+a = [.8, .8, 1.]
+
+left, width = 0.1, 0.65
+bottom, height = 0.1, 0.65
+bottom_h = left_h = left + width + 0.02
+
+rect_scatter = [left, bottom, width, height]
+rect_histx = [left, bottom_h, width, 0.2]
+rect_histy = [left_h, bottom, 0.2, height]
 
 class Plot_CMD(object):
     """
     Description:
     ------------
-    Makes Fig. 1 in the paper, displaying the control and host galaxies in the 
-    parameter space of absolute r vs absolute color. A bottom panel shows a 
-    histogram of colors. Data will be retrieved from a 'default' run.
+    Makes the Fig. 1 of the DTD paper, displaying the control and host galaxies 
+    in the  parameter space of absolute r vs absolute color. A bottom panel 
+    shows a histogram of colors. Data will be retrieved from a 'default' run.
 
     Parameters:
     -----------
@@ -33,15 +43,16 @@ class Plot_CMD(object):
     --------
     ./../OUTPUT_FILES/ANALYSES_FIGURES/Fig_CMD.pdf
     """        
-    def __init__(self, x_range, show_fig, save_fig):
+    def __init__(self, x_range, y_range, show_fig, save_fig):
         self.show_fig = show_fig
         self.save_fig = save_fig
         self.x_range = x_range
+        self.y_range = y_range
 
-        fig, (self.ax1, self.ax2) = plt.subplots(
-          2,1, figsize=(10,10), gridspec_kw = {'height_ratios':[2, 1]},
-          sharex=True)
-        self.df = None
+        self.fig = plt.figure(1, figsize=(14, 12))
+        self.ax = plt.axes(rect_scatter)
+        self.axx = plt.axes(rect_histx, sharex=self.ax)
+        self.axy = plt.axes(rect_histy, sharey=self.ax)
                 
         self.make_plot()
         
@@ -49,38 +60,52 @@ class Plot_CMD(object):
 
         plt.subplots_adjust(hspace=0.02)
     
-        x_label = r'$M_g - M_r$'
+        x_label = r'$\Delta(g - r)$'
         y1_label = r'$M_r$'
-        y2_label = r'Count'
+        hist_label = r'Count'
         
-        self.ax1.set_ylabel(y1_label, fontsize=fs)
-        self.ax1.set_xlim(self.x_range[0], self.x_range[1])
-        self.ax1.set_ylim(-24., -16.)
-        self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
-        self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax1.tick_params('both', length=8, width=1., which='major',
+        self.ax.set_xlabel(x_label, fontsize=fs)
+        self.ax.set_ylabel(y1_label, fontsize=fs)
+        self.ax.set_xlim(self.x_range[0], self.x_range[1])
+        self.ax.set_ylim(self.y_range[0], self.y_range[1])
+        self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
+        self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
+        self.ax.tick_params('both', length=8, width=1., which='major',
                              direction='in', right=True, top=True)
-        self.ax1.tick_params('both', length=4, width=1., which='minor',
+        self.ax.tick_params('both', length=4, width=1., which='minor',
                              direction='in', right=True, top=True) 
-        self.ax1.xaxis.set_minor_locator(MultipleLocator(.05))
-        self.ax1.xaxis.set_major_locator(MultipleLocator(.1))
-        self.ax1.yaxis.set_minor_locator(MultipleLocator(.5))
-        self.ax1.yaxis.set_major_locator(MultipleLocator(2.))  
-        plt.setp(self.ax1.get_xticklabels(), visible=False)
+        self.ax.xaxis.set_minor_locator(MultipleLocator(.05))
+        self.ax.xaxis.set_major_locator(MultipleLocator(.1))
+        self.ax.yaxis.set_minor_locator(MultipleLocator(.5))
+        self.ax.yaxis.set_major_locator(MultipleLocator(1.))  
     
-        self.ax2.set_xlabel(x_label, fontsize=fs)
-        self.ax2.set_ylabel(y2_label, fontsize=fs)
-        self.ax2.set_ylim(0., 1100.)
-        self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
-        self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax2.tick_params('both', length=8, width=1., which='major',
+        self.axx.set_ylabel(hist_label, fontsize=fs)
+        self.axx.set_ylim(0., 1100.)
+        self.axx.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
+        self.axx.tick_params(axis='x', which='major', labelsize=fs, pad=8)
+        self.axx.tick_params('both', length=8, width=1., which='major',
                              direction='in', right=True, top=True)
-        self.ax2.tick_params('both', length=4, width=1., which='minor',
+        self.axx.tick_params('both', length=4, width=1., which='minor',
                              direction='in', right=True, top=True)   
-        self.ax2.yaxis.set_minor_locator(MultipleLocator(100.))
-        self.ax2.yaxis.set_major_locator(MultipleLocator(500.))  
+        self.axx.yaxis.set_minor_locator(MultipleLocator(100.))
+        self.axx.yaxis.set_major_locator(MultipleLocator(500.))  
+        plt.setp(self.axx.get_xticklabels(), visible=False)
 
-        plt.gca().invert_xaxis()
+        self.axx.invert_xaxis()
+
+        self.axy.set_xlabel(hist_label, fontsize=fs)
+        self.axy.set_xlim(0., 1100.)
+        self.axy.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
+        self.axy.tick_params(axis='x', which='major', labelsize=fs, pad=8)
+        self.axy.tick_params('both', length=8, width=1., which='major',
+                             direction='in', right=True, top=True)
+        self.axy.tick_params('both', length=4, width=1., which='minor',
+                             direction='in', right=True, top=True)   
+        self.axy.xaxis.set_minor_locator(MultipleLocator(100.))
+        self.axy.xaxis.set_major_locator(MultipleLocator(500.))  
+        plt.setp(self.axy.get_yticklabels(), visible=False)
+
+
 
     def retrieve_data(self):
         fpath = './../OUTPUT_FILES/RUNS/default/data_Dcolor.csv'
@@ -105,44 +130,56 @@ class Plot_CMD(object):
         hosts_acc = (hosts & (Dcolor >= -0.4) & (Dcolor <= .08))
         hosts_rej = (hosts & ((Dcolor < -0.4) | (Dcolor > .08)))
 
-        #Draw CMD (on self.ax1).
-        self.ax1.plot(Dcolor[cond_acc], r_abs[cond_acc], ls='None', marker='o',
+        #Draw CMD (on self.ax).
+        self.ax.plot(Dcolor[cond_acc], r_abs[cond_acc], ls='None', marker='o',
                       markersize=2., color=c[0], alpha=a[0], zorder=1.)
-        self.ax1.plot(Dcolor[cond_rej], r_abs[cond_rej], ls='None', marker='o',
+        self.ax.plot(Dcolor[cond_rej], r_abs[cond_rej], ls='None', marker='o',
                       markersize=2., color=c[1], alpha=a[1], zorder=1.)
 
-        self.ax1.errorbar(
+        self.ax.errorbar(
           Dcolor[hosts_acc], r_abs[hosts_acc], xerr=r_err[hosts_acc],
           capsize=0., elinewidth=1., zorder=2.,
           ls='None', marker='*', markersize=10., color=c[2], alpha=a[2])
-        self.ax1.errorbar(
+        self.ax.errorbar(
           Dcolor[hosts_rej], r_abs[hosts_rej], xerr=r_err[hosts_rej],
           capsize=0., elinewidth=1., zorder=2., fillstyle='none',
           ls='None', marker='*', markersize=10., color=c[2], alpha=a[2])        
         
-        #Draw hostograms (on self.ax2).
-        bins = np.arange(self.x_range[0], self.x_range[1] + 1.e-5, 0.01)
+        #Draw histogram (on self.axx).
+        xbins = np.arange(self.x_range[0], self.x_range[1] + 1.e-5, 0.01)
         Dcolor_hosts = np.repeat(Dcolor[hosts_acc], 100)
         
-        self.ax2.hist(
-          Dcolor[cond_acc], bins=bins, align='mid', color=c[0], alpha=a[0])
-        self.ax2.hist(
-          Dcolor[cond_rej], bins=bins, align='mid', color=c[1], alpha=a[1])
-        self.ax2.hist(
-          Dcolor_hosts, bins=bins, align='mid', color=c[2], alpha=a[2])
+        self.axx.hist(
+          Dcolor[cond_acc], bins=xbins, align='mid', color=c[0], alpha=a[0])
+        self.axx.hist(
+          Dcolor[cond_rej], bins=xbins, align='mid', color=c[1], alpha=a[1])
+        self.axx.hist(
+          Dcolor_hosts, bins=xbins, align='mid', color=c[2], alpha=a[2])
+
+        #Draw histogram (on self.axy).
+        ybins = np.arange(self.y_range[0], self.y_range[1] + 1.e-5, 0.1)
+        r_abs_hosts = np.repeat(r_abs[hosts_acc], 100)
+
+        self.axy.hist(
+          r_abs[cond_acc], bins=ybins, align='mid', color=c[0], alpha=a[0],
+          orientation='horizontal')
+        self.axy.hist(
+          r_abs_hosts, bins=ybins, align='mid', color=c[2], alpha=a[2],
+          orientation='horizontal')
+
 
     def make_legend(self):
-        self.ax2.plot(
+        self.axx.plot(
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[0],
           alpha=a[0], label=r'Control Galaxies')
-        self.ax2.plot(
+        self.axx.plot(
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[2],
           alpha=a[2], label=r'Hosts $(\times\, 100)$')
-        self.ax2.plot(
+        self.axx.plot(
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[1],
           alpha=a[1], label=r'Rejected Galaxies')
                       
-        self.ax2.legend(frameon=False, fontsize=fs, numpoints=1, loc=1)
+        self.axx.legend(frameon=False, fontsize=fs, numpoints=1, loc=1)
 
     def manage_output(self):
         if self.save_fig:
@@ -160,4 +197,4 @@ class Plot_CMD(object):
         self.manage_output()             
 
 if __name__ == '__main__':
-    Plot_CMD(x_range=(-0.5,.1), show_fig=True, save_fig=True)
+    Plot_CMD(x_range=(-0.55,.1), y_range=(-23.5,-17.5), show_fig=True, save_fig=True)
