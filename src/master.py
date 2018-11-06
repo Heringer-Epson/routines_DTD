@@ -76,14 +76,14 @@ class Master(object):
             
 if __name__ == '__main__':  
 
-    #Master(case='H17', run_fsps_flag=False, process_data=True,
-    #       likelihood_flag=False, plots_flag=False).run_master()    
+    Master(case='M12', run_fsps_flag=False, process_data=False,
+           likelihood_flag=True, plots_flag=True).run_master()    
 
     #Master(case='H17_Table', run_fsps_flag=False, process_data=True,
     #       likelihood_flag=False, plots_flag=False).run_master() 
 
-    Master(case='default', run_fsps_flag=False, process_data=True,
-           likelihood_flag=False, plots_flag=False).run_master()    
+    #Master(case='default', run_fsps_flag=False, process_data=True,
+    #       likelihood_flag=False, plots_flag=False).run_master()    
 
     '''
     #Attempts to reproduce the original publications of H17 and M12.

@@ -11,8 +11,12 @@ from lib import stats
 def calculate_likelihood(mode, _inputs, _df, _N_obs, _s1, _s2):
     if mode == 'sSNRL':
         generator = Generate_Curve(_inputs, _s1, _s2)
+        if _inputs.sSNRL_gen_mode == 'reduced':
+            Dcd2sSNRL = generator.Dcolor2sSNRL
+        elif _inputs.sSNRL_gen_mode == 'extended':
+            Dcd2sSNRL = generator.Dcolor2sSNRL_ext           
         A, ln_L = stats.compute_L_using_sSNRL(
-          generator.Dcolor2sSNRL, _df['Dcolor'], _df['absmag'], _df['z'],
+          Dcd2sSNRL, _df['Dcolor'], _df['absmag'], _df['z'],
           _df['is_host'], _N_obs, _inputs.visibility_flag)
     elif mode == 'vespa':
         _t_ons = _inputs.t_onset.to(u.Gyr).value
@@ -73,8 +77,11 @@ class Get_Likelihood(object):
         RS_std = abs(float(np.loadtxt(fpath, delimiter=',', skiprows=1,
                                       usecols=(1,), unpack=True)))
         
-        Dcolor_cond = np.array(((Dcolor >= self._inputs.Dcolor_min) &
-                               (Dcolor <= 2. * RS_std)), dtype=bool)
+        if self._inputs.interpolation == 'limited':
+            Dcolor_cond = np.array(((Dcolor >= self._inputs.Dcolor_min) &
+                                   (Dcolor <= 2. * RS_std)), dtype=bool)
+        elif self._inputs.interpolation == 'full':
+            Dcolor_cond = np.ones(len(Dcolor), dtype=bool)
         
         hosts = self.df['is_host'][Dcolor_cond].values
         abs_mag = self.df['abs_' + f1][Dcolor_cond].values
@@ -116,6 +123,16 @@ class Get_Likelihood(object):
         out.write('s1,s2,norm_A,ln_L') 
 
         output = []
+
+        '''
+        for i, v1 in enumerate(slopes):
+            for j, v2 in enumerate(slopes):
+                print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
+                L_of_v2 = partial(calculate_likelihood, 'sSNRL', self._inputs,
+                                  self.reduced_df, self.N_obs, v1)
+                output += L_of_v2(v2)
+
+        '''
         for i, v1 in enumerate(slopes):
             print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
             L_of_v2 = partial(calculate_likelihood, 'sSNRL', self._inputs,

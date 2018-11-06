@@ -118,6 +118,10 @@ class Model_Rates(object):
         self.sSNR[age_cond] = [
           quad(int_f, _t_ons, t, (t, _tau, self.A, self.s1, self.s2, _t_ons,
           _t_bre, sfr_norm, const_s2))[0] for t in _t[age_cond]]
+        
+        #Remove zeros because of log calculations later on.
+        self.sSNR[self.sSNR == 0] = 1.e-40
+        
         self.sSNRm = np.divide(self.sSNR,self.int_formed_mass)
         self.L = 10.**(-0.4 * (self.mag_1 - 5.))
         self.sSNRL = np.divide(self.sSNR,self.L)
