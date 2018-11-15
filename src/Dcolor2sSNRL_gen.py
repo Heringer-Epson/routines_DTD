@@ -7,10 +7,6 @@ from astropy import units as u
 from SN_rate import Model_Rates
 import core_funcs
 
-def make_fine_model(Dcd, Dcd_fine, log_sSNRL):
-    Dcd2sSNRL_func = interp1d(Dcd,log_sSNRL,bounds_error=False)
-    return Dcd2sSNRL_func(Dcd_fine)
-
 class Generate_Curve(object):
     """
     Description:
@@ -51,30 +47,26 @@ class Generate_Curve(object):
 
         self.run_generator()       
         
-    @profile
+    #@profile
     def get_values_at10Gyr(self):
         """Anything that does not depend on s1 or s2, should be computed here
         to avoid wasting computational time.
         """
         
         for i, tau in enumerate(self._inputs.tau_list):
-            tau_suffix = str(tau.to(u.yr).value / 1.e9)         
+            TS = str(tau.to(u.yr).value / 1.e9)         
+            model = Model_Rates(self._inputs, self._D, TS, self._s1, self._s2)
             
-            model = Model_Rates(self._inputs, self._D, self._s1, self._s2)
-            
-            age_cond = (abs(self._D['age'] - 10.) < 1.e-6)
-            self.Dcolor_at10Gyr.append(self._D['Dcolor'][age_cond][0])
+            age_cond = (abs(self._D['age_' + TS] - 10.) < 1.e-6)
+            self.Dcolor_at10Gyr.append(self._D['Dcolor_' + TS][age_cond][0])
             self.sSNRL_at10Gyr.append(model.sSNRL[age_cond][0])
        
-            #self.sSNRL_matrix[i] = np.asarray(core_funcs.interpolator(
-            #  self._D['Dcolor'], model.sSNRL, self._D['Dcd_fine']))
+            self.sSNRL_matrix[i] = np.asarray(core_funcs.interpolator(
+              self._D['Dcolor_' + TS], model.sSNRL, self._D['Dcd_fine']))
                         
-            self.sSNRL_matrix[i] = make_fine_model(
-              self._D['Dcolor'],self._D['Dcd_fine'], np.log10(model.sSNRL))
-                
             #Get Dcolor max from tau = 1Gyr model.
-            if tau_suffix == '1.0':
-                self.Dcolor_max = self._D['Dcolor'][age_cond][0]
+            if TS == '1.0':
+                self.Dcolor_max = self._D['Dcolor_' + TS][age_cond][0]
                 self.log_sSNRL_max = np.log10(model.sSNRL[age_cond][0])
 
         #Convert lists to arrays.

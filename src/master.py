@@ -78,7 +78,7 @@ if __name__ == '__main__':
     rf = False
     pd = False
     lf = True
-    pf = False  
+    pf = True  
 
     Master(case='H17', run_fsps_flag=rf, process_data=pd,
            likelihood_flag=lf, plots_flag=pf).run_master()
