@@ -16,8 +16,6 @@ class Generate_Curve(object):
     other than 'exponential') can be determined by commenting/uncommeting
     the module to be imported above. 
     
-    !!!Applying the interpolation is currently taking up 90% of the time.
-
     Parameters:
     -----------
     _inputs : ~instance
