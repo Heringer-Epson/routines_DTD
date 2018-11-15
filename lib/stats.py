@@ -5,7 +5,6 @@ import survey_efficiency
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
 
-
 """
 Set of functions which can be used to calculate likelihoods.
 
@@ -189,6 +188,3 @@ def compute_curvature(j, k, psi, masses, redshift, host_cond, visibility_flag):
         #curv += vistime[i]**2. * (n[i] / rate[i] - 1.)**2. * masses[j][i] * masses[k][i]
         curv += correction_factor[i]**2. * (n[i] / rate[i] - 1.)**2. * masses[j][i] * masses[k][i]
     return curv
-    
-
-
