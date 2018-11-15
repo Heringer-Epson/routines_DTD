@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-
+import sys, os, time
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..', 'lib'))
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from matplotlib import colors
-import lib
+import stats
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -63,8 +64,8 @@ class Plot_s1s2_II(object):
     def get_data(self):
         fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
         
-        N_obs, self.slopes_1, self.slopes_2, A, self.L = lib.stats.read_lnL(fpath)  
-        self.L = lib.stats.clean_array(self.L[::-1])
+        N_obs, self.slopes_1, self.slopes_2, A, self.L = stats.read_lnL(fpath)  
+        self.L = stats.clean_array(self.L[::-1])
 
         #Get how many slopes there is self.s1 and self.s2 
         self.slopes = np.unique(self.slopes_1)

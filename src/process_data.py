@@ -129,8 +129,8 @@ class Process_Data(object):
         if self._inputs.matching is not 'File':
             ra = self.df['ra'].values
             ra_neg, ra_pos = ra[(ra > 200.)] - 360., ra[(ra < 200.)]
-            print 'dec', min(self.df['dec'].values), max(self.df['dec'].values)
-            print 'ra', min(ra_neg), max(ra_pos)
+            #print 'dec', min(self.df['dec'].values), max(self.df['dec'].values)
+            #print 'ra', min(ra_neg), max(ra_pos)
             self.df = self.df[(self.df['ra'] > self._inputs.ra_min)
                               | (self.df['ra'] < self._inputs.ra_max)]
             self.df = self.df[(self.df['dec'] > self._inputs.dec_min)

@@ -13,8 +13,7 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 fs = 28.
 #c = ['k', 'darkgray', 'dodgerblue']
 #c = ['#4daf4a', '#878787', '#377eb8']
-c = ['#fdae61', '#878787', '#3288bd']
-a = [.8, .8, 1.]
+c = ['#fdae61', '#3288bd']
 
 left, width = 0.1, 0.65
 bottom, height = 0.1, 0.65
@@ -57,8 +56,6 @@ class Plot_CMD(object):
         self.make_plot()
         
     def set_fig_frame(self):
-
-        plt.subplots_adjust(hspace=0.02)
     
         x_label = r'$\Delta(g - r)$'
         y1_label = r'$M_r$'
@@ -105,8 +102,6 @@ class Plot_CMD(object):
         self.axy.xaxis.set_major_locator(MultipleLocator(500.))  
         plt.setp(self.axy.get_yticklabels(), visible=False)
 
-
-
     def retrieve_data(self):
         fpath = './../OUTPUT_FILES/RUNS/default/data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
@@ -114,71 +109,46 @@ class Plot_CMD(object):
     def plot_quantities(self):
 
         #Remove objects outside shown range.
-        cond = ((self.df['Dcolor_gr'].values >= self.x_range[0])
-                & (self.df['Dcolor_gr'].values <= self.x_range[1]))
-        Dcolor = self.df['Dcolor_gr'].values[cond]
-        r_abs = self.df['abs_r'].values[cond]
-        hosts = self.df['is_host'].values[cond]
-        
-        r_err = self.df['petroMagErr_g'].values[cond]
-        Dcolor_err = np.sqrt(self.df['petroMagErr_g'].values[cond]**2.
-                             + self.df['petroMagErr_r'].values[cond]**2.)
-                                     
-        #Distinguish between objects that are used in sSNRL or not.
-        cond_acc = ((Dcolor >= -0.4) & (Dcolor <= .08))
-        cond_rej = np.logical_not(cond_acc)
-        hosts_acc = (hosts & (Dcolor >= -0.4) & (Dcolor <= .08))
-        hosts_rej = (hosts & ((Dcolor < -0.4) | (Dcolor > .08)))
+        Dcolor = self.df['Dcolor_gr'].values
+        r_abs = self.df['abs_r'].values
+        hosts = self.df['is_host'].values
+                
+        r_err = self.df['petroMagErr_g'].values
+        Dcolor_err = np.sqrt(self.df['petroMagErr_g'].values**2.
+                             + self.df['petroMagErr_r'].values**2.)
 
         #Draw CMD (on self.ax).
-        self.ax.plot(Dcolor[cond_acc], r_abs[cond_acc], ls='None', marker='o',
-                      markersize=2., color=c[0], alpha=a[0], zorder=1.)
-        self.ax.plot(Dcolor[cond_rej], r_abs[cond_rej], ls='None', marker='o',
-                      markersize=2., color=c[1], alpha=a[1], zorder=1.)
+        self.ax.plot(Dcolor, r_abs, ls='None', marker='o', markersize=2.,
+                     color=c[0], zorder=1.)
 
         self.ax.errorbar(
-          Dcolor[hosts_acc], r_abs[hosts_acc], xerr=r_err[hosts_acc],
-          capsize=0., elinewidth=1., zorder=2.,
-          ls='None', marker='*', markersize=10., color=c[2], alpha=a[2])
-        self.ax.errorbar(
-          Dcolor[hosts_rej], r_abs[hosts_rej], xerr=r_err[hosts_rej],
-          capsize=0., elinewidth=1., zorder=2., fillstyle='none',
-          ls='None', marker='*', markersize=10., color=c[2], alpha=a[2])        
+          Dcolor[hosts], r_abs[hosts], xerr=r_err[hosts], capsize=0., elinewidth=1.,
+          zorder=2., ls='None', marker='*', markersize=10., color=c[1])      
         
         #Draw histogram (on self.axx).
         xbins = np.arange(self.x_range[0], self.x_range[1] + 1.e-5, 0.01)
-        Dcolor_hosts = np.repeat(Dcolor[hosts_acc], 100)
+        Dcolor_hosts = np.repeat(Dcolor[hosts], 100)
         
-        self.axx.hist(
-          Dcolor[cond_acc], bins=xbins, align='mid', color=c[0], alpha=a[0])
-        self.axx.hist(
-          Dcolor[cond_rej], bins=xbins, align='mid', color=c[1], alpha=a[1])
-        self.axx.hist(
-          Dcolor_hosts, bins=xbins, align='mid', color=c[2], alpha=a[2])
+        self.axx.hist(Dcolor, bins=xbins, align='mid', color=c[0])
+        self.axx.hist(Dcolor_hosts, bins=xbins, align='mid', color=c[1])
 
         #Draw histogram (on self.axy).
         ybins = np.arange(self.y_range[0], self.y_range[1] + 1.e-5, 0.1)
-        r_abs_hosts = np.repeat(r_abs[hosts_acc], 100)
+        r_abs_hosts = np.repeat(r_abs[hosts], 100)
 
         self.axy.hist(
-          r_abs[cond_acc], bins=ybins, align='mid', color=c[0], alpha=a[0],
-          orientation='horizontal')
+          r_abs, bins=ybins, align='mid', color=c[0],orientation='horizontal')
         self.axy.hist(
-          r_abs_hosts, bins=ybins, align='mid', color=c[2], alpha=a[2],
-          orientation='horizontal')
-
+          r_abs_hosts, bins=ybins, align='mid', color=c[1], orientation='horizontal')
 
     def make_legend(self):
         self.axx.plot(
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[0],
-          alpha=a[0], label=r'Control Galaxies')
-        self.axx.plot(
-          [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[2],
-          alpha=a[2], label=r'Hosts $(\times\, 100)$')
+          label=r'Control Galaxies')
         self.axx.plot(
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[1],
-          alpha=a[1], label=r'Rejected Galaxies')
-                      
+          label=r'Hosts $(\times\, 100)$')
+
         self.axx.legend(frameon=False, fontsize=fs, numpoints=1, loc=1)
 
     def manage_output(self):
@@ -197,4 +167,4 @@ class Plot_CMD(object):
         self.manage_output()             
 
 if __name__ == '__main__':
-    Plot_CMD(x_range=(-0.55,.1), y_range=(-23.5,-17.5), show_fig=True, save_fig=True)
+    Plot_CMD(x_range=(-0.55,.2), y_range=(-23.5,-17.5), show_fig=False, save_fig=True)

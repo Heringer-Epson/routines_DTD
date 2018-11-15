@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-
+import sys, os, time
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..', 'lib'))
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
-import lib
-from lib import stats
+import stats
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -76,17 +76,13 @@ class Plot_s1s2(object):
     def plot_contours(self):
         fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
         N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
-        lib.stats.plot_contour(self.ax, s1, s2, ln_L, c[0], r'$sSNR_L$ method')          
+        lib.stats.plot_contour(self.ax, s1, s2, ln_L, c[0], r'$sSNR_L$')          
 
         #Implement M12 condition for vespa to exist
         try:
             fpath = self._inputs.subdir_fullpath + 'likelihoods/vespa_s1_s2.csv'
             N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
-            lib.stats.plot_contour(self.ax, s1, s2, ln_L, c[1], r'vespa')
-            
-            fpath = self._inputs.subdir_fullpath + 'likelihoods/vespatrim_s1_s2.csv'
-            N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
-            lib.stats.plot_contour(self.ax, s1, s2, ln_L, c[2], r'vespa (trimmed)')        
+            lib.stats.plot_contour(self.ax, s1, s2, ln_L, c[1], r'$\tt{vespa}$')
             
             self.ax.legend(
               frameon=False, fontsize=fs, numpoints=1, ncol=1,

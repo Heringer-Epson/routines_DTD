@@ -128,7 +128,6 @@ class Fit_RS(object):
     def compute_dcolor(self):
         mag = self.df['abs_' + self.f1]
         color = self.df['abs_' + self.f2] - self.df['abs_' + self.f1]
-        #self.fit_func(mag) = np.poly1d([-0.0188, 0.346]) #test only.
         self.df['Dcolor_' + self.f2 + self.f1]  = color - self.fit_func(mag)
 
     def fit_RS_hist(self):

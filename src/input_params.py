@@ -145,13 +145,13 @@ class Input_Parameters(object):
         self.Z = '0.0190'
         self.t_cutoff = 1.e9 * u.yr
         #self.slopes = np.arange(-3., 0.0001, 0.01)
-        self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
-        #self.slopes = np.arange(-3., 0.0001, 0.5) #Coarse for testing.
+        #self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
+        self.slopes = np.arange(-3., 0.0001, 0.5) #Coarse for testing.
         self.slopes[abs(self.slopes + 1.) < 1.e-6] = -0.9999
         self.tau_list = np.array(
           [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
-        self.interpolation = 'full'
-        self.sSNRL_gen_mode = 'extended'
+        self.data_Drange = 'full'
+        self.model_Drange = 'extended'
           
         #For sub-selecting data
         self.ra_min, self.ra_max = 360. - 51., 57.
@@ -188,26 +188,10 @@ class Input_Parameters(object):
         self.set_params()
                 
     def set_params(self):
-
-        #=-=-=-=-=-=-=-=-=-=-= Standard cases =-=-=-=-=-=-=-=-=-=-=
-        if self.case == 'test-case':   
-            self.subdir = 'test/'  
-            self.data_dir = './../INPUT_FILES/H17/'
-            self.matching = 'File'
-            self.hosts_from = 'H17'
-            self.host_class = ['SNIa']
-            self.imf_type = 'Chabrier'
-            self.sfh_type = 'exponential'
-            self.Z = 0.0190
-            self.t_onset = 1.e8 * u.yr
-            self.kcorr_type = 'simple'
-            self.visibility_flag = False
-            self.ra_min, self.ra_max = 360. - 60., 60.
-            self.likelihood_3D = False
-            self.show_fig = False
-            self.save_fig = True        
+   
+        #=-=-=-=-=-=-=-=-=-=-=-=-=-=-= H17 tests =-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
         
-        elif self.case == 'H17':   #Same data set as in Heringer+ 2017.
+        if self.case == 'H17':   #Same data set as in Heringer+ 2017.
             self.subdir = 'H17/'   #and reproduces Fig. 9.  
             self.data_dir = './../INPUT_FILES/H17/'
             self.matching = 'File'
@@ -218,13 +202,14 @@ class Input_Parameters(object):
             self.ra_min, self.ra_max = 360. - 60., 60.
             self.visibility_flag = False
             self.hosts_from_2004 = True
-            self.interpolation = 'limited'
-            self.sSNRL_gen_mode = 'reduced'
-            self.show_fig = False
+            self.data_Drange = 'limited'
+            self.model_Drange = 'reduced'
+            self.show_fig = True
             self.save_fig = True
 
-        elif self.case == 'H17_test-interp':   #Same data set as in Heringer+ 2017.
-            self.subdir = 'H17_test-interp/'   #and reproduces Fig. 9.  
+        elif self.case == 'H17_interpolation':
+            #Same as h17, but model interpolation is extended
+            self.subdir = 'H17_interp/'  
             self.data_dir = './../INPUT_FILES/H17/'
             self.matching = 'File'
             self.hosts_from = 'H17'
@@ -234,27 +219,32 @@ class Input_Parameters(object):
             self.ra_min, self.ra_max = 360. - 60., 60.
             self.visibility_flag = False
             self.hosts_from_2004 = True
-            self.interpolation = 'full'
-            self.sSNRL_gen_mode = 'extended'
-            self.show_fig = True
-            self.save_fig = True
-
-        elif self.case == 'H17_using_M12':   #Same data set as in Heringer+ 2017.
-            self.subdir = 'H17_using_M12/'   #and reproduces Fig. 9.  
-            self.data_dir = './../INPUT_FILES/H17/'
-            self.matching = 'File'
-            self.hosts_from = 'M12'
-            self.host_class = ['SNIa']
-            self.t_onset = 1.e8 * u.yr
-            self.kcorr_type = 'simple'
-            self.ra_min, self.ra_max = 360. - 60., 60.
-            self.visibility_flag = False
-            self.hosts_from_2004 = True
+            self.data_Drange = 'limited'
+            self.model_Drange = 'extended'
             self.show_fig = False
             self.save_fig = True
 
-        elif self.case == 'H17_Table':   #Same data set as in Heringer+ 2017.
-            self.subdir = 'H17_Table/'   #and reproduces Fig. 9.  
+        elif self.case == 'H17_updated_model':
+            #Same data set as in Heringer+ 2017, but updated methods.
+            #Updates: KCORRECT, extended model Dcd, effective visibility time.
+            self.subdir = 'H17_updated_model/'   #and reproduces Fig. 9.  
+            self.data_dir = './../INPUT_FILES/H17/'
+            self.matching = 'File'
+            self.hosts_from = 'H17'
+            self.host_class = ['SNIa']
+            self.t_onset = 1.e8 * u.yr
+            self.kcorr_type = 'complete'
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.visibility_flag = True
+            self.hosts_from_2004 = True
+            self.data_Drange = 'limited'
+            self.model_Drange = 'extended'
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'H17_Table':
+            #Uses SDSS Table intead of View. Same data cuts as H17.
+            self.subdir = 'H17_Table/'   
             self.data_dir = './../INPUT_FILES/H17/'
             self.matching = 'Table'
             self.hosts_from = 'H17'
@@ -264,10 +254,12 @@ class Input_Parameters(object):
             self.ra_min, self.ra_max = 360. - 60., 60.
             self.visibility_flag = False
             self.hosts_from_2004 = True
-            self.interpolation = 'limited'
-            self.sSNRL_gen_mode = 'reduced'
+            self.data_Drange = 'limited'
+            self.model_Drange = 'reduced'
             self.show_fig = False
             self.save_fig = True
+
+        #=-=-=-=-=-=-=-=-=-=-=-=-=-=-= M12 tests =-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 
         elif self.case == 'M12': #Same data set as in Maoz+ 2012.  
             self.subdir = 'M12/'  
@@ -281,18 +273,8 @@ class Input_Parameters(object):
             self.ext_r_min, self.ext_r_max = -1000., 1000.
             self.gERR_max = 1000.
             self.rERR_max = 1000.
-            self.show_fig = True
-            self.save_fig = True
-
-        elif self.case == 'default':
-            self.subdir = 'default/'
-            self.matching = 'View'
-            self.data_dir = './../INPUT_FILES/H17/'
-            self.hosts_from = 'S18'
-            self.host_class = ['SNIa', 'zSNIa']
-            self.t_onset = 100. * u.Myr
-            self.likelihood_3D = True
-            self.interpolation = 'limited'
+            #self.data_Drange = 'limited'
+            #self.model_Drange = 'reduced'
             self.show_fig = False
             self.save_fig = True
 
