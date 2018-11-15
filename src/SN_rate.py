@@ -25,7 +25,7 @@ class Model_Rates(object):
     self.L = Luminosity
     """       
     #@profile
-    def __init__(self, _inputs, D, s1, s2):
+    def __init__(self, _inputs, D, TS, s1, s2):
 
         self._inputs = _inputs
         self.D = D
@@ -33,7 +33,7 @@ class Model_Rates(object):
         self.s2 = s2
                    
         const_s2 = np.power(self.D['t_bre'] / self.D['t_ons'], self.s1 - self.s2)
-
+        
         lib = ctypes.CDLL('./../lib/DTD_gen.so')
         if self._inputs.sfh_type == 'exponential':
             int_f = lib.conv_exponential_sSNR
@@ -43,20 +43,19 @@ class Model_Rates(object):
         int_f.restype = ctypes.c_double
         int_f.argtypes = (ctypes.c_int, ctypes.c_double)
         
-        self.sSNR = np.zeros(len(self.D['age']))
-        age_cond = (self.D['age'] >= self.D['t_ons'])
+        self.sSNR = np.zeros(len(self.D['age_' + TS])) + 1.e-40
+        age_cond = (self.D['age_' + TS] >= self.D['t_ons'])
                 
         #This is the current bottleneck.
         self.sSNR[age_cond] = [
-          quad(int_f, self.D['t_ons'], t, (t, self.D['tau'], self.s1, self.s2,
-          self.D['t_ons'], self.D['t_bre'], self.D['sfr_norm'], const_s2))[0]
-          for t in self.D['age'][age_cond]]
+          quad(int_f, self.D['t_ons'], t, (t, self.D['tau_' + TS], self.s1, self.s2,
+          self.D['t_ons'], self.D['t_bre'], self.D['sfr_norm_' + TS], const_s2))[0]
+          for t in self.D['age_' + TS][age_cond]]
         
         #Remove zeros because of log calculations later on.
         self.sSNR[self.sSNR == 0] = 1.e-40
         
-        self.sSNRm = np.divide(self.sSNR,self.D['int_mass'])
-        self.L = 10.**(-0.4 * (self.D['mag1'] - 5.))
+        self.sSNRm = np.divide(self.sSNR,self.D['int_mass_' + TS])
+        self.L = 10.**(-0.4 * (self.D['mag1_' + TS] - 5.))
         self.sSNRL = np.divide(self.sSNR,self.L)
-        print self.sSNRL
 

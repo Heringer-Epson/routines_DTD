@@ -28,8 +28,8 @@ class Main_Plotter(object):
         #Plot_Dcolor(_inputs)
         Plot_As(_inputs)
         try:
+            pass
             #Plot_As(_inputs)
-            print 'asdasd'
             #Plot_s1s2(_inputs)
             #Plot_s1s2_II(_inputs)
         except:
