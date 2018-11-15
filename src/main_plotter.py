@@ -27,7 +27,11 @@ class Main_Plotter(object):
         #Abs_CMD(_inputs)
         #Plot_Dcolor(_inputs)
         Plot_As(_inputs)
-        Plot_s1s2(_inputs)
-        #Plot_s1s2_II(_inputs)
-        Plot_Vespa(_inputs)
+        try:
+            #Plot_As(_inputs)
+            print 'asdasd'
+            #Plot_s1s2(_inputs)
+            #Plot_s1s2_II(_inputs)
+        except:
+            pass
 

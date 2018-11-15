@@ -1,6 +1,6 @@
-all: ./src/DTD_gen.c
-	gcc -shared -o ./src/DTD_gen.so -fPIC ./src/DTD_gen.c
+all: ./lib/DTD_gen.c
+	gcc -shared -o ./lib/DTD_gen.so -fPIC ./lib/DTD_gen.c
 
 clean:
-	rm ./src/*.pyc
-	rm ./src/*.so
+	rm ./lib/*.pyc
+	rm ./lib/*.so

@@ -1,23 +1,30 @@
 #!/usr/bin/env python
-
+import sys, os, time
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 import numpy as np
 import pandas as pd
 from astropy import units as u
 from Dcolor2sSNRL_gen import Generate_Curve
 from multiprocessing import Pool
 from functools import partial
-from lib import stats
+import stats
+import core_funcs
 
-def calculate_likelihood(mode, _inputs, _df, _N_obs, _s1, _s2):
+#@profile
+def calculate_likelihood(mode, _inputs, _df, _N_obs, _D, _s1, _s2):
     if mode == 'sSNRL':
-        generator = Generate_Curve(_inputs, _s1, _s2)
-        if _inputs.sSNRL_gen_mode == 'reduced':
-            Dcd2sSNRL = generator.Dcolor2sSNRL
-        elif _inputs.sSNRL_gen_mode == 'extended':
-            Dcd2sSNRL = generator.Dcolor2sSNRL_ext           
+        Sgen = Generate_Curve(_inputs, _D, _s1, _s2)
+        if _inputs.model_Drange == 'reduced':
+            x, y = Sgen.Dcolor_at10Gyr[::-1], Sgen.sSNRL_at10Gyr[::-1]
+        elif _inputs.model_Drange == 'extended':
+            x, y = Sgen.Dcd_fine[::-1], Sgen.sSNRL_fine[::-1]
+
+        sSNRL = np.asarray(core_funcs.interpolator(x, y, _df['Dcolor']))
+        
         A, ln_L = stats.compute_L_using_sSNRL(
-          Dcd2sSNRL, _df['Dcolor'], _df['absmag'], _df['z'],
+          sSNRL, _df['Dcolor'], _df['absmag'], _df['z'],
           _df['is_host'], _N_obs, _inputs.visibility_flag)
+   
     elif mode == 'vespa':
         _t_ons = _inputs.t_onset.to(u.Gyr).value
         _t_cut = _inputs.t_cutoff.to(u.Gyr).value   
@@ -55,6 +62,7 @@ class Get_Likelihood(object):
         self.v_trim_df = None        
         self.v_df = None        
         self.N_obs = None
+        self.D = {}
 
         if self._inputs.subdir[:-1].split('_')[0] == 'M12':
             self.add_vespa = True
@@ -64,9 +72,57 @@ class Get_Likelihood(object):
         print '\n\n>COMPUTING LIKELIHOOD OF MODELS...\n'
         self.run_analysis()
 
+    #@profile
     def retrieve_data(self):
+        """Anything that does not depend on s1 or s2, should be computed here
+        to avoid wasting computational time.
+        """
+
+        self.D['Dcd_fine'] = np.arange(-1.1, 1.00001, 0.01)
+        
+        #General calculations. unit conversion.
+        self.D['t_ons'] = self._inputs.t_onset.to(u.Gyr).value
+        self.D['t_bre'] = self._inputs.t_cutoff.to(u.Gyr).value
+
+        #Observational data.
         fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
+        
+        #Get SSP data and compute the theoretical color with respect to the RS.
+        synpop_dir = self._inputs.subdir_fullpath + 'fsps_FILES/'
+        fpath = synpop_dir + 'SSP.dat'
+        df = pd.read_csv(fpath, header=0, escapechar='#')
+        logage_SSP = df[' log_age'].values
+        mag_2_SSP = df[self._inputs.filter_2].values
+        mag_1_SSP = df[self._inputs.filter_1].values
+        
+        #Retrieve RS color.
+        RS_condition = (logage_SSP == 10.0)
+        RS_color = mag_2_SSP[RS_condition] - mag_1_SSP[RS_condition]
+
+        for i, tau in enumerate(self._inputs.tau_list):
+            tau_suffix = str(tau.to(u.yr).value / 1.e9)
+            synpop_fname = 'tau-' + tau_suffix + '.dat'
+            fpath_tau = synpop_dir + synpop_fname           
+            model = pd.read_csv(fpath_tau, header=0)
+
+            self.D['mag2'] = model[self._inputs.filter_2].values
+            self.D['mag1'] = model[self._inputs.filter_1].values
+            self.D['tau'] = tau.to(u.Gyr).value
+            self.D['age'] = 10.**(model['# log_age'].values) / 1.e9 #Converted to Gyr.
+            self.D['int_mass'] = model['integrated_formed_mass'].values
+            self.D['Dcolor'] = self.D['mag2'] - self.D['mag1'] - RS_color 
+
+        #Get analytical normalization for the SFH.
+        if self._inputs.sfh_type == 'exponential':
+            self.D['sfr_norm'] = (
+              -1. / (self.D['tau'] * (np.exp(-self.D['age'][-1] / self.D['tau'])
+              - np.exp(-self.D['age'][0] / self.D['tau']))))     
+        elif self._inputs.sfh_type == 'delayed-exponential':
+            self.D['sfr_norm'] = (
+              1. / (((-self.D['tau'] * self.D['age'][-1] - self.D['tau']**2.)
+              * np.exp(- self.D['age'][-1] / self.D['tau'])) -
+              ((-self.D['tau'] * self.D['age'][0] - self.D['tau']**2.) * np.exp(- self.D['age'][0] / self.D['tau']))))
 
     def subselect_data(self):
 
@@ -77,10 +133,10 @@ class Get_Likelihood(object):
         RS_std = abs(float(np.loadtxt(fpath, delimiter=',', skiprows=1,
                                       usecols=(1,), unpack=True)))
         
-        if self._inputs.interpolation == 'limited':
+        if self._inputs.data_Drange == 'limited':
             Dcolor_cond = np.array(((Dcolor >= self._inputs.Dcolor_min) &
                                    (Dcolor <= 2. * RS_std)), dtype=bool)
-        elif self._inputs.interpolation == 'full':
+        elif self._inputs.data_Drange == 'full':
             Dcolor_cond = np.ones(len(Dcolor), dtype=bool)
         
         hosts = self.df['is_host'][Dcolor_cond].values
@@ -108,6 +164,7 @@ class Get_Likelihood(object):
               'is_host': hosts[Dcolor_cond]} 
 
                             
+    #@profile
     def write_sSNRL_output(self):
         """This assumes a continuous DTD, but leaves the constant
         (normalization) as a free parameter. Useful for comparing against
@@ -124,28 +181,28 @@ class Get_Likelihood(object):
 
         output = []
 
-        '''
-        for i, v1 in enumerate(slopes):
-            for j, v2 in enumerate(slopes):
-                print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
-                L_of_v2 = partial(calculate_likelihood, 'sSNRL', self._inputs,
-                                  self.reduced_df, self.N_obs, v1)
-                output += L_of_v2(v2)
-
-        '''
         for i, v1 in enumerate(slopes):
             print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
-            L_of_v2 = partial(calculate_likelihood, 'sSNRL', self._inputs,
-                              self.reduced_df, self.N_obs, v1)
-            pool = Pool(5)
-            output += pool.map(L_of_v2,slopes)
-            pool.close()
-            pool.join()
+            for j, v2 in enumerate(slopes):
+                output +=  calculate_likelihood(
+                  'sSNRL', self._inputs, self.reduced_df, self.N_obs,
+                   self.D, v1, v2)
+                
+        
+        #for i, v1 in enumerate(slopes):
+        #    print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
+        #    L_of_v2 = partial(calculate_likelihood, 'sSNRL', self._inputs,
+        #                      self.reduced_df, self.N_obs, self.D, v1)
+        #    pool = Pool(5)
+        #    output += pool.map(L_of_v2,slopes)
+        #    pool.close()
+        #    pool.join()
 
         for line in output:
             out.write(line) 
         out.close()
 
+    #@profile
     def write_vespa_nottrim_outputs(self):
         print 'Calculating likelihoods using VESPA masses...'
         slopes = self._inputs.slopes 
@@ -160,7 +217,7 @@ class Get_Likelihood(object):
             print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
             L_of_v2 = partial(calculate_likelihood, 'vespa', self._inputs,
                               self.v_df, self.N_obs, v1)
-            pool = Pool(5)
+            pool = Pool(2)
             output += pool.map(L_of_v2,slopes)
             pool.close()
             pool.join()
@@ -169,38 +226,11 @@ class Get_Likelihood(object):
             out.write(line) 
         out.close()
 
-    def write_vespa_trimmed_outputs(self):
-        print 'Calculating likelihoods using VESPA masses...'
-        slopes = self._inputs.slopes 
-                
-        fpath = self._inputs.subdir_fullpath + 'likelihoods/vespatrim_s1_s2.csv'
-        out = open(fpath, 'w')
-        out.write('N_obs=' + str(self.N_obs) + '\n')
-        out.write('s1,s2,norm_A,ln_L') 
-
-        output = []
-        for i, v1 in enumerate(slopes):
-            print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
-            L_of_v2 = partial(calculate_likelihood, 'vespa', self._inputs,
-                              self.v_trim_df, self.N_obs, v1)
-            pool = Pool(5)
-            output += pool.map(L_of_v2,slopes)
-            pool.close()
-            pool.join()
-
-        for line in output:
-            out.write(line) 
-        out.close()
-
+    #@profile
     def run_analysis(self):
         self.retrieve_data()
         self.subselect_data()
         self.write_sSNRL_output()
         if self.add_vespa:
             self.write_vespa_nottrim_outputs()
-            self.write_vespa_trimmed_outputs()
-
-if __name__ == '__main__':
-    from input_params import Input_Parameters as class_input
-    Get_Likelihood(class_input(case='test-case'))
 

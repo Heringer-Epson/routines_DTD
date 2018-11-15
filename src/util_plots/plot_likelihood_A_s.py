@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import sys, os, time
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..', 'lib'))
 
 import numpy as np
 import pandas as pd
@@ -6,8 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
-import lib
-from lib import stats
+import stats
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -78,9 +79,9 @@ class Plot_As(object):
     def plot_contours(self):
         
         fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
-        N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
+        N_obs, s1, s2, A, ln_L = stats.read_lnL(fpath)    
         x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
-        a1, a2, a3, a4 = lib.stats.plot_contour(self.ax, np.log10(x), y, z, c[0], r'$sSNR_L$ method')
+        a1, a2, a3, a4 = stats.plot_contour(self.ax, np.log10(x), y, z, c[0], r'$sSNR_L$')
                 
         if self.add_vespa:
 
@@ -88,13 +89,7 @@ class Plot_As(object):
             N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
             x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
             lib.stats.plot_contour(
-              self.ax, np.log10(x), y, z, c[1], r'Vespa method: all')
-
-            fpath = self._inputs.subdir_fullpath + 'likelihoods/vespatrim_s1_s2.csv'
-            N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
-            x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
-            lib.stats.plot_contour(
-              self.ax, np.log10(x), y, z, c[2], r'Vespa method: $\Delta$')
+              self.ax, np.log10(x), y, z, c[1], r'$\tt{vespa}$')
 
         self.ax.legend(
           frameon=False, fontsize=fs, numpoints=1, ncol=1,

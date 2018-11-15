@@ -22,12 +22,15 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 t_onset = ['10', '40', '100']
 ls = ['--', '-.', ':']
 c = ['#e41a1c', '#377eb8', '#4daf4a']
-fs = 20.
+fs = 24.
+
+yoff = [0.97, 1., 1.04]
 
 x_fit = np.array([0.03, 14.])
-
-def power_law(x,_A,_s):
-    return _A + _s * x
+def get_power_law(x_ons):
+    def power_law(x,_A,_s):
+        return _A + _s * (x - x_ons)
+    return power_law
 
 def leftbin1_to_xpos(_lb1):
 
@@ -42,6 +45,17 @@ def leftbin1_to_xpos(_lb1):
 
     return bin1, bin2, bin3, _x, _xErr
 
+def write_line(t_ons, A, A_unc, s, s_unc):
+
+    _A = str(format(10.**A * 1.e11, '.2f'))
+    _A_unc = str(format(np.log(10.) * 10.**A * A_unc * 1.e11, '.2f'))
+    _s = str(format(s, '.2f'))
+    _s_unc = str(format(s_unc, '.2f'))
+
+    _label = (' & $' + t_ons + '$ & $ ' + _s + '\pm' + _s_unc + '$ & $ ' +  _A
+              + '\pm' + _A_unc + '$\\\\\n')
+
+    return _label
 
 class DTD_Approximations(object):
     """
@@ -93,10 +107,11 @@ class DTD_Approximations(object):
         self.show_fig = show_fig
         self.save_fig = save_fig
 
-        self.fig = plt.figure(figsize=(14,8))
+        self.fig = plt.figure(figsize=(14,6))
         self.ax1 = self.fig.add_subplot(121)
         self.ax2 = self.fig.add_subplot(122, sharex=self.ax1)
 
+        self.D = {}
         self.make_plot()
 
     def set_fig_frame(self):
@@ -110,8 +125,8 @@ class DTD_Approximations(object):
         self.ax1.set_ylabel(y_label, fontsize=fs)
         self.ax1.set_xscale('log')
         self.ax1.set_yscale('log')
-        self.ax1.set_xlim(1.e-2, 2.e1)
-        self.ax1.set_ylim(3.e-5, 1.e1)
+        self.ax1.set_xlim(6.e-3, 2.e1)
+        self.ax1.set_ylim(6.e-4, 8.e-2)
         self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax1.tick_params(
@@ -123,7 +138,7 @@ class DTD_Approximations(object):
 
         self.ax2.set_xlabel(x_label, fontsize=fs)
         self.ax2.set_yscale('log')
-        self.ax2.set_ylim(3.e-5, 1.)
+        self.ax2.set_ylim(6.e-4, 8.e-2)
         self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax2.tick_params(
@@ -141,15 +156,42 @@ class DTD_Approximations(object):
           ha='left', va='center', transform=self.ax2.transAxes, fontsize=fs)
 
     def loop_t_onset(self):
-        
+
+        #Loop through t_onset and make plot and write table simultaneously.
         for i, t_ons in enumerate(t_onset):
             custom_pars=('M12', 'S18', ['SNIa', 'zSNIa'], '0.2')
             inputs = class_input(case='custom', custom_pars=custom_pars)
             model = Model_Rates(inputs, self.s, self.s, self.tau)
             
-            self.mean_rates(model, i)
-            self.rate_at_mean(model, i)
+            self.D['rm_' + str(i)] = self.mean_rates(model, i)
+                      
+            self.D['rt_' + str(i)] = self.rate_at_mean(model, i)
 
+        directory = './../OUTPUT_FILES/TABLES/'
+        with open(directory + 'tb_M12_test.txt', 'w') as out:
+
+            #Header part.
+            out.write('\\begin{deluxetable}{cccc}\n')
+            out.write('\\tablecaption{M12 method test. \\label{tb:fitted_pars}}\n')
+            out.write('\\tablecolumns{4}\n')
+            out.write('\\tablehead{\\colhead{Rate type} & \\colhead{$t_{\\rm{WD}}$} '
+                      + '& \\colhead{slope ($s$)} & \\colhead{scale factor ($A$)}\\\\\n')
+            out.write('\\colhead{} & \\colhead{[Myr]} & \\colhead{} & '
+                      + '\\colhead{$\\rm{[10^{-11}\, SN\, M_\\odot ^{-1}\, yr^{-1}]}$}}\n')
+            out.write('\\startdata\n')
+            
+            out.write('\\multirow{3}{*}{$\\langle r \\rangle$} ')
+            for i, t_ons in enumerate(t_onset):
+                out.write(self.D['rm_' + str(i)])
+            out.write('\\hline\n')
+            out.write('\\multirow{3}{*}{$r(\\bar{t})$} ')
+            for i, t_ons in enumerate(t_onset):
+                out.write(self.D['rt_' + str(i)])
+            out.write('\\hline\n')
+           
+            #Wrap up.
+            out.write('\\enddata\n')
+            out.write('\\end{deluxetable}')
 
     def mean_rates(self, model, idx):
         """This routine will compute the true mean rates in each bin and then
@@ -158,6 +200,11 @@ class DTD_Approximations(object):
         are correct. Note that the respective ages that corresponds to the
         SN rate mean values in each bin are *assumed* to be the mean age of
         each bin.
+        
+        Importantly, in M12, the fitted rates are the actual DTD component,
+        which was already approximately deconvolved from the SFH. That's was
+        we use the SN per unit mass below (i.e sSNRm), rather than the
+        expected rate sSNR.
         """
 
         lb1 = float(t_onset[idx]) / 1.e3 #t_onset in Myr -> Gyr.
@@ -173,22 +220,22 @@ class DTD_Approximations(object):
         y_values = np.array(y_values) * self.A 
         
         #Fit the derived values in log scale.
+        power_law = get_power_law(np.log10(lb1 * 1.e9))
         popt, pcov = curve_fit(
           power_law, np.log10(x * 1.e9), np.log10(y_values))
         y_fit = 10.**power_law(np.log10(x_fit * 1.e9), popt[0], popt[1])
 
-        #Plot variables.
-        label = (
-          r'$t_{\mathrm{o}}=' + t_onset[idx] + '\, \mathrm{Myr}:\, s = '
-          + str(format(popt[1], '.2f')) + '\, \pm \,'
-          + str(format(np.sqrt(np.diag(pcov))[1], '.2f')) +  '$')
+        label = r'$t_{\mathrm{WD}}=' + t_onset[idx] + '\, \mathrm{Myr}$'
 
         self.ax1.errorbar(
-          x, np.array(y_values) * 1.e10, xerr=xErr, ls='None', marker='o',
-          color=c[idx], markersize=10.)
+          x, np.array(y_values) * 1.e10 * yoff[idx], xerr=xErr, ls='None',
+          marker='o', color=c[idx], markersize=10.)
         self.ax1.plot(
-          x_fit, y_fit * 1.e10, ls=ls[idx], color=c[idx], label=label)
-
+          x_fit, y_fit * 1.e10, ls=ls[idx], color=c[idx], lw=2., label=label)
+          
+        return write_line(
+          t_onset[idx], popt[0], np.sqrt(np.diag(pcov))[0], popt[1],
+          np.sqrt(np.diag(pcov))[1])
         
     def rate_at_mean(self, model, idx):
         """Calculate the SN rates at the mean age of each bin. This is not
@@ -211,41 +258,32 @@ class DTD_Approximations(object):
         y_values = np.array(y_values) * self.A
 
         #Fit the derived values in log scale.
+        power_law = get_power_law(np.log10(lb1 * 1.e9))
         popt, pcov = curve_fit(
           power_law, np.log10(x * 1.e9), np.log10(y_values))
         y_fit = 10.**power_law(np.log10(x_fit * 1.e9), popt[0], popt[1])
 
-        #Plot variables.
-        label = (
-          r'$t_{\mathrm{o}}=' + t_onset[idx] + '\, \mathrm{Myr}:\, s = '
-          + str(format(popt[1], '.2f')) + '\, \pm \,'
-          + str(format(np.sqrt(np.diag(pcov))[1], '.2f')) +  '$')
-
         self.ax2.errorbar(
-          x, y_values * 1.e10, xerr=xErr, ls='None', marker='s', color=c[idx],
-          markersize=10.)
+          x, y_values * 1.e10 * yoff[idx], xerr=xErr, ls='None', marker='s',
+           color=c[idx], markersize=10.)
         self.ax2.plot(
-          x_fit, y_fit * 1.e10, ls=ls[idx], color=c[idx], label=label)
+          x_fit, y_fit * 1.e10, ls=ls[idx], color=c[idx], lw=2.)
 
-        #self.ax2.plot(
-        #  model.age * 1.e-9, model.sSNRm * 1.e10, ls=ls[idx], color='k',
-        #  label=r'True $r(t)$')
+        return write_line(
+          t_onset[idx], popt[0], np.sqrt(np.diag(pcov))[0], popt[1],
+          np.sqrt(np.diag(pcov))[1])
 
     def add_legend(self):
         self.ax1.legend(
-          frameon=False, fontsize=20., numpoints=1, labelspacing=0.3,
-          handletextpad=1.,loc=3)
-        self.ax2.legend(
-          frameon=False, fontsize=20., numpoints=1, labelspacing=0.3,
-          handletextpad=1.,loc=3)
+          frameon=False, fontsize=fs, numpoints=1, labelspacing=0.2,
+          handletextpad=.5,loc=3)
 
     def manage_output(self):
         plt.tight_layout()
         if self.save_fig:
-            fname = 'Fig_M12-method_test_' + str(format(self.s, '.1f'))
-            fname = fname.replace('.', 'd')
+            fname = 'Fig_M12-method_test.pdf'
             fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/' + fname
-            plt.savefig(fpath + '.pdf', format='pdf')
+            plt.savefig(fpath, format='pdf')
         if self.show_fig:
             plt.show()
 
@@ -257,7 +295,4 @@ class DTD_Approximations(object):
 
 if __name__ == '__main__':
     DTD_Approximations(
-      A=1.e-12, s=-1., tau=1. * u.Gyr, show_fig=True, save_fig=False)
-
-    #DTD_Approximations(
-    #  A=1.e-12, s=-2., tau=1. * u.Gyr, show_fig=False, save_fig=True)
+      A=1.55e-11, s=-1.23, tau=1. * u.Gyr, show_fig=False, save_fig=True)

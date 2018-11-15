@@ -19,11 +19,11 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'  
 fs = 24.   
 
-s1s2 = zip([-0.5, -0.5, -1., -1.5, -1., -1.],[-0.5, -1., -1., -1.5, -2., -3.])
-label = [r'-0.5/-0.5', r'-0.5/-1', r'-1/-1', r'-1.5/-1.5', r'-1/-2', r'-1/-3']
+s1s2 = zip([-0.5, -1., -1.5, -1., -1., -3.],[-1., -1., -1.5, -2., -3.,-1.])
+label = [r'-0.5/-1', r'-1/-1', r'-1.5/-1.5', r'-1/-2', r'-1/-3', r'-3/-1',]
 taus = [1., 1.5, 2., 3., 4., 5., 7., 10.]
-offset = [0.17, 0.25, 0., -0.1, -0.12, -0.2]
-c = ['#4daf4a','#e41a1c','#377eb8']
+offset = [0.45, 0.1, -0.15, -0.15, -0.75, -1.65]
+lb_pos = [-12.12, -12.47, -13.27, -13.82, -14.23, -15.18]
 
 def copy_fsps(_sfh_type):
     inppath = ('./../INPUT_FILES/fsps_FILES/Chabrier_' + _sfh_type
@@ -98,7 +98,7 @@ class Plot_sSNRL(object):
         self.save_fig = save_fig 
        
         self.fig, (self.ax1, self.ax2) = plt.subplots(
-          1,2, figsize=(16,8), sharey=True)
+          1,2, figsize=(16,10), sharey=True)
       
         self.make_plot()
         
@@ -113,8 +113,7 @@ class Plot_sSNRL(object):
         
         self.ax1.set_xlabel(x_label, fontsize=fs)
         self.ax1.set_ylabel(y_label, fontsize=fs)
-        self.ax1.set_xlim(-1.05,0.3)
-        self.ax1.set_ylim(-14.5,-11.5)
+        self.ax1.set_xlim(-1.05,0.35)
         self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax1.tick_params('both', length=8, width=1., which='major',
@@ -127,8 +126,8 @@ class Plot_sSNRL(object):
         self.ax1.yaxis.set_major_locator(MultipleLocator(.5))  
 
         self.ax2.set_xlabel(x_label, fontsize=fs)
-        self.ax2.set_xlim(-1.05,0.3)
-        self.ax2.set_ylim(-14.5,-11.5)
+        self.ax2.set_xlim(-1.05,0.35)
+        self.ax2.set_ylim(-15.5,-11.5)
         self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax2.tick_params('both', length=8, width=1., which='major',
@@ -162,10 +161,9 @@ class Plot_sSNRL(object):
                 elif l == 1:
                     ax = self.ax2
         
-                ax.plot(x, y, ls='None', marker='s', markersize=8., color=c[2],
+                ax.plot(x, y, ls='None', marker='s', markersize=12., color='b',
                         fillstyle='none', zorder=2)
-         
-                ax.text(x[0] + 0.04, y[0] - 0.05, label[i], color='k',
+                ax.text(x[0] + 0.07, lb_pos[i], label[i], color='k',
                         fontsize=fs)
 
                 #Plot Dcolor-sSNRL for each tau.
@@ -173,14 +171,14 @@ class Plot_sSNRL(object):
                     model = Model_Rates(_inputs, s1, s2, tau)
                     x = model.Dcolor
                     y = np.log10(model.sSNRL * 1.e-12) + offset[i]
-                    ax.plot(x, y, ls='-', marker='None', color=c[1],
-                            linewidth=.8, alpha=0.6, zorder=1)                    
+                    ax.plot(x, y, ls='-', marker='None', color='r',
+                            linewidth=.8, alpha=0.7, zorder=1)                    
 
                 #Add new models.
                 x = gntr.Dcd_fine
                 y = np.log10(gntr.sSNRL_fine * 1.e-12) + offset[i]
-                ax.plot(x, y, ls=':', marker='None', markersize=8., color=c[0],
-                        linewidth=2.5, zorder=3)                                
+                ax.plot(x, y, ls=':', marker='None', markersize=8.,
+                        color='forestgreen', linewidth=4., zorder=3)                                
                         
             #Clean up copied fsps folder.
             shutil.rmtree('./fsps_FILES/')
@@ -199,5 +197,5 @@ class Plot_sSNRL(object):
         self.manage_output()
 
 if __name__ == '__main__':
-    Plot_sSNRL(show_fig=True, save_fig=False)
+    Plot_sSNRL(show_fig=False, save_fig=True)
  

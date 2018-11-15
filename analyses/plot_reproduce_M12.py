@@ -22,7 +22,8 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 
 fs = 20.
 
-bin1 = np.array([0.04, 0.42])
+#bin1 = np.array([0.04, 0.42])
+bin1 = np.array([0.0, 0.42])
 bin2 = np.array([0.42, 2.4])
 bin3 = np.array([2.4, 14.])
 x = np.array([np.mean(bin1), np.mean(bin2), np.mean(bin3)])
@@ -30,10 +31,29 @@ xErr = [
   [np.mean(bin1) - bin1[0], np.mean(bin2) - bin2[0], np.mean(bin3) - bin3[0]],
   [bin1[1] - np.mean(bin1), bin2[1] - np.mean(bin2), bin3[1] - np.mean(bin3)]] 
 
-
 x_fit = np.array([0.03, 14.])
+x_ons = 0.04e9
 def power_law(x,_A,_s):
-    return _A + _s * x
+    return _A + _s * (x - np.log10(x_ons))
+
+def write_pars(ax, A, A_unc, s, s_unc, pre, loc_x, loc_y):
+
+    _A = str(format(A, '.2f'))
+    _A_unc = str(format(A_unc, '.2f'))
+    _s = str(format(s, '.2f'))
+    _s_unc = str(format(s_unc, '.2f'))
+
+    ax.text(loc_x, loc_y, r'' + pre + ' $s1=' + _s + '\pm' + _s_unc + '$ | $A=('
+            + _A + '\pm' + _A_unc + ')\, 10^{-11}'
+            + '[\mathrm{SN\, M_\odot ^{-1}\, yr^{-1}]}$', fontsize=fs - 4.,
+            transform=ax.transAxes) 
+
+def write_rate(ax, r, r_unc, pre, loc_x, loc_y):
+    _r = str(format(r, '.2f'))
+    _r_unc = str(format(r_unc, '.2f'))    
+    ax.text(loc_x, loc_y, r'$' + pre + '(' + _r + '\pm' + _r_unc + ')\, 10^{-14}'
+            + '\,[\mathrm{SN\, M_\odot ^{-1}\, yr^{-1}]}$', fontsize=fs - 4.,
+            transform=ax.transAxes)
 
 class Plot_M12(object):
     """
@@ -74,8 +94,6 @@ class Plot_M12(object):
         self.ax = self.fig.add_subplot(111)
         self.masses, self.redshift, self.hosts = None, None, None
         self.most_likely_rates, self.rates_unc = None, None
-        self.A, self.s, self.A_unc, self.s_unc = None, None, None, None
-        self.y_fit = None
         
         self.make_plot()
 
@@ -88,7 +106,7 @@ class Plot_M12(object):
         self.ax.set_xscale('log')
         self.ax.set_yscale('log')
         self.ax.set_xlim(1.e-2, 2.e1)
-        self.ax.set_ylim(3.e-5, 4.e-2)
+        self.ax.set_ylim(1.e-4, 4.e-2)
         self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax.tick_params(
@@ -134,13 +152,38 @@ class Plot_M12(object):
 
         self.rates_unc = np.sqrt(np.diag(np.linalg.inv(alpha)))
 
-    def fit_DTD_to_rates(self):
-        #Fit the derived values in log scale.
-        
-        #Fit not taking into account the rate's uncertainty.
-        #popt, pcov = curve_fit(
-        #  power_law, np.log10(x * 1.e9), np.log10(self.most_likely_rates))
-        
+        self.ax.errorbar(
+          x, self.most_likely_rates * 1.e10, xerr=xErr,
+          yerr = self.rates_unc * 1.e10, ls='None', marker='o', color='r',
+          markersize=14., capsize=0., label='Most likely rates')
+
+        write_rate(
+          self.ax, self.most_likely_rates[0] * 1.e14, self.rates_unc[0] * 1.e14,
+          'r_1=', 0.02, 0.25)
+        write_rate(
+          self.ax, self.most_likely_rates[1] * 1.e14, self.rates_unc[1] * 1.e14,
+          'r_2=', 0.02, 0.2)
+        write_rate(
+          self.ax, self.most_likely_rates[2] * 1.e14, self.rates_unc[2] * 1.e14,
+          'r_2=', 0.02, 0.15)
+
+    def fit_DTD_to_rates_no_unc(self):
+        #Does not take into account the derived rate uncertainties.
+        popt, pcov = curve_fit(
+          power_law, np.log10(x * 1.e9), np.log10(self.most_likely_rates))
+        A, s = popt[0], popt[1]
+        y_fit = 10.**power_law(np.log10(x_fit * 1.e9), A, s)
+        A_unc, s_unc = np.abs(np.sqrt(np.diag(pcov)))
+        A = 10.**A
+        A_unc = np.log(10.) * A * A_unc
+
+        self.ax.plot(
+          x_fit, y_fit * 1.e10, ls=':', color='r', alpha=0.6,
+          label=r'Fit not inc. unc')
+        write_pars(
+          self.ax, 1.e11 * A, 1.e11 * A_unc, s, s_unc, 'No unc:', 0.02, 0.1)            
+
+    def fit_DTD_to_rates_inc_unc(self):
         #Fit taking into account the rate's uncertainty.
         rates_unc_in_log = np.divide(
           self.rates_unc,self.most_likely_rates) * np.log10(np.e)
@@ -148,20 +191,16 @@ class Plot_M12(object):
           power_law, np.log10(x * 1.e9), np.log10(self.most_likely_rates),
           sigma=1. / rates_unc_in_log**2.)        
         
-        self.A, self.s = popt[0], popt[1]
-        self.y_fit = 10.**power_law(np.log10(x_fit * 1.e9), self.A, self.s)
-        self.A_unc, self.s_unc = np.abs(np.sqrt(np.diag(pcov)))
+        A, s = popt[0], popt[1]
+        y_fit = 10.**power_law(np.log10(x_fit * 1.e9), A, s)
+        A_unc, s_unc = np.abs(np.sqrt(np.diag(pcov)))
+        A = 10.**A
+        A_unc = np.log(10.) * A * A_unc
 
-    def plot_quantities(self):
-        self.ax.errorbar(
-          x, self.most_likely_rates * 1.e10, xerr=xErr,
-          yerr = self.rates_unc * 1.e10, ls='None', marker='o', color='r',
-          markersize=14., capsize=0., label='Most likely rates')
-        self.ax.plot(x_fit, self.y_fit * 1.e10, ls='-', color='r' )        
-
-        self.ax.legend(
-          frameon=False, fontsize=fs, numpoints=1, labelspacing=0.3,
-          handletextpad=1., loc=3)
+        self.ax.plot(
+          x_fit, y_fit * 1.e10, ls='-', color='r', label=r'Fit including unc')
+        write_pars(
+          self.ax, 1.e11 * A, 1.e11 * A_unc, s, s_unc, 'Inc unc:', 0.02, 0.05)   
 
     def write_outfile(self):
         if self.save_fig:
@@ -180,23 +219,25 @@ class Plot_M12(object):
                 out.write(
                   'In bin 3 (2.4 - 14 Gyr): ' + str(self.most_likely_rates[2]
                   * 1.e14) + ' += ' + str(self.rates_unc[2] * 1.e14) + '\n')
-                  
+
+    def add_legend(self):
+        self.ax.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1, loc=1)  
+              
     def manage_output(self):
-        print self.s, self.s_unc
         plt.tight_layout()
         if self.save_fig:
-            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/Fig_reproduce_M12.pdf'
-            plt.savefig(fpath + '.pdf', format='pdf')
+            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/Fig_reproduce_M12_bin0.pdf'
+            plt.savefig(fpath, format='pdf')
         if self.show_fig:
             plt.show()
 
     def make_plot(self):
         self.set_fig_frame()
         self.read_vespa_masses()
-        self.get_likelihoods()             
-        self.fit_DTD_to_rates()
-        self.write_outfile()
-        self.plot_quantities()
+        self.get_likelihoods()
+        self.fit_DTD_to_rates_no_unc()             
+        self.fit_DTD_to_rates_inc_unc()
+        self.add_legend()
         self.manage_output()
 
 if __name__ == '__main__':
