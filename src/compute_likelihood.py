@@ -225,7 +225,7 @@ class Get_Likelihood(object):
             out.write(line) 
         out.close()
 
-    @profile
+    #@profile
     def run_analysis(self):
         self.retrieve_data()
         self.subselect_data()
