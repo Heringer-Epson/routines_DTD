@@ -2367,7 +2367,6 @@ static __Pyx_memviewslice __pyx_f_10core_funcs_interpolator(__Pyx_memviewslice _
  *             sSNRL[m] = pow(10., slope * x_target[m] + intercept)
  *     return sSNRL             # <<<<<<<<<<<<<<
  * 
- * 
  */
   __PYX_INC_MEMVIEW(&__pyx_v_sSNRL, 0);
   __pyx_r = __pyx_v_sSNRL;
