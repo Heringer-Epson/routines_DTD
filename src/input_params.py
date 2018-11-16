@@ -145,6 +145,7 @@ class Input_Parameters(object):
         self.Z = '0.0190'
         self.t_cutoff = 1.e9 * u.yr
         #self.slopes = np.arange(-3., 0.0001, 0.01)
+        #self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
         self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
         #self.slopes = np.arange(-3., 0.0001, 0.5) #Coarse for testing.
         self.slopes[abs(self.slopes + 1.) < 1.e-6] = -0.9999
@@ -273,9 +274,7 @@ class Input_Parameters(object):
             self.ext_r_min, self.ext_r_max = -1000., 1000.
             self.gERR_max = 1000.
             self.rERR_max = 1000.
-            #self.data_Drange = 'limited'
-            #self.model_Drange = 'reduced'
-            self.show_fig = False
+            self.show_fig = True
             self.save_fig = True
 
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= CUSTOM =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
