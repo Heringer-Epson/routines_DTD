@@ -16,21 +16,17 @@ def calculate_likelihood(mode, _inputs, _df, _N_obs, _D, _s1, _s2):
         Sgen = Generate_Curve(_inputs, _D, _s1, _s2)
         if _inputs.model_Drange == 'reduced':
             x, y = Sgen.Dcolor_at10Gyr[::-1], Sgen.sSNRL_at10Gyr[::-1]
+            sSNRL = np.asarray(core_funcs.interpolator_H17(x, y, _df['Dcolor']))
         elif _inputs.model_Drange == 'extended':
-            x, y = Sgen.Dcd_fine[::-1], Sgen.sSNRL_fine[::-1]
-
-        sSNRL = np.asarray(core_funcs.interpolator(x, y, _df['Dcolor']))
-        
+            x, y = Sgen.Dcd_fine, Sgen.sSNRL_fine
+            sSNRL = np.asarray(core_funcs.interpolator(x, y, _df['Dcolor']))
         A, ln_L = stats.compute_L_using_sSNRL(
           sSNRL, _df['Dcolor'], _df['absmag'], _df['z'],
           _df['is_host'], _N_obs, _inputs.visibility_flag)
-   
     elif mode == 'vespa':
-        _t_ons = _inputs.t_onset.to(u.Gyr).value
-        _t_cut = _inputs.t_cutoff.to(u.Gyr).value   
         A, ln_L = stats.compute_L_from_DTDs(
-          _s1, _s2, _t_ons, _t_cut, _df['mass1'], _df['mass2'],  _df['mass3'],
-          _df['z'], _df['is_host'], _N_obs, _inputs.visibility_flag)
+          _s1, _s2, _D['t_ons'], _D['t_bre'], _df['mass1'], _df['mass2'],
+          _df['mass3'], _df['z'], _df['is_host'], _N_obs, _inputs.visibility_flag)
     line = '\n' + str(format(_s1, '.5e')) + ',' + str(format(_s2, '.5e'))\
       + ',' + str(A) + ','  + str(ln_L)
     return line 
@@ -178,7 +174,7 @@ class Get_Likelihood(object):
         output = []
 
         '''
-        #Non-parallel version. Keep for de-debuggin.
+        #Non-parallel version. Keep for de-debugging.
         for i, v1 in enumerate(slopes):
             print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
             for j, v2 in enumerate(slopes):
@@ -200,7 +196,6 @@ class Get_Likelihood(object):
             out.write(line) 
         out.close()
 
-
     #@profile
     def write_vespa_nottrim_outputs(self):
         print 'Calculating likelihoods using VESPA masses...'
@@ -215,7 +210,7 @@ class Get_Likelihood(object):
         for i, v1 in enumerate(slopes):
             print 'Calculating set ' + str(i + 1) + '/' + str(len(slopes))
             L_of_v2 = partial(calculate_likelihood, 'vespa', self._inputs,
-                              self.v_df, self.N_obs, v1)
+                              self.v_df, self.N_obs, self.D, v1)
             pool = Pool(2)
             output += pool.map(L_of_v2,slopes)
             pool.close()

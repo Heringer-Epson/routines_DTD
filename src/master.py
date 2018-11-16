@@ -83,10 +83,10 @@ if __name__ == '__main__':
     Master(case='H17', run_fsps_flag=rf, process_data=pd,
            likelihood_flag=lf, plots_flag=pf).run_master()
   
-    '''
     #Individual tests.
-    Master(case='M12', run_fsps_flag=rf, process_data=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()    
+    #Master(case='M12', run_fsps_flag=rf, process_data=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master()    
+    '''
     Master(case='H17', run_fsps_flag=rf, process_data=pd,
            likelihood_flag=lf, plots_flag=pf).run_master()
     Master(case='H17_updated_model', run_fsps_flag=rf, process_data=pd,

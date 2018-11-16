@@ -84,12 +84,10 @@ class Plot_As(object):
         a1, a2, a3, a4 = stats.plot_contour(self.ax, np.log10(x), y, z, c[0], r'$sSNR_L$')
                 
         if self.add_vespa:
-
             fpath = self._inputs.subdir_fullpath + 'likelihoods/vespa_s1_s2.csv'
-            N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
+            N_obs, s1, s2, A, ln_L = stats.read_lnL(fpath)    
             x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
-            lib.stats.plot_contour(
-              self.ax, np.log10(x), y, z, c[1], r'$\tt{vespa}$')
+            stats.plot_contour(self.ax, np.log10(x), y, z, c[1], r'$\tt{vespa}$')
 
         self.ax.legend(
           frameon=False, fontsize=fs, numpoints=1, ncol=1,

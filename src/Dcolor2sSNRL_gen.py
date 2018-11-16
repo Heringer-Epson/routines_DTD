@@ -38,10 +38,11 @@ class Generate_Curve(object):
         self.log_sSNRL_max = None
         self.Dcolor2sSNRL = None
         self.Dcolor2sSNRL_ext = None
+        self.Dcd_fine = self._D['Dcd_fine']
         
         self.sSNRL_fine = None
         self.sSNRL_matrix = np.zeros(
-          shape=(len(self._inputs.tau_list), len(self._D['Dcd_fine'])))
+          shape=(len(self._inputs.tau_list), len(self.Dcd_fine)))
 
         self.run_generator()       
         
@@ -60,7 +61,7 @@ class Generate_Curve(object):
             self.sSNRL_at10Gyr.append(model.sSNRL[age_cond][0])
        
             self.sSNRL_matrix[i] = np.asarray(core_funcs.interpolator(
-              self._D['Dcolor_' + TS], model.sSNRL, self._D['Dcd_fine']))
+              self._D['Dcolor_' + TS], model.sSNRL, self.Dcd_fine))
                         
             #Get Dcolor max from tau = 1Gyr model.
             if TS == '1.0':
@@ -78,11 +79,11 @@ class Generate_Curve(object):
         #Average models in linear space. This will raise a warning because of
         #NaN slices. This is not a problem and works as intented.
         np.warnings.filterwarnings('ignore')
-        sSNRL_fine = 10.**np.nanmedian(self.sSNRL_matrix, axis=0)
+        sSNRL_fine = np.nanmedian(self.sSNRL_matrix, axis=0)
         np.warnings.filterwarnings('default')
 
         #Assign sSNRL = 0 for galaxies bluer than the model can predict.
-        cond = ((self._D['Dcd_fine'] < - 0.2) & np.isnan(sSNRL_fine))     
+        cond = ((self.Dcd_fine < - 0.2) & np.isnan(sSNRL_fine))     
         sSNRL_fine[cond] = 1.e-40
                 
         #Assign the sSNRL at the reddest color for galaxies redder than predicted.
