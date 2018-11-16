@@ -274,7 +274,7 @@ class Input_Parameters(object):
             self.ext_r_min, self.ext_r_max = -1000., 1000.
             self.gERR_max = 1000.
             self.rERR_max = 1000.
-            self.show_fig = True
+            self.show_fig = False
             self.save_fig = True
 
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= CUSTOM =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

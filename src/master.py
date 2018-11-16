@@ -77,7 +77,7 @@ class Master(object):
 if __name__ == '__main__':
     rf = False
     pd = False
-    lf = True
+    lf = False
     pf = True  
 
     Master(case='H17', run_fsps_flag=rf, process_data=pd,
