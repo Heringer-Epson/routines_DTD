@@ -140,13 +140,13 @@ class Input_Parameters(object):
         self.filter_2 = 'g'
         self.spec_lib = 'BASEL'
         self.isoc_lib = 'PADOVA'
-        self.imf_type = 'Chabrier'
+        self.imf_type = 'Kroupa'
         self.sfh_type = 'exponential'
         self.Z = '0.0190'
         self.t_cutoff = 1.e9 * u.yr
         #self.slopes = np.arange(-3., 0.0001, 0.01)
-        #self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
-        self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
+        self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
+        #self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
         #self.slopes = np.arange(-3., 0.0001, 0.5) #Coarse for testing.
         self.slopes[abs(self.slopes + 1.) < 1.e-6] = -0.9999
         self.tau_list = np.array(
@@ -198,6 +198,7 @@ class Input_Parameters(object):
             self.matching = 'File'
             self.hosts_from = 'H17'
             self.host_class = ['SNIa']
+            self.imf_type = 'Chabrier'
             self.t_onset = 1.e8 * u.yr
             self.kcorr_type = 'simple'
             self.ra_min, self.ra_max = 360. - 60., 60.
@@ -205,7 +206,7 @@ class Input_Parameters(object):
             self.hosts_from_2004 = True
             self.data_Drange = 'limited'
             self.model_Drange = 'reduced'
-            self.show_fig = True
+            self.show_fig = False
             self.save_fig = True
 
         elif self.case == 'H17_interpolation':
@@ -215,6 +216,7 @@ class Input_Parameters(object):
             self.matching = 'File'
             self.hosts_from = 'H17'
             self.host_class = ['SNIa']
+            self.imf_type = 'Chabrier'
             self.t_onset = 1.e8 * u.yr
             self.kcorr_type = 'simple'
             self.ra_min, self.ra_max = 360. - 60., 60.
@@ -227,7 +229,8 @@ class Input_Parameters(object):
 
         elif self.case == 'H17_updated_model':
             #Same data set as in Heringer+ 2017, but updated methods.
-            #Updates: KCORRECT, extended model Dcd, effective visibility time.
+            #Updates: KCORRECT, extended model Dcd, effective visibility time,
+            #IMF is Kroupa.
             self.subdir = 'H17_updated_model/'   #and reproduces Fig. 9.  
             self.data_dir = './../INPUT_FILES/H17/'
             self.matching = 'File'
@@ -250,6 +253,7 @@ class Input_Parameters(object):
             self.matching = 'Table'
             self.hosts_from = 'H17'
             self.host_class = ['SNIa']
+            self.imf_type = 'Chabrier'
             self.t_onset = 1.e8 * u.yr
             self.kcorr_type = 'simple'
             self.ra_min, self.ra_max = 360. - 60., 60.

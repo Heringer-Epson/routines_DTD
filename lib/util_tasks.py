@@ -25,6 +25,9 @@ class Utility_Routines(object):
     """ 
     def __init__(self, _inputs):
         self._inputs = _inputs
+        os.system('clear')
+        print '\n\n****************** SN RATE ANALYSIS *****************\n'                 
+        print '>Storing simulation data on: ', self._inputs.subdir_fullpath
         self.run_utilities()
 
     def check_variables(self):

@@ -32,7 +32,7 @@ class Model_Rates(object):
         self.s1 = s1
         self.s2 = s2
                    
-        const_s2 = np.power(self.D['t_bre'] / self.D['t_ons'], self.s1 - self.s2)
+        const_s2 = np.power(self.D['t_bre'], self.s1 - self.s2)
         
         lib = ctypes.CDLL('./../lib/DTD_gen.so')
         if self._inputs.sfh_type == 'exponential':

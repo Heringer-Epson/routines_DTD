@@ -2,6 +2,8 @@
 
 import os
 import sys
+import sys, os, time
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 import shutil
 import numpy as np
 import pandas as pd
@@ -9,6 +11,8 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
+from generic_input_pars import Generic_Pars
+from build_fsps_model import Build_Fsps
 
 sys.path.append(
   os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
@@ -24,89 +28,6 @@ taus = [1., 1.5, 2., 3., 4., 5., 7., 10.]
 s1s2 = zip([-0.5, -1., -1.5, -3., -1., -1.],[-1., -1., -1.5, -1., -2.,-3.])
 label = [r'-0.5/-1', r'-1/-1', r'-1.5/-1.5', r'-3/-1', r'-1/-2', r'-1/-3']
 offset = [0.96, 0.9, 1.14, 1.51, 0.2, 0.17]
-
-def copy_fsps(_sfh_type):
-    inppath = ('./../INPUT_FILES/fsps_FILES/Chabrier_' + _sfh_type
-               + '_0.0190_BASEL_PADOVA/')
-    tgtpath = './fsps_FILES/'
-    if os.path.isdir(tgtpath):
-        shutil.rmtree(tgtpath)
-    shutil.copytree(inppath, tgtpath)
-
-def retrieve_data(_inputs):
-    """Anything that does not depend on s1 or s2, should be computed here
-    to avoid wasting computational time.
-    """
-    D = {}
-
-    D['Dcd_fine'] = np.arange(-1.1, 1.00001, 0.01)
-    
-    #General calculations. unit conversion.
-    D['t_ons'] = _inputs.t_onset.to(u.Gyr).value
-    D['t_bre'] = _inputs.t_cutoff.to(u.Gyr).value
-    
-    #Get SSP data and compute the theoretical color with respect to the RS.
-    synpop_dir = _inputs.subdir_fullpath + 'fsps_FILES/'
-    df = pd.read_csv(synpop_dir + 'SSP.dat', header=0, escapechar='#')
-    logage_SSP = df[' log_age'].values
-    mag_2_SSP = df[_inputs.filter_2].values
-    mag_1_SSP = df[_inputs.filter_1].values
-    
-    #Retrieve RS color.
-    RS_condition = (logage_SSP == 10.0)
-    RS_color = mag_2_SSP[RS_condition] - mag_1_SSP[RS_condition]
-
-    for i, tau in enumerate(_inputs.tau_list):
-        TS = str(tau.to(u.yr).value / 1.e9)
-     
-        model = pd.read_csv(synpop_dir + 'tau-' + TS + '.dat', header=0)
-        D['tau_' + TS] = tau.to(u.Gyr).value
-        D['mag2_' + TS] = model[_inputs.filter_2].values
-        D['mag1_' + TS] = model[_inputs.filter_1].values
-        D['age_' + TS] = 10.**(model['# log_age'].values) / 1.e9 #Converted to Gyr.
-        D['int_mass_' + TS] = model['integrated_formed_mass'].values
-        D['Dcolor_' + TS] = (D['mag2_' + TS] - D['mag1_' + TS] - RS_color) 
-
-        #Get analytical normalization for the SFH.
-        if _inputs.sfh_type == 'exponential':
-            D['sfr_norm_' + TS] = (
-              -1. / (D['tau_' + TS] * (np.exp(-D['age_' + TS][-1] / D['tau_' + TS])
-              - np.exp(-D['age_' + TS][0] / D['tau_' + TS]))))     
-        elif _inputs.sfh_type == 'delayed-exponential':
-            D['sfr_norm_' + TS] = (
-              1. / (((-D['tau_' + TS] * D['age_' + TS][-1] - D['tau_' + TS]**2.)
-              * np.exp(- D['age_' + TS][-1] / D['tau_' + TS])) -
-              ((-D['tau_' + TS] * D['age_' + TS][0] - D['tau_' + TS]**2.)
-              * np.exp(- D['age_' + TS][0] / D['tau_' + TS]))))
-    return D
-
-class Input_Pars(object):
-    """
-    Description:
-    ------------
-    Define a set of input parameters to use to make the Dcolor vs SN rate plot
-    in the class below. This is intended to replicate the ./../src/ code
-    input_params.py, but only containing the relevant quantities for this plot.
-
-    Parameters:
-    -----------
-    As described in ./../src/input_params.py
-    """  
-    def __init__(self, sfh_type):
-
-        self.sfh_type = sfh_type
-
-        self.filter_1 = 'r'
-        self.filter_2 = 'g'
-        self.spec_lib = 'BASEL'
-        self.isoc_lib = 'PADOVA'
-        self.imf_type = 'Chabrier'
-        self.Z = '0.0190'
-        self.t_cutoff = 1.e9 * u.yr
-        self.t_onset = 1.e8 * u.yr     
-        self.tau_list = np.array(
-          [1., 1.5, 2., 3., 4., 5., 7., 10.]) * 1.e9 * u.yr
-        self.subdir_fullpath = './'
 
 class Plot_sSNRL(object):
     """
@@ -148,9 +69,7 @@ class Plot_sSNRL(object):
           1,2, figsize=(16,10), sharey=True)
       
         self.make_plot()
-        
-        #Create function to copy fsps file where the generator can find.
-        
+                
     def set_fig_frame(self):
 
         plt.subplots_adjust(wspace=0.03)
@@ -194,9 +113,8 @@ class Plot_sSNRL(object):
         self.ax2.text(-0.98, -11.7, 'SFH: delayed exponential', fontsize=fs )
         
         for l, sfh in enumerate(['exponential', 'delayed-exponential']):
-            copy_fsps(sfh)
-            _inputs = Input_Pars(sfh)
-            _D = retrieve_data(_inputs)
+            _inputs = Generic_Pars(sfh)
+            _D = Build_Fsps(_inputs).D
 
             if l == 0:
                 ax = self.ax1
@@ -226,10 +144,9 @@ class Plot_sSNRL(object):
                 ax.plot(x, y, ls=':', marker='None', markersize=8.,
                         color='forestgreen', linewidth=4., zorder=3)                                
 
-                ax.text(0.1, y[-1] + 0.05, label[i], color='k', fontsize=fs)
+                ax.text(0.05, y[-1] + 0.05, label[i], color='k', fontsize=fs)
                         
-            #Clean up copied fsps folder.
-            #shutil.rmtree('./fsps_FILES/')
+            _inputs.clean_fsps_files()
 
     def manage_output(self):
         if self.save_fig:
@@ -245,5 +162,5 @@ class Plot_sSNRL(object):
         self.manage_output()
 
 if __name__ == '__main__':
-    Plot_sSNRL(show_fig=True, save_fig=True)
+    Plot_sSNRL(show_fig=True, save_fig=False)
  

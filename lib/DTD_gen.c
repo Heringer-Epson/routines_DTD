@@ -25,12 +25,13 @@ ctypes compared to DTD_gen_outdated.py.
 
 double DTD_func(double t, double B, double s1, double s2,
                 double t_ons, double t_bre){
+    //DTD propto (t/1Gyr)^s
     if (t < t_ons)
         return 1.E-40;
     else if ((t >= t_ons) & (t < t_bre)) 
-        return pow(t / t_ons, s1);
+        return pow(t, s1);
     else if (t >= t_bre) 
-        return B * pow(t / t_ons, s2);
+        return B * pow(t, s2);
 }
 
 double SFR_exponential_func(double t, double tau, double norm){
