@@ -120,8 +120,8 @@ def read_lnL(_fpath):
 def make_A_s_space(N_obs, s1, s2, A, ln_L):
     A_2D, s_2D, ln_L_2D = [], [], []
     cond = (abs(s1 - s2) < 1.e-6)
-    A_target = np.logspace(-12.5, -10., len(s1[cond]))
-    #A_target = np.logspace(-13.5, -11.5, len(s1[cond]))
+    #A_target = np.logspace(-12.5, -10., len(s1[cond]))
+    A_target = np.logspace(-13.5, -11.5, len(s1[cond]))
         
     for (_s,_A,_ln_L) in zip(s1[cond],A[cond],ln_L[cond]):
         for _At in A_target:

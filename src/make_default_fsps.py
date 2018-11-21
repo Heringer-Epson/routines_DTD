@@ -160,13 +160,20 @@ class Make_FSPS(object):
             out.write('Metallicity: ' + str(self.Z))
         
 if __name__ == '__main__':
+    
+    #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', spec_lib='BASEL', isoc_lib='PADOVA')
+    Make_FSPS(imf='Kroupa', sfh='delayed-exponential', Z='0.0190', spec_lib='BASEL', isoc_lib='PADOVA')
+    Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0096', spec_lib='BASEL', isoc_lib='PADOVA')
+    Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0150', spec_lib='BASEL', isoc_lib='PADOVA')
+    Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0300', spec_lib='BASEL', isoc_lib='PADOVA')
+    
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0190', spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Chabrier', sfh='delayed-exponential', Z='0.0190', spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0096', spec_lib='BASEL', isoc_lib='PADOVA')
-    Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0150', spec_lib='BASEL', isoc_lib='PADOVA')
+    #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0150', spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0300', spec_lib='BASEL', isoc_lib='PADOVA')
+    
     #Make_FSPS(imf='Salpeter', sfh='exponential', Z='0.0190', spec_lib='BASEL', isoc_lib='PADOVA')
-    #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', spec_lib='BASEL', isoc_lib='PADOVA')
    
     #=-=-=-=-=-=-=-=-=-=- RECOMPILE FSPS BEFORE RUNNING THESE -=-=-=-=-=-=-=-=-
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0190', spec_lib='MILES', isoc_lib='PADOVA')    
