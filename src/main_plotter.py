@@ -23,18 +23,11 @@ class Main_Plotter(object):
     """    
     def __init__(self, _inputs):
         #FSPS_Plotter(_inputs)
-        Ext_CMD(_inputs)        
-        Abs_CMD(_inputs)
-        Plot_Dcolor(_inputs)
-        try:
-            Plot_As(_inputs)
-        except:
-            pass
-        
-        try:    
-            Plot_s1s2(_inputs)
-        except:
-            pass
+        #Ext_CMD(_inputs)        
+        #Abs_CMD(_inputs)
+        #Plot_Dcolor(_inputs)
+        Plot_As(_inputs)  
+        Plot_s1s2(_inputs)
       
         try:
             Plot_s1s2_II(_inputs)

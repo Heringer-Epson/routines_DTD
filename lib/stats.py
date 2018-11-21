@@ -51,13 +51,13 @@ def get_contour_levels(inp_array, contour):
 #    return psi1, psi2, psi3
 
 def integ_DTD(s, to, ti, tf):
-    return (tf**(s + 1.) - ti**(s + 1.)) / (to**s * (s + 1.) * (tf - ti)) 
+    return (tf**(s + 1.) - ti**(s + 1.)) / ((s + 1.) * (tf - ti)) 
 
 def binned_DTD_rate(s1, s2, t_ons, tc):
     """Computes the average SN rate in each time bin."""
     #Assumes that t_cutoff happens in this bin. True for most sensible cases.
     #t_cutoff usually tested in the range 0.5--2 Gyr.
-    B = (tc / t_ons)**(s1 - s2)
+    B = tc**(s1 - s2)
     psi1 = integ_DTD(s1, t_ons, t_ons, 0.42)
     psi2 = integ_DTD(s1, t_ons, 0.42, tc) + B * integ_DTD(s2, t_ons, tc, 2.4)
     psi3 = integ_DTD(s2, t_ons, 2.4, 14.)   
