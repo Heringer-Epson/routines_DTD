@@ -1,0 +1,7 @@
+Files created on: 25/09/2018
+FSPS version: 0.3.0
+Isochrones: mist
+Spectral library: basel
+IMF: Chabrier
+SFH: exponential
+Metallicity: 0.0190

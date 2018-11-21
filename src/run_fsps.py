@@ -87,7 +87,7 @@ class Make_FSPS(object):
         sp = fsps.StellarPopulation(
           compute_vega_mags=False, zcontinuous=0, zmet=Z_key,
           add_agb_dust_model=False, add_dust_emission=False,
-          add_stellar_remnants=True, fbhb=0., pagb=0., zred=0.,
+          add_stellar_remnants=True, fbhb=self._inputs.fbhb, pagb=0., zred=0.,
           imf_type=imf_key, sfh=0, dust_type=0., tage=14.96)        
 
         #Write output files.
@@ -103,7 +103,7 @@ class Make_FSPS(object):
             sp = fsps.StellarPopulation(
               compute_vega_mags=False, zcontinuous=0, zmet=Z_key,
               add_agb_dust_model=False, add_dust_emission=False,
-              add_stellar_remnants=True, fbhb=0., pagb=0., zred=0., imf_type=imf_key,
+              add_stellar_remnants=True, fbhb=self._inputs.fbhb, pagb=0., zred=0., imf_type=imf_key,
               sfh=sfh_key, tau=tau, const=0., fburst=0., dust_type=0., tage=14.96)
 
             #Write output files.
@@ -121,7 +121,7 @@ class Make_FSPS(object):
     def copy_premade_files(self):
         fsps_dir = (
           self._inputs.imf_type + '_' + self._inputs.sfh_type + '_'
-          + self._inputs.Z + '_' + self._inputs.spec_lib + '_'
+          + self._inputs.Z + '_' + str(self._inputs.fbhb) + '_' + self._inputs.spec_lib + '_'
           + self._inputs.isoc_lib + '/')
         for fname in os.listdir('./../INPUT_FILES/fsps_FILES/' + fsps_dir):
             copyfile('./../INPUT_FILES/fsps_FILES/' + fsps_dir + fname,

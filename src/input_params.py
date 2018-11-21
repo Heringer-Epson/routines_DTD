@@ -143,9 +143,10 @@ class Input_Parameters(object):
         self.imf_type = 'Kroupa'
         self.sfh_type = 'exponential'
         self.Z = '0.0190'
+        self.fbhb = 0.0
         self.t_cutoff = 1.e9 * u.yr
-        #self.slopes = np.arange(-3., 0.0001, 0.01)
-        self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
+        self.slopes = np.arange(-3., 0.0001, 0.01)
+        #self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
         #self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
         #self.slopes = np.arange(-3., 0.0001, 0.5) #Coarse for testing.
         self.slopes[abs(self.slopes + 1.) < 1.e-6] = -0.9999
@@ -310,13 +311,14 @@ class Input_Parameters(object):
 
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-= SYSTEMATICS =-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.case == 'sys':
-            t_o, t_c, sfh, imf, Z, spec_lib, isoc_lib = self.custom_pars
+            t_o, t_c, sfh, imf, Z, fbhb, spec_lib, isoc_lib = self.custom_pars
 
             self.spec_lib = spec_lib
             self.isoc_lib = isoc_lib
             self.imf_type = imf
             self.sfh_type = sfh
             self.Z = Z
+            self.fbhb = fbhb
             self.t_cutoff = float(t_c) * u.Gyr
             self.t_onset = float(t_o) * u.Myr
 
@@ -329,7 +331,7 @@ class Input_Parameters(object):
             self.redshift_min = 0.01 
 
             self.subdir = (
-              'sys_' + imf + '_' + sfh + '_' + Z + '_' + isoc_lib + '_'\
+              'sys_' + imf + '_' + sfh + '_' + Z + '_' + str(fbhb) + '_' + isoc_lib + '_'\
               + spec_lib + '_' + t_o + '_' + t_c + '/') 
 
             self.show_fig = False

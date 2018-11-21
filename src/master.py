@@ -68,7 +68,7 @@ class Master(object):
 if __name__ == '__main__':
     rf = False
     pd = False
-    lf = False
+    lf = True
     pf = True  
 
     #Individual tests.
@@ -108,33 +108,40 @@ if __name__ == '__main__':
     '''
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('100','1','exponential','Kroupa','0.0190','BASEL','PADOVA')).run_master()     
+      custom_pars=('100','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('40','1','exponential','Kroupa','0.0190','BASEL','PADOVA')).run_master()     
+      custom_pars=('40','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('70','1','exponential','Kroupa','0.0190','BASEL','PADOVA')).run_master()     
+      custom_pars=('70','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('100','1','delayed-exponential','Kroupa','0.0190','BASEL','PADOVA')).run_master()                                                           
+      custom_pars=('100','1','delayed-exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()                                                           
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('100','1','exponential','Chabrier','0.0190','BASEL','PADOVA')).run_master()  
+      custom_pars=('100','1','exponential','Chabrier','0.0190',0.0,'BASEL','PADOVA')).run_master()  
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('100','1','exponential','Salpeter','0.0190','BASEL','PADOVA')).run_master()  
+      custom_pars=('100','1','exponential','Salpeter','0.0190',0.0,'BASEL','PADOVA')).run_master()  
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('100','1','exponential','Kroupa','0.0150','BASEL','PADOVA')).run_master()  
+      custom_pars=('100','1','exponential','Kroupa','0.0150',0.0,'BASEL','PADOVA')).run_master()  
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('100','1','exponential','Kroupa','0.0300','BASEL','PADOVA')).run_master()  
-    #Master(
-    #  case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-    #  custom_pars=('100','1','exponential','Kroupa','0.0190','BASEL','MIST')).run_master() 
-    #Master(
-    #  case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
-    #  custom_pars=('100','1','exponential','Kroupa','0.0190','MILES','PADOVA')).run_master()     
+      custom_pars=('100','1','exponential','Kroupa','0.0300',0.0,'BASEL','PADOVA')).run_master()  
+    pd = True
+    Master(
+      case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('100','1','exponential','Kroupa','0.0190',0.1,'BASEL','PADOVA')).run_master()     
+    Master(
+      case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('100','1','exponential','Kroupa','0.0190',0.2,'BASEL','PADOVA')).run_master() 
+    Master(
+      case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('100','1','exponential','Kroupa','0.0190',0.0,'BASEL','MIST')).run_master() 
+    Master(
+      case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('100','1','exponential','Kroupa','0.0190',0.0,'MILES','PADOVA')).run_master()     
     '''
 
