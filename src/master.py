@@ -55,14 +55,10 @@ class Master(object):
             Acquire_Hosts(self.inputs)
             Process_Data(self.inputs)
             Fit_RS(self.inputs)
-
         if self.likelihood_flag:
-            Get_Likelihood(self.inputs)
-            ##Compute_Best(self.inputs)
-            
+            Get_Likelihood(self.inputs)            
         if self.plots_flag:
             Main_Plotter(self.inputs)
-
         Write_Record(self.inputs)
             
 if __name__ == '__main__':
@@ -71,20 +67,19 @@ if __name__ == '__main__':
     lf = True
     pf = True  
 
-    Master(case='M12', run_fsps_flag=rf, process_data=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()  
-    '''
-    #Individual tests.
     Master(case='H17', run_fsps_flag=rf, process_data=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()
+           likelihood_flag=lf, plots_flag=pf).run_master()  
+
+    #Individual tests.
+    #Master(case='H17', run_fsps_flag=rf, process_data=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master()
     #Master(case='M12', run_fsps_flag=rf, process_data=pd,
     #       likelihood_flag=lf, plots_flag=pf).run_master()    
-    Master(case='H17', run_fsps_flag=rf, process_data=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()
-    Master(case='H17_updated_model', run_fsps_flag=rf, process_data=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()    
-    Master(case='H17_interpolation', run_fsps_flag=rf, process_data=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()           
+    #Master(case='H17_updated_model', run_fsps_flag=rf, process_data=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master()    
+    #Master(case='H17_interpolation', run_fsps_flag=rf, process_data=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master()           
+    '''
     Master(case='H17_Table', run_fsps_flag=rf, process_data=pd,
            likelihood_flag=lf, plots_flag=pf).run_master()    
 
@@ -104,6 +99,7 @@ if __name__ == '__main__':
 
     #Series of runs to analyse systematic uncertainties. Those use
     #fiducial parameters of 'H17', 'S18' (z)SN Ia and redshit_max=0.2.
+    pd = True
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('100','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
@@ -128,7 +124,6 @@ if __name__ == '__main__':
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('100','1','exponential','Kroupa','0.0300',0.0,'BASEL','PADOVA')).run_master()  
-    pd = True
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('100','1','exponential','Kroupa','0.0190',0.1,'BASEL','PADOVA')).run_master()     
