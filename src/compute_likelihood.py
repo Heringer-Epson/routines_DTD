@@ -7,6 +7,7 @@ from astropy import units as u
 from Dcolor2sSNRL_gen import Generate_Curve
 from multiprocessing import Pool
 from functools import partial
+from build_fsps_model import Build_Fsps
 import stats
 import core_funcs
 
@@ -57,7 +58,7 @@ class Get_Likelihood(object):
         self.v_trim_df = None        
         self.v_df = None        
         self.N_obs = None
-        self.D = {}
+        self.D = Build_Fsps(self._inputs).D
 
         if self._inputs.subdir[:-1].split('_')[0] == 'M12':
             self.add_vespa = True
@@ -67,57 +68,10 @@ class Get_Likelihood(object):
         print '\n\n>COMPUTING LIKELIHOOD OF MODELS...\n'
         self.run_analysis()
 
-    #@profile
-    def retrieve_data(self):
-        """Anything that does not depend on s1 or s2, should be computed here
-        to avoid wasting computational time.
-        """
+    def subselect_data(self):
 
-        self.D['Dcd_fine'] = np.arange(-1.1, 1.00001, 0.01)
-        
-        #General calculations. unit conversion.
-        self.D['t_ons'] = self._inputs.t_onset.to(u.Gyr).value
-        self.D['t_bre'] = self._inputs.t_cutoff.to(u.Gyr).value
-
-        #Observational data.
         fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
-        
-        #Get SSP data and compute the theoretical color with respect to the RS.
-        synpop_dir = self._inputs.subdir_fullpath + 'fsps_FILES/'
-        df = pd.read_csv(synpop_dir + 'SSP.dat', header=0, escapechar='#')
-        logage_SSP = df[' log_age'].values
-        mag_2_SSP = df[self._inputs.filter_2].values
-        mag_1_SSP = df[self._inputs.filter_1].values
-        
-        #Retrieve RS color.
-        RS_condition = (logage_SSP == 10.0)
-        RS_color = mag_2_SSP[RS_condition] - mag_1_SSP[RS_condition]
-
-        for i, tau in enumerate(self._inputs.tau_list):
-            TS = str(tau.to(u.yr).value / 1.e9)
-         
-            model = pd.read_csv(synpop_dir + 'tau-' + TS + '.dat', header=0)
-            self.D['tau_' + TS] = tau.to(u.Gyr).value
-            self.D['mag2_' + TS] = model[self._inputs.filter_2].values
-            self.D['mag1_' + TS] = model[self._inputs.filter_1].values
-            self.D['age_' + TS] = 10.**(model['# log_age'].values) / 1.e9 #Converted to Gyr.
-            self.D['int_mass_' + TS] = model['integrated_formed_mass'].values
-            self.D['Dcolor_' + TS] = (
-              self.D['mag2_' + TS] - self.D['mag1_' + TS] - RS_color) 
-
-            #Get analytical normalization for the SFH.
-            if self._inputs.sfh_type == 'exponential':
-                self.D['sfr_norm_' + TS] = (
-                  -1. / (self.D['tau_' + TS] * (np.exp(-self.D['age_' + TS][-1] / self.D['tau_' + TS])
-                  - np.exp(-self.D['age_' + TS][0] / self.D['tau_' + TS]))))     
-            elif self._inputs.sfh_type == 'delayed-exponential':
-                self.D['sfr_norm_' + TS] = (
-                  1. / (((-self.D['tau_' + TS] * self.D['age_' + TS][-1] - self.D['tau_' + TS]**2.)
-                  * np.exp(- self.D['age_' + TS][-1] / self.D['tau_' + TS])) -
-                  ((-self.D['tau_' + TS] * self.D['age_' + TS][0] - self.D['tau_' + TS]**2.) * np.exp(- self.D['age_' + TS][0] / self.D['tau_' + TS]))))
-
-    def subselect_data(self):
 
         f1, f2 = self._inputs.filter_1, self._inputs.filter_2
         Dcolor = self.df['Dcolor_' + f2 + f1]
@@ -142,8 +96,7 @@ class Get_Likelihood(object):
           'absmag': abs_mag, 'Dcolor': Dcolor, 'z': redshift, 'is_host': hosts}
 
         if self.add_vespa:
-            #mass_corr = .15
-            mass_corr = .55
+            mass_corr = .55 #.15 will give matching contours.
             mass1 = (self.df['vespa1'].values + self.df['vespa2'].values) * mass_corr
             mass2 = self.df['vespa3'].values * mass_corr
             mass3 = self.df['vespa4'].values * mass_corr
@@ -196,7 +149,6 @@ class Get_Likelihood(object):
         for line in output:
             out.write(line) 
         out.close()
-
     #@profile
     def write_vespa_nottrim_outputs(self):
         print 'Calculating likelihoods using VESPA masses...'
@@ -223,9 +175,9 @@ class Get_Likelihood(object):
 
     #@profile
     def run_analysis(self):
-        self.retrieve_data()
+        #self.retrieve_data()
         self.subselect_data()
-        #self.write_sSNRL_output()
+        self.write_sSNRL_output()
         if self.add_vespa:
             self.write_vespa_nottrim_outputs()
 
