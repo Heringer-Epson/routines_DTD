@@ -2,7 +2,7 @@
 from libc.math cimport exp, log, log10, pow
 import numpy as np
 
-cpdef double[:] interpolator(double[:] x, double[:] y, double[:] x_target):
+cpdef double[:] interp_nan(double[:] x, double[:] y, double[:] x_target):
     
     cdef int n_target = x_target.shape[0]
     cdef int N = x.shape[0]
@@ -32,7 +32,7 @@ cpdef double[:] interpolator(double[:] x, double[:] y, double[:] x_target):
             sSNRL[m] = pow(10., slope * x_target[m] + intercept)
     return sSNRL
         
-cpdef double[:] interpolator_H17(double[:] x, double[:] y, double[:] x_target):
+cpdef double[:] interp_nobound(double[:] x, double[:] y, double[:] x_target):
     
     cdef int n_target = x_target.shape[0]
     cdef int N = x.shape[0]

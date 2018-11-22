@@ -16,10 +16,9 @@ def calculate_likelihood(mode, _inputs, _df, _N_obs, _D, _s1, _s2):
         Sgen = Generate_Curve(_inputs, _D, _s1, _s2)
         if _inputs.model_Drange == 'reduced':
             x, y = Sgen.Dcolor_at10Gyr[::-1], Sgen.sSNRL_at10Gyr[::-1]
-            sSNRL = np.asarray(core_funcs.interpolator_H17(x, y, _df['Dcolor']))
         elif _inputs.model_Drange == 'extended':
             x, y = Sgen.Dcd_fine, Sgen.sSNRL_fine
-            sSNRL = np.asarray(core_funcs.interpolator(x, y, _df['Dcolor']))
+        sSNRL = np.asarray(core_funcs.interp_nobound(x, y, _df['Dcolor']))
         A, ln_L = stats.compute_L_using_sSNRL(
           sSNRL, _df['Dcolor'], _df['absmag'], _df['z'],
           _df['is_host'], _N_obs, _inputs.visibility_flag)
@@ -143,9 +142,11 @@ class Get_Likelihood(object):
           'absmag': abs_mag, 'Dcolor': Dcolor, 'z': redshift, 'is_host': hosts}
 
         if self.add_vespa:
-            mass1 = (self.df['vespa1'].values + self.df['vespa2'].values) * .55
-            mass2 = self.df['vespa3'].values * .55
-            mass3 = self.df['vespa4'].values * .55
+            #mass_corr = .15
+            mass_corr = .55
+            mass1 = (self.df['vespa1'].values + self.df['vespa2'].values) * mass_corr
+            mass2 = self.df['vespa3'].values * mass_corr
+            mass3 = self.df['vespa4'].values * mass_corr
             redshift = self.df['z'].values
             hosts = self.df['is_host'].values
             
@@ -224,7 +225,7 @@ class Get_Likelihood(object):
     def run_analysis(self):
         self.retrieve_data()
         self.subselect_data()
-        self.write_sSNRL_output()
+        #self.write_sSNRL_output()
         if self.add_vespa:
             self.write_vespa_nottrim_outputs()
 

@@ -43,13 +43,6 @@ def get_contour_levels(inp_array, contour):
         UserWarning(str(contour * 100.) + '% contour not constrained.')	
     return _L_hist[idx_at_contour]
 
-#def binned_DTD_rate(s, t0):
-#    """Computes the average SN rate in each time bin."""
-#    psi1 = 1. / (s + 1.) * (0.42**(s + 1.) - t0**(s + 1.)) / (0.42 - t0)
-#    psi2 = 1. / (s + 1.) * (2.4**(s + 1.) - 0.42**(s + 1.)) / (2.4 - 0.42)
-#    psi3 = 1. / (s + 1.) * (14.**(s + 1.) - 2.4**(s + 1.)) / (14. - 2.4)    
-#    return psi1, psi2, psi3
-
 def integ_DTD(s, to, ti, tf):
     return (tf**(s + 1.) - ti**(s + 1.)) / ((s + 1.) * (tf - ti)) 
 
