@@ -60,7 +60,7 @@ class Generate_Curve(object):
             self.Dcolor_at10Gyr.append(self._D['Dcolor_' + TS][age_cond][0])
             self.sSNRL_at10Gyr.append(model.sSNRL[age_cond][0])
        
-            self.sSNRL_matrix[i] = np.asarray(core_funcs.interpolator(
+            self.sSNRL_matrix[i] = np.asarray(core_funcs.interp_nan(
               self._D['Dcolor_' + TS], model.sSNRL, self.Dcd_fine))
                         
             #Get Dcolor max from tau = 1Gyr model.
