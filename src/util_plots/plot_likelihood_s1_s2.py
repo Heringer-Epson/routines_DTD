@@ -59,8 +59,8 @@ class Plot_s1s2(object):
         y_label = r'$s2$'
         self.ax.set_xlabel(x_label, fontsize=fs)
         self.ax.set_ylabel(y_label, fontsize=fs)
-        self.ax.set_xlim(-3.,0.)
-        self.ax.set_ylim(-3.,0.)
+        #self.ax.set_xlim(-3.,0.)
+        #self.ax.set_ylim(-3.,0.)
         self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax.minorticks_off()

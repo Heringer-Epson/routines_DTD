@@ -10,7 +10,7 @@ from matplotlib.ticker import MultipleLocator
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
-fs = 28.
+fs = 36.
 #c = ['k', 'darkgray', 'dodgerblue']
 #c = ['#4daf4a', '#878787', '#377eb8']
 c = ['#fdae61', '#3288bd']
@@ -48,7 +48,7 @@ class Plot_CMD(object):
         self.x_range = x_range
         self.y_range = y_range
 
-        self.fig = plt.figure(1, figsize=(14, 12))
+        self.fig = plt.figure(1, figsize=(14, 16))
         self.ax = plt.axes(rect_scatter)
         self.axx = plt.axes(rect_histx, sharex=self.ax)
         self.axy = plt.axes(rect_histy, sharey=self.ax)
@@ -62,27 +62,27 @@ class Plot_CMD(object):
         hist_label = r'Count'
         
         self.ax.set_xlabel(x_label, fontsize=fs)
-        self.ax.set_ylabel(y1_label, fontsize=fs)
+        self.ax.set_ylabel(y1_label, labelpad=-8., fontsize=fs)
         self.ax.set_xlim(self.x_range[0], self.x_range[1])
         self.ax.set_ylim(self.y_range[0], self.y_range[1])
         self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax.tick_params('both', length=8, width=1., which='major',
+        self.ax.tick_params('both', length=16, width=1., which='major',
                              direction='in', right=True, top=True)
-        self.ax.tick_params('both', length=4, width=1., which='minor',
+        self.ax.tick_params('both', length=8, width=1., which='minor',
                              direction='in', right=True, top=True) 
         self.ax.xaxis.set_minor_locator(MultipleLocator(.05))
         self.ax.xaxis.set_major_locator(MultipleLocator(.1))
         self.ax.yaxis.set_minor_locator(MultipleLocator(.5))
         self.ax.yaxis.set_major_locator(MultipleLocator(1.))  
     
-        self.axx.set_ylabel(hist_label, fontsize=fs)
+        self.axx.set_ylabel(hist_label, labelpad=-15., fontsize=fs)
         self.axx.set_ylim(0., 1100.)
         self.axx.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.axx.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.axx.tick_params('both', length=8, width=1., which='major',
+        self.axx.tick_params('both', length=16, width=1., which='major',
                              direction='in', right=True, top=True)
-        self.axx.tick_params('both', length=4, width=1., which='minor',
+        self.axx.tick_params('both', length=8, width=1., which='minor',
                              direction='in', right=True, top=True)   
         self.axx.yaxis.set_minor_locator(MultipleLocator(100.))
         self.axx.yaxis.set_major_locator(MultipleLocator(500.))  
@@ -94,16 +94,17 @@ class Plot_CMD(object):
         self.axy.set_xlim(0., 1100.)
         self.axy.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.axy.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.axy.tick_params('both', length=8, width=1., which='major',
+        self.axy.tick_params('both', length=16, width=1., which='major',
                              direction='in', right=True, top=True)
-        self.axy.tick_params('both', length=4, width=1., which='minor',
+        self.axy.tick_params('both', length=8, width=1., which='minor',
                              direction='in', right=True, top=True)   
         self.axy.xaxis.set_minor_locator(MultipleLocator(100.))
         self.axy.xaxis.set_major_locator(MultipleLocator(500.))  
         plt.setp(self.axy.get_yticklabels(), visible=False)
 
     def retrieve_data(self):
-        fpath = './../OUTPUT_FILES/RUNS/default/data_Dcolor.csv'
+        fpath = './../OUTPUT_FILES/RUNS/sys_Kroupa_exponential_0.0190_0.0'\
+                + '_PADOVA_BASEL_100_1/data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
     
     def plot_quantities(self):
@@ -118,12 +119,12 @@ class Plot_CMD(object):
                              + self.df['petroMagErr_r'].values**2.)
 
         #Draw CMD (on self.ax).
-        self.ax.plot(Dcolor, r_abs, ls='None', marker='o', markersize=2.,
-                     color=c[0], zorder=1.)
+        self.ax.plot(Dcolor, r_abs, ls='None', marker='o', markersize=2.7,
+                     markeredgecolor=c[0], color=c[0], zorder=1.)
 
         self.ax.errorbar(
-          Dcolor[hosts], r_abs[hosts], xerr=r_err[hosts], capsize=0., elinewidth=1.,
-          zorder=2., ls='None', marker='*', markersize=10., color=c[1])      
+          Dcolor[hosts], r_abs[hosts], xerr=r_err[hosts], capsize=0.,
+          elinewidth=3., markeredgecolor=c[1], zorder=2., ls='None', marker='*', markersize=16., color=c[1])      
         
         #Draw histogram (on self.axx).
         xbins = np.arange(self.x_range[0], self.x_range[1] + 1.e-5, 0.01)

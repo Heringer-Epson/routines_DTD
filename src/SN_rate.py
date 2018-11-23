@@ -55,7 +55,8 @@ class Model_Rates(object):
         #Remove zeros because of log calculations later on.
         self.sSNR[self.sSNR == 0] = 1.e-40
         
+        #4.64 from FSPS https://python-fsps.readthedocs.io/en/latest/filters/
         self.sSNRm = np.divide(self.sSNR,self.D['int_mass_' + TS])
-        self.L = 10.**(-0.4 * (self.D['mag1_' + TS] - 5.))
+        self.L = 10.**(-0.4 * (self.D['mag1_' + TS] - 4.64)) 
         self.sSNRL = np.divide(self.sSNR,self.L)
 

@@ -128,6 +128,7 @@ class Input_Parameters(object):
         #Kcorrection
         self.kcorr_type = 'complete'
         self.z_ref = 0.0
+        self.Q_factor = 1.6
 
         #Take into account visibility time.
         self.visibility_flag = True
@@ -145,8 +146,8 @@ class Input_Parameters(object):
         self.Z = '0.0190'
         self.fbhb = 0.0
         self.t_cutoff = 1.e9 * u.yr
-        self.slopes = np.arange(-3., 0.0001, 0.01)
-        #self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
+        #self.slopes = np.arange(-3., 0.0001, 0.01)
+        self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
         #self.slopes = np.arange(-3., 0.0001, 0.1) #Coarse for testing.
         #self.slopes = np.arange(-3., 0.0001, 0.5) #Coarse for testing.
         self.slopes[abs(self.slopes + 1.) < 1.e-6] = -0.9999
@@ -273,12 +274,14 @@ class Input_Parameters(object):
             self.data_dir = './../INPUT_FILES/M12/'
             self.hosts_from = 'M12'
             self.host_class = ['SNIa', 'zSNIa']
-            self.t_onset = 1.e8 * u.yr
+            self.t_onset = 40.e6 * u.yr
             self.redshift_min, self.redshift_max = 0., 0.4
             self.petroMag_g_min, self.petroMag_g_max = -1000., 1000.
             self.ext_r_min, self.ext_r_max = -1000., 1000.
             self.gERR_max = 1000.
             self.rERR_max = 1000.
+            #self.slopes = np.arange(-4., 0.0001, 0.01)
+            self.Q_factor = 0.
             self.show_fig = False
             self.save_fig = True
 
@@ -291,6 +294,7 @@ class Input_Parameters(object):
             self.t_onset = 100. * u.Myr
             self.redshift_max = float(z)
             self.redshift_min = 0.01 
+            self.Q_factor = 0. #Compared to M12, which we cannot change.
 
             if hosts_samp == 'native':
                 self.hosts_from = ctrl_samp
