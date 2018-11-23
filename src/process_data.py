@@ -6,8 +6,9 @@ import numpy as np
 import pandas as pd
 from astropy.cosmology import FlatLambdaCDM
 
-cosmo = FlatLambdaCDM(H0=67.04, Om0=0.3183)
-Q_factor = 1.6
+#cosmo = FlatLambdaCDM(H0=67.04, Om0=0.3183) #H17 - Planck, I think
+#cosmo = FlatLambdaCDM(H0=70.5, Om0=1. - 0.726) #VESPA
+cosmo = FlatLambdaCDM(H0=70.5, Om0=0.274) #FSPS as installed
 
 #http://www.sdss.org/dr12/algorithms/magnitudes/
 b_u, b_g, b_r, b_i, b_z = 1.4e-10, 0.9e-10, 1.2e-10, 1.8e-10, 7.4e-10
@@ -208,7 +209,7 @@ class Process_Data(object):
             #lum_dist is returned in Mpc, as needed for the calculation below.
             lum_dist = cosmo.luminosity_distance(z).value                        
             M = (m - 5. * np.log10(lum_dist) - 25. - kcorr
-                 + (z - self._inputs.z_ref) * Q_factor)
+                 + (z - self._inputs.z_ref) * self._inputs.Q_factor)
             return M
                         
         for fltr in ['u', 'g', 'r', 'i', 'z']:

@@ -1,7 +1,7 @@
-Files created on: 24/09/2018
+Files created on: 23/11/2018
 FSPS version: 0.3.0
 Isochrones: pdva
 Spectral library: basel
 IMF: Salpeter
 SFH: exponential
-Metallicity: 0.019
+Metallicity: 0.0190

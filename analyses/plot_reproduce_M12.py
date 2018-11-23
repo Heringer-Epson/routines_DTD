@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 import datetime
@@ -12,9 +13,8 @@ from matplotlib.ticker import MultipleLocator
 from astropy import units as u
 from scipy.optimize import curve_fit
 
-from input_params import Input_Parameters as class_input
 from SN_rate import Model_Rates
-from lib import stats
+import stats
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -22,8 +22,8 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 
 fs = 20.
 
-#bin1 = np.array([0.04, 0.42])
-bin1 = np.array([0.0, 0.42])
+bin1 = np.array([0.04, 0.42])
+#bin1 = np.array([0.0, 0.42])
 bin2 = np.array([0.42, 2.4])
 bin3 = np.array([2.4, 14.])
 x = np.array([np.mean(bin1), np.mean(bin2), np.mean(bin3)])
@@ -34,7 +34,9 @@ xErr = [
 x_fit = np.array([0.03, 14.])
 x_ons = 0.04e9
 def power_law(x,_A,_s):
-    return _A + _s * (x - np.log10(x_ons))
+    #return _A + _s * (x - np.log10(x_ons))
+    return _A + _s * (x - 9.)
+    #return _A + _s * x
 
 def write_pars(ax, A, A_unc, s, s_unc, pre, loc_x, loc_y):
 
@@ -44,7 +46,7 @@ def write_pars(ax, A, A_unc, s, s_unc, pre, loc_x, loc_y):
     _s_unc = str(format(s_unc, '.2f'))
 
     ax.text(loc_x, loc_y, r'' + pre + ' $s1=' + _s + '\pm' + _s_unc + '$ | $A=('
-            + _A + '\pm' + _A_unc + ')\, 10^{-11}'
+            + _A + '\pm' + _A_unc + ')\, 10^{-13}'
             + '[\mathrm{SN\, M_\odot ^{-1}\, yr^{-1}]}$', fontsize=fs - 4.,
             transform=ax.transAxes) 
 
@@ -175,13 +177,13 @@ class Plot_M12(object):
         y_fit = 10.**power_law(np.log10(x_fit * 1.e9), A, s)
         A_unc, s_unc = np.abs(np.sqrt(np.diag(pcov)))
         A = 10.**A
-        A_unc = np.log(10.) * A * A_unc
+        A_unc = A * A_unc / np.log10(np.exp(1.))
 
         self.ax.plot(
-          x_fit, y_fit * 1.e10, ls=':', color='r', alpha=0.6,
+          x_fit, y_fit * 1.e10, ls=':', color='r', alpha=0.6, lw=2.,
           label=r'Fit not inc. unc')
         write_pars(
-          self.ax, 1.e11 * A, 1.e11 * A_unc, s, s_unc, 'No unc:', 0.02, 0.1)            
+          self.ax, 1.e13 * A, 1.e13 * A_unc, s, s_unc, 'No unc:', 0.02, 0.1)            
 
     def fit_DTD_to_rates_inc_unc(self):
         #Fit taking into account the rate's uncertainty.
@@ -195,30 +197,12 @@ class Plot_M12(object):
         y_fit = 10.**power_law(np.log10(x_fit * 1.e9), A, s)
         A_unc, s_unc = np.abs(np.sqrt(np.diag(pcov)))
         A = 10.**A
-        A_unc = np.log(10.) * A * A_unc
-
+        A_unc = A * A_unc / np.log10(np.exp(1.))
+        
         self.ax.plot(
-          x_fit, y_fit * 1.e10, ls='-', color='r', label=r'Fit including unc')
+          x_fit, y_fit * 1.e10, ls='-', color='r', lw=2., label=r'Fit including unc')
         write_pars(
-          self.ax, 1.e11 * A, 1.e11 * A_unc, s, s_unc, 'Inc unc:', 0.02, 0.05)   
-
-    def write_outfile(self):
-        if self.save_fig:
-            with open(
-              './../OUTPUT_FILES/ANALYSES_FILES/reproduce_M12.dat', 'w') as out:
-                out.write('Created on ' + str(datetime.datetime.now()) + '\n\n')
-                out.write('log A = ' + str(self.A) + ' += ' + str(self.A_unc) + '\n')
-                out.write('s = ' + str(self.s) + ' += ' + str(self.s_unc) + '\n')
-                out.write('\nRates in units of 10^-14 yr^-1 Msun^-1\n')
-                out.write(
-                  'In bin 1 (0.04 - 0.42 Gyr): ' + str(self.most_likely_rates[0]
-                  * 1.e14) + ' += ' + str(self.rates_unc[0] * 1.e14) + '\n')
-                out.write(
-                  'In bin 2 (0.42 - 2.4 Gyr): ' + str(self.most_likely_rates[1]
-                  * 1.e14) + ' += ' + str(self.rates_unc[1] * 1.e14) + '\n')
-                out.write(
-                  'In bin 3 (2.4 - 14 Gyr): ' + str(self.most_likely_rates[2]
-                  * 1.e14) + ' += ' + str(self.rates_unc[2] * 1.e14) + '\n')
+          self.ax, 1.e13 * A, 1.e13 * A_unc, s, s_unc, 'Inc unc:', 0.02, 0.05)   
 
     def add_legend(self):
         self.ax.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1, loc=1)  
@@ -226,7 +210,7 @@ class Plot_M12(object):
     def manage_output(self):
         plt.tight_layout()
         if self.save_fig:
-            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/Fig_reproduce_M12_bin0.pdf'
+            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/Fig_reproduce_M12.pdf'
             plt.savefig(fpath, format='pdf')
         if self.show_fig:
             plt.show()

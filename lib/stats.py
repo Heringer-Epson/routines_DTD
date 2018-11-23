@@ -139,7 +139,8 @@ def plot_contour(ax, x, y, z, c, label='', ao=0., ls=None, add_max=True):
     y_best = y[np.argmax(z)]
 
     if add_max:
-        ax.plot(x_best, y_best, ls='None', marker='+',color=c, markersize=10.)
+        ax.plot(x_best, y_best, ls='None', marker='o',color=c, markersize=6.,
+        alpha=0.6 + ao, fillstyle='none')
     ax.plot([np.nan], [np.nan], color=c, ls='-', lw=15., marker='None',
             label=label)
 
