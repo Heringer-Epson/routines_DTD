@@ -64,11 +64,14 @@ class Master(object):
 if __name__ == '__main__':
     rf = False
     pd = True
-    lf = True
-    pf = True  
+    lf = False
+    pf = False  
 
-    Master(case='M12', run_fsps_flag=rf, process_data=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()  
+    Master(
+      case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('100','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master() 
+    #Master(case='M12', run_fsps_flag=rf, process_data=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master()  
     '''
     #Individual tests.
     #Master(case='H17', run_fsps_flag=rf, process_data=pd,
