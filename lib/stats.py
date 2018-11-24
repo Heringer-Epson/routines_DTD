@@ -53,7 +53,7 @@ def binned_DTD_rate(s1, s2, t_ons, tc):
     B = tc**(s1 - s2)
     psi1 = integ_DTD(s1, t_ons, t_ons, 0.42)
     psi2 = integ_DTD(s1, t_ons, 0.42, tc) + B * integ_DTD(s2, t_ons, tc, 2.4)
-    psi3 = integ_DTD(s2, t_ons, 2.4, 14.)   
+    psi3 = B * integ_DTD(s2, t_ons, 2.4, 14.)   
     return psi1, psi2, psi3
 
 def compute_L_from_DTDs(_s1, _s2, _t0, _tc, mass1, mass2, mass3, redshift,
