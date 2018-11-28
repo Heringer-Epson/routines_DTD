@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import survey_efficiency
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
@@ -151,6 +152,28 @@ def plot_contour(ax, x, y, z, c, label='', ao=0., ls=None, add_max=True):
     x_unc = (max(x_cont) - x_best, x_best - min(x_cont))
     y_unc = (max(y_cont) - y_best, y_best - min(y_cont))
     return x_best, y_best, x_unc, y_unc
+
+def plot_contour_colorbar(fig, ax, x, y, z, A, cmap, cbar_label, fs):
+    contour_list = [0.95, 0.68, 0.] 
+    z = clean_array(z)
+    _x, _y = np.unique(x), np.unique(y)       
+    X = x.reshape(len(_x),len(_y))
+    Y = y.reshape(len(_x),len(_y))
+    qtty = z.reshape((len(_x), len(_y)))
+    As = A.reshape((len(_x), len(_y)))
+    levels = [get_contour_levels(z, contour) for contour in contour_list]
+    cax = ax.contourf(X, Y, As, cmap=cmap, interpolation='nearest', alpha=0.7)	 
+    CS1 = ax.contour(X, Y, qtty, [levels[0]], colors='k', linestyles='-', linewidths=3.)	 
+    CS2 = ax.contour(X, Y, qtty, [levels[1]], colors='k', linestyles='--', linewidths=3.)	
+
+    plt.clabel(CS1, colors='w', fontsize=fs, inline=1, fmt=r'$0.95$', manual=[(-1.5,-1.)])
+    #plt.clabel(CS2, colors='w', fontsize=fs, inline=1, fmt=r'$0.68$')
+    plt.clabel(CS2, colors='w', fontsize=fs, inline=1, fmt=r'$0.68$', manual=[(-1.,-1.7)])
+
+    cbar = fig.colorbar(cax)
+    cbar.ax.tick_params(width=2, labelsize=fs)
+    cbar.set_label(cbar_label, fontsize=fs)     
+        
 
 def compute_rates_using_L(psi, masses, redshift, host_cond, visibility_flag):
     """Attempt to reproduce the method in M12. i.e. given the binned masses,

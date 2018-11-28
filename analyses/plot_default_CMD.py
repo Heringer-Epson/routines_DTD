@@ -67,9 +67,9 @@ class Plot_CMD(object):
         self.ax.set_ylim(self.y_range[0], self.y_range[1])
         self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax.tick_params('both', length=16, width=1., which='major',
+        self.ax.tick_params('both', length=12, width=2., which='major',
                              direction='in', right=True, top=True)
-        self.ax.tick_params('both', length=8, width=1., which='minor',
+        self.ax.tick_params('both', length=6, width=2., which='minor',
                              direction='in', right=True, top=True) 
         self.ax.xaxis.set_minor_locator(MultipleLocator(.05))
         self.ax.xaxis.set_major_locator(MultipleLocator(.1))
@@ -80,9 +80,9 @@ class Plot_CMD(object):
         self.axx.set_ylim(0., 1100.)
         self.axx.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.axx.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.axx.tick_params('both', length=16, width=1., which='major',
+        self.axx.tick_params('both', length=12, width=2., which='major',
                              direction='in', right=True, top=True)
-        self.axx.tick_params('both', length=8, width=1., which='minor',
+        self.axx.tick_params('both', length=6, width=2., which='minor',
                              direction='in', right=True, top=True)   
         self.axx.yaxis.set_minor_locator(MultipleLocator(100.))
         self.axx.yaxis.set_major_locator(MultipleLocator(500.))  
@@ -94,9 +94,9 @@ class Plot_CMD(object):
         self.axy.set_xlim(0., 1100.)
         self.axy.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.axy.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.axy.tick_params('both', length=16, width=1., which='major',
+        self.axy.tick_params('both', length=12, width=2., which='major',
                              direction='in', right=True, top=True)
-        self.axy.tick_params('both', length=8, width=1., which='minor',
+        self.axy.tick_params('both', length=6, width=2., which='minor',
                              direction='in', right=True, top=True)   
         self.axy.xaxis.set_minor_locator(MultipleLocator(100.))
         self.axy.xaxis.set_major_locator(MultipleLocator(500.))  
