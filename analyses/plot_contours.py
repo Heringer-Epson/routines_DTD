@@ -81,7 +81,7 @@ class Make_Fig(object):
         
         plt.subplots_adjust(left=0.125, bottom=0.125, right=0.9, top=0.9,
                             wspace=0.03, hspace=0.03)
-        x_label = r'$\mathrm{log}\, A$'
+        x_label = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}\ M_\odot^{-1}]}$'
         y_label = r'$s$'
         self.ax1.set_ylabel(y_label, fontsize=fs)
         self.ax3.set_xlabel(x_label, fontsize=fs)

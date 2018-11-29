@@ -129,6 +129,11 @@ class Plot_sSNRL(object):
                 ax.plot(x, y, ls='None', marker='s', markersize=12., color='b',
                         fillstyle='none', zorder=2)
 
+                x = Sgen.Dcolor_at1Gyr
+                y = np.log10(Sgen.sSNRL_at1Gyr * 1.e-12) + offset[i]                    
+                ax.plot(x, y, ls='None', marker='o', markersize=12., color='b',
+                        fillstyle='none', zorder=2)
+
                 #Plot Dcolor-sSNRL for each tau.
                 for tau in _inputs.tau_list:
                     TS = str(tau.to(u.yr).value / 1.e9)

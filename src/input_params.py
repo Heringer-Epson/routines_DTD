@@ -145,6 +145,7 @@ class Input_Parameters(object):
         self.sfh_type = 'exponential'
         self.Z = '0.0190'
         self.fbhb = 0.0
+        self.dust = 0. #Not implemented yet.
         self.t_cutoff = 1.e9 * u.yr
         self.slopes = np.arange(-3., 0.0001, 0.01)
         #self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
@@ -239,6 +240,28 @@ class Input_Parameters(object):
             self.hosts_from = 'H17'
             self.host_class = ['SNIa']
             self.t_onset = 1.e8 * u.yr
+            self.kcorr_type = 'complete'
+            self.ra_min, self.ra_max = 360. - 60., 60.
+            self.visibility_flag = True
+            self.hosts_from_2004 = True
+            self.data_Drange = 'limited'
+            self.model_Drange = 'extended'
+            self.show_fig = False
+            self.save_fig = True
+
+        elif self.case == 'H17_test':
+            #Same data set as in Heringer+ 2017, but updated methods.
+            #Updates: KCORRECT, extended model Dcd, effective visibility time,
+            #IMF is Kroupa.
+            self.subdir = 'H17_test/'   #and reproduces Fig. 9.  
+            self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
+            self.data_dir = './../INPUT_FILES/H17/'
+            self.matching = 'File'
+            self.hosts_from = 'H17'
+            self.host_class = ['SNIa']
+            self.t_onset = 1.e8 * u.yr
+            ##self.dust = 2.0
+            self.Q_factor = 0.
             self.kcorr_type = 'complete'
             self.ra_min, self.ra_max = 360. - 60., 60.
             self.visibility_flag = True

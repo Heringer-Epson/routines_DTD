@@ -88,8 +88,6 @@ class Plot_CMD(object):
         self.axx.yaxis.set_major_locator(MultipleLocator(500.))  
         plt.setp(self.axx.get_xticklabels(), visible=False)
 
-        self.axx.invert_xaxis()
-
         self.axy.set_xlabel(hist_label, fontsize=fs)
         self.axy.set_xlim(0., 1100.)
         self.axy.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
@@ -149,8 +147,7 @@ class Plot_CMD(object):
         self.axx.plot(
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[1],
           label=r'Hosts $(\times\, 100)$')
-
-        self.axx.legend(frameon=False, fontsize=fs, numpoints=1, loc=1)
+        self.axx.legend(frameon=False, fontsize=fs, numpoints=1, loc=2)
 
     def manage_output(self):
         if self.save_fig:
@@ -168,4 +165,4 @@ class Plot_CMD(object):
         self.manage_output()             
 
 if __name__ == '__main__':
-    Plot_CMD(x_range=(-0.55,.2), y_range=(-23.5,-17.5), show_fig=False, save_fig=True)
+    Plot_CMD(x_range=(-0.55,.15), y_range=(-23.5,-17.5), show_fig=False, save_fig=True)

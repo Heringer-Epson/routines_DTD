@@ -149,32 +149,50 @@ def plot_contour(ax, x, y, z, c, label='', ao=0., ls=None, add_max=True):
     p = cs.collections[0].get_paths()[0]
     v = p.vertices
     x_cont, y_cont = v[:,0], v[:,1]    
-    x_unc = (max(x_cont) - x_best, x_best - min(x_cont))
-    y_unc = (max(y_cont) - y_best, y_best - min(y_cont))
+    x_unc = (max(x_cont) - x_best, x_best - min(x_cont)) #(+68%,-68%)
+    y_unc = (max(y_cont) - y_best, y_best - min(y_cont)) #(+68%,-68%)
     return x_best, y_best, x_unc, y_unc
 
-def plot_contour_colorbar(fig, ax, x, y, z, A, cmap, cbar_label, fs):
+def plot_A_contours(ax, x, y, z):
     contour_list = [0.95, 0.68, 0.] 
-    z = clean_array(z)
     _x, _y = np.unique(x), np.unique(y)       
     X = x.reshape(len(_x),len(_y))
     Y = y.reshape(len(_x),len(_y))
-    qtty = z.reshape((len(_x), len(_y)))
-    As = A.reshape((len(_x), len(_y)))
-    levels = [get_contour_levels(z, contour) for contour in contour_list]
-    cax = ax.contourf(X, Y, As, cmap=cmap, interpolation='nearest', alpha=0.7)	 
-    CS1 = ax.contour(X, Y, qtty, [levels[0]], colors='k', linestyles='-', linewidths=3.)	 
-    CS2 = ax.contour(X, Y, qtty, [levels[1]], colors='k', linestyles='--', linewidths=3.)	
+    qtty = np.log10(z).reshape((len(_x), len(_y)))
+    
+    #Levels with labels.
+    levels = np.arange(-13.4,-11.799,0.2)
+    CS = ax.contour(X, Y, qtty, levels, colors='k', linestyles=':', linewidths=1.)	 
+    fmt = {}
+    
+    labels = []
+    xx = -.3
+    #manual = [(-.7, -.2), (xx, -0.55), (xx, -1.05), (xx, -1.5), (xx,-2.1)]
+    manual = [(-.9, -.2), (-.7, -0.3), (xx, -0.55), (xx, -0.7), (xx, -1.05),
+              (xx, -1.2), (xx, -1.5), (xx, -1.7), (xx,-2.1)]
+    
+    
+    for i, l in enumerate(levels):
+        if i == 0:
+            lab = r'$\rm{log}\ A=' + str(format(l, '.1f')) + '$'
+        else:
+            lab = r'$' + str(format(l, '.1f')) + '$'
+        labels.append(lab)
+            
+    for l, s in zip(CS.levels, labels):
+        fmt[l] = s
+    plt.clabel(CS, colors='k', fontsize=16, inline=1, fmt=fmt, manual=manual)
 
-    plt.clabel(CS1, colors='w', fontsize=fs, inline=1, fmt=r'$0.95$', manual=[(-1.5,-1.)])
-    #plt.clabel(CS2, colors='w', fontsize=fs, inline=1, fmt=r'$0.68$')
-    plt.clabel(CS2, colors='w', fontsize=fs, inline=1, fmt=r'$0.68$', manual=[(-1.,-1.7)])
+    #Contours with no labels
+    #levels = np.arange(-13.6,-11.799,0.4)
+    #ax.contour(X, Y, qtty, levels, colors='k', linestyles='--', linewidths=1.)	 
 
-    cbar = fig.colorbar(cax)
-    cbar.ax.tick_params(width=2, labelsize=fs)
-    cbar.set_label(cbar_label, fontsize=fs)     
-        
+    #CS2 = ax.contour(X, Y, qtty, [levels[1]], colors='k', linestyles='--', linewidths=3.)	
 
+    #plt.clabel(CS, colors='k', fontsize=26, inline=1, fmt=r'$0.95$', manual=[(-1.5,-1.)])
+
+
+    
 def compute_rates_using_L(psi, masses, redshift, host_cond, visibility_flag):
     """Attempt to reproduce the method in M12. i.e. given the binned masses,
     compute the most likely rates that would explain the data. Then fit a 

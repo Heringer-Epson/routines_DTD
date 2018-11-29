@@ -67,6 +67,9 @@ if __name__ == '__main__':
     lf = True
     pf = True  
 
+    Master(case='H17_test', run_fsps_flag=rf, process_data=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master()  
+
     #Master(
     #  case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
     #  custom_pars=('100','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master() 
@@ -122,7 +125,6 @@ if __name__ == '__main__':
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('100','1','exponential','Salpeter','0.0190',0.0,'BASEL','PADOVA')).run_master()  
-    '''
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('100','1','exponential','Kroupa','0.0150',0.0,'BASEL','PADOVA')).run_master()  
@@ -141,3 +143,4 @@ if __name__ == '__main__':
     Master(
       case='sys', run_fsps_flag=rf, process_data=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('100','1','exponential','Kroupa','0.0190',0.0,'MILES','PADOVA')).run_master()     
+    '''

@@ -32,8 +32,8 @@ class Generate_Curve(object):
         self._s1 = _s1
         self._s2 = _s2
         
-        self.Dcolor_at10Gyr = []
-        self.sSNRL_at10Gyr = []
+        self.Dcolor_at10Gyr, self.sSNRL_at10Gyr = [], []
+        self.Dcolor_at1Gyr, self.sSNRL_at1Gyr = [], []
         self.Dcolor_max = None
         self.log_sSNRL_max = None
         self.Dcolor2sSNRL = None
@@ -59,6 +59,10 @@ class Generate_Curve(object):
             age_cond = (abs(self._D['age_' + TS] - 10.) < 1.e-6)
             self.Dcolor_at10Gyr.append(self._D['Dcolor_' + TS][age_cond][0])
             self.sSNRL_at10Gyr.append(model.sSNRL[age_cond][0])
+
+            age_cond = (abs(self._D['age_' + TS] - 1.) < 1.e-6)
+            self.Dcolor_at1Gyr.append(self._D['Dcolor_' + TS][age_cond][0])
+            self.sSNRL_at1Gyr.append(model.sSNRL[age_cond][0])
        
             self.sSNRL_matrix[i] = np.asarray(core_funcs.interp_nan(
               self._D['Dcolor_' + TS], model.sSNRL, self.Dcd_fine))
@@ -71,8 +75,9 @@ class Generate_Curve(object):
         #Convert lists to arrays.
         self.Dcolor_at10Gyr = np.array(self.Dcolor_at10Gyr)
         self.sSNRL_at10Gyr = np.array(self.sSNRL_at10Gyr)    
+        self.Dcolor_at1Gyr = np.array(self.Dcolor_at1Gyr)
+        self.sSNRL_at1Gyr = np.array(self.sSNRL_at1Gyr) 
         
-    #@profile
     def average_over_models(self):
         """New method to extend Dcd range."""
 
@@ -94,4 +99,3 @@ class Generate_Curve(object):
     def run_generator(self):
         self.get_values_at10Gyr()
         self.average_over_models()
-

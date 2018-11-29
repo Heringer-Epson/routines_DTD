@@ -69,7 +69,7 @@ class Make_FSPS(object):
     Heringer+ 2017 (H17): http://adsabs.harvard.edu/abs/2017ApJ...834...15H
     """  
 
-    def __init__(self, imf, sfh, Z, fbhb, spec_lib, isoc_lib):
+    def __init__(self, imf, sfh, Z, fbhb, dust, spec_lib, isoc_lib):
         print '\n\n>RUNNING FSPS... (requires fsps and python-fsps installed!)\n'
         self.filter_1 = 'r'
         self.filter_2 = 'g'
@@ -77,6 +77,7 @@ class Make_FSPS(object):
         self.sfh_type = sfh
         self.Z = Z
         self.fbhb = fbhb
+        self.dust = dust
         self.spec_lib = spec_lib
         self.isoc_lib = isoc_lib
                 
@@ -90,8 +91,8 @@ class Make_FSPS(object):
     def make_directory(self):
         self.directory = (
           './../INPUT_FILES/fsps_FILES/' + self.imf_type + '_' + self.sfh_type
-          + '_' + self.Z  + '_' + str(self.fbhb) + '_' + self.spec_lib + '_'
-          + self.isoc_lib + '/')
+          + '_' + self.Z  + '_' + str(self.fbhb) + '_' + str(self.dust) + '_'
+          + self.spec_lib + '_' + self.isoc_lib + '/')
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)             
         
@@ -131,7 +132,7 @@ class Make_FSPS(object):
           compute_vega_mags=False, zcontinuous=0, zmet=Z_key,
           add_agb_dust_model=False, add_dust_emission=False,
           add_stellar_remnants=True, fbhb=self.fbhb, pagb=0., zred=0.,
-          imf_type=imf_key, sfh=0, dust_type=0., tage=14.96)        
+          imf_type=imf_key, sfh=0, dust_type=self.dust, tage=14.96)        
 
         #Write output file.
         fname = 'SSP.dat'
@@ -145,7 +146,7 @@ class Make_FSPS(object):
               compute_vega_mags=False, zcontinuous=0, zmet=Z_key,
               add_agb_dust_model=False, add_dust_emission=False,
               add_stellar_remnants=True, fbhb=self.fbhb, pagb=0., zred=0., imf_type=imf_key,
-              sfh=sfh_key, tau=tau, const=0., fburst=0., dust_type=0., tage=14.96)
+              sfh=sfh_key, tau=tau, const=0., fburst=0., dust_type=self.dust, tage=14.96)
 
             #Write output files.
             fname = 'tau-' + str(tau) + '.dat'
@@ -174,13 +175,15 @@ if __name__ == '__main__':
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.1, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.2, spec_lib='BASEL', isoc_lib='PADOVA')
     
+    ##Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, dust=2., spec_lib='BASEL', isoc_lib='PADOVA')
+    
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Chabrier', sfh='delayed-exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0096', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0150', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0300', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     
-    Make_FSPS(imf='Salpeter', sfh='exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
+    #Make_FSPS(imf='Salpeter', sfh='exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
 
     #=-=-=-=-=-=-=-=-=-=- RECOMPILE FSPS BEFORE RUNNING THESE -=-=-=-=-=-=-=-=-
     #Make_FSPS(imf='Chabrier', sfh='exponential', Z='0.0190', fbhb=0.0, spec_lib='MILES', isoc_lib='PADOVA')    
