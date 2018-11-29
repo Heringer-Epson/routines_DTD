@@ -148,6 +148,10 @@ class Process_Data(object):
         self.df = self.df[(self.df['petroMagErr_g'] <= self._inputs.gERR_max)]
         self.df = self.df[(self.df['petroMagErr_r'] <= self._inputs.rERR_max)]
 
+    def initialize_Kcorrection(self):
+        for fltr in ['u', 'g', 'r', 'i', 'z']:
+            self.df['kcorr_' + fltr] = np.zeros(len(self.df['z']))  
+
     def make_Kcorrections(self):
         sys.path.append(os.environ['PY_KCORRECT_DIR'])
         import kcorrect
@@ -225,6 +229,8 @@ class Process_Data(object):
         self.read_data()
         self.extinction_correction()
         self.trim_data()
-        self.make_Kcorrections()
+        self.initialize_Kcorrection()
+        if self._inputs.kcorr_type is not 'none':
+            self.make_Kcorrections()           
         self.compute_abs_mags()
         self.save_output()
