@@ -25,9 +25,9 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 fs = 24.   
 taus = [1., 1.5, 2., 3., 4., 5., 7., 10.]
 
-s1s2 = zip([-0.5, -1., -1.5, -3., -1., -1.],[-1., -1., -1.5, -1., -2.,-3.])
-label = [r'-0.5/-1', r'-1/-1', r'-1.5/-1.5', r'-3/-1', r'-1/-2', r'-1/-3']
-offset = [0.96, 0.9, 1.14, 1.51, 0.2, 0.17]
+s1s2 = zip([-1., -1.5, -2., -1., -1.],[-1., -1.5, -.5, -2.,-3.])
+label = [r'-1/-1', r'-1.5/-1.5', r'-2/-0.5', r'-1/-2', r'-1/-3']
+offset = [0., 0., 0., 0., 0.]
 
 class Plot_sSNRL(object):
     """
@@ -66,7 +66,7 @@ class Plot_sSNRL(object):
         self.save_fig = save_fig 
        
         self.fig, (self.ax1, self.ax2) = plt.subplots(
-          1,2, figsize=(16,10), sharey=True)
+          1,2, figsize=(16,8), sharey=True)
       
         self.make_plot()
                 
@@ -82,9 +82,9 @@ class Plot_sSNRL(object):
         self.ax1.set_xlim(-1.05,0.35)
         self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax1.tick_params('both', length=8, width=1., which='major',
+        self.ax1.tick_params('both', length=12, width=2., which='major',
                                  direction='in', right=True, top=True)
-        self.ax1.tick_params('both', length=4, width=1., which='minor',
+        self.ax1.tick_params('both', length=6, width=2., which='minor',
                                  direction='in', right=True, top=True) 
         self.ax1.xaxis.set_minor_locator(MultipleLocator(.05))
         self.ax1.xaxis.set_major_locator(MultipleLocator(.2))
@@ -93,12 +93,12 @@ class Plot_sSNRL(object):
 
         self.ax2.set_xlabel(x_label, fontsize=fs)
         self.ax2.set_xlim(-1.05,0.35)
-        self.ax2.set_ylim(-15.5,-11.5)
+        self.ax2.set_ylim(-14.75,-11.25)
         self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax2.tick_params('both', length=8, width=1., which='major',
+        self.ax2.tick_params('both', length=12, width=2., which='major',
                                  direction='in', right=True, top=True)
-        self.ax2.tick_params('both', length=4, width=1., which='minor',
+        self.ax2.tick_params('both', length=6, width=2., which='minor',
                                  direction='in', right=True, top=True) 
         self.ax2.xaxis.set_minor_locator(MultipleLocator(.05))
         self.ax2.xaxis.set_major_locator(MultipleLocator(.2))
@@ -109,8 +109,8 @@ class Plot_sSNRL(object):
     def plot_models(self):
 
         #Add SFH text. 
-        self.ax1.text(-0.98, -11.7, 'SFH: exponential', fontsize=fs )
-        self.ax2.text(-0.98, -11.7, 'SFH: delayed exponential', fontsize=fs )
+        self.ax1.text(-0.9, -14.6, 'SFH: exponential', fontsize=fs )
+        self.ax2.text(-0.9, -14.6, 'SFH: delayed exponential', fontsize=fs )
         
         for l, sfh in enumerate(['exponential', 'delayed-exponential']):
             _inputs = Generic_Pars(sfh)
@@ -129,6 +129,11 @@ class Plot_sSNRL(object):
                 ax.plot(x, y, ls='None', marker='s', markersize=12., color='b',
                         fillstyle='none', zorder=2)
 
+                x = Sgen.Dcolor_at1Gyr
+                y = np.log10(Sgen.sSNRL_at1Gyr * 1.e-12) + offset[i]                    
+                ax.plot(x, y, ls='None', marker='o', markersize=12., color='b',
+                        fillstyle='none', zorder=2)
+
                 #Plot Dcolor-sSNRL for each tau.
                 for tau in _inputs.tau_list:
                     TS = str(tau.to(u.yr).value / 1.e9)
@@ -136,13 +141,13 @@ class Plot_sSNRL(object):
                     x = _D['Dcolor_' + TS]
                     y = np.log10(model.sSNRL * 1.e-12) + offset[i]
                     ax.plot(x, y, ls='-', marker='None', color='r',
-                            linewidth=.8, alpha=0.7, zorder=1)                    
+                            linewidth=.8, alpha=0.4, zorder=1)                    
 
                 #Add extended models.
                 x = Sgen.Dcd_fine
                 y = np.log10(Sgen.sSNRL_fine * 1.e-12) + offset[i]
-                ax.plot(x, y, ls=':', marker='None', markersize=8.,
-                        color='forestgreen', linewidth=4., zorder=3)                                
+                ax.plot(x, y, ls='--', marker='None', markersize=8.,
+                        color='forestgreen', linewidth=3., zorder=3)                                
 
                 ax.text(0.05, y[-1] + 0.05, label[i], color='k', fontsize=fs)
                         
@@ -162,5 +167,5 @@ class Plot_sSNRL(object):
         self.manage_output()
 
 if __name__ == '__main__':
-    Plot_sSNRL(show_fig=True, save_fig=False)
+    Plot_sSNRL(show_fig=False, save_fig=True)
  

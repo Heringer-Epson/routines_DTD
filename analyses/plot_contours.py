@@ -80,8 +80,8 @@ class Make_Fig(object):
     def set_fig_frame(self):
         
         plt.subplots_adjust(left=0.125, bottom=0.125, right=0.9, top=0.9,
-                            wspace=0.02, hspace=0.02)
-        x_label = r'$\mathrm{log}\, A$'
+                            wspace=0.03, hspace=0.03)
+        x_label = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}\ M_\odot^{-1}]}$'
         y_label = r'$s$'
         self.ax1.set_ylabel(y_label, fontsize=fs)
         self.ax3.set_xlabel(x_label, fontsize=fs)
@@ -108,17 +108,17 @@ class Make_Fig(object):
             ax.tick_params(axis='y', which='major', labelsize=fs, pad=16)      
             ax.tick_params(axis='x', which='major', labelsize=fs, pad=16)
             ax.tick_params(
-              'both', length=8, width=1., which='major', direction='in')
+              'both', length=10, width=2., which='major', direction='in')
             ax.tick_params(
-              'both', length=4, width=1., which='minor', direction='in')
+              'both', length=5, width=2., which='minor', direction='in')
             ax.xaxis.set_ticks_position('both')
             ax.yaxis.set_ticks_position('both')  
 
-            ax.set_xlim(-13.6, -11.7)
+            ax.set_xlim(-13.4, -12.)
             ax.set_ylim(-2.6, -0.4)
             ax.xaxis.set_minor_locator(MultipleLocator(.1))
             ax.xaxis.set_major_locator(MultipleLocator(.5))
-            ax.yaxis.set_minor_locator(MultipleLocator(.1))
+            ax.yaxis.set_minor_locator(MultipleLocator(.25))
             ax.yaxis.set_major_locator(MultipleLocator(.5))
 
         #Format labels.
@@ -148,7 +148,7 @@ class Make_Fig(object):
 
     def add_sample_sizes(self):
         
-        x1, x2, y = 0.05, 0.46, 0.91
+        x1, x2, y = 0.05, 0.52, 0.91
         N_h, N_a = read_samplesize(pars2rec('M12','M12','SNIa',self.z))
         self.ax1.text(
           x1, y, r'M12 (' + N_h + ',' + N_a + ')',
