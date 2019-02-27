@@ -1,21 +1,11 @@
 #!/usr/bin/env python
 
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
-from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
-from scipy.integrate import cumtrapz
-
-from input_params import Input_Parameters as class_input
-from SN_rate import Model_Rates
-from generic_input_pars import Generic_Pars
-from build_fsps_model import Build_Fsps
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -44,7 +34,11 @@ def get_bins(Nsb):
     return bins, bin_means, bin_Err
 
 def mean_DTD(s, A, t0, ti, tf):
-    return A * (tf**(s + 1.) - ti**(s + 1.)) / (s + 1.) / (tf - ti)
+    ##Below, I have tested that if s=1. or s=-1.01 converge to the same result.
+    if abs(s + 1.) > 1.e-3:
+        return A * (tf**(s + 1.) - ti**(s + 1.)) / (s + 1.) / (tf - ti)
+    else:
+        return A * np.log(tf / ti) / (tf - ti)
 
 class DTD_Approximations(object):
     """
@@ -63,33 +57,23 @@ class DTD_Approximations(object):
     
     Parameters:
     -----------
-    s, t_onset, t_break, sfh_type, tau
-
+    A : ~float
+        DTD scale factor. Suggested is 1.e -12. Implied units are SN / Msun/ yr.
     s : ~float
-        DTD continuous slope.
-    t_onset : ~astropy float (time unit)
-        Time prior to which the supernova rate is null. (WDs not formed yet.)
-    t_onset : ~astropy float (time unit)
-        Inconsequential for this routine since it assumes a continuous DTD.
-    sfh_type : ~str
-        'exponential' or 'delayed-exponential'. Sets the input star formation
-        rate for computing the 'true' supernova rate.
+        DTD continuous slope. Sugegsted is -1.
     tau : ~astropy float (time unit)
         Timescale to be used in the star formation rate.
         
     Outputs:
     --------
-    ./../OUTPUT_FILES/FIGURES/Fig_DTD-fit-test_X_Y.pdf
-      where X is the input slope and Y is the input t_onset.
-      In the output files, 'd' stands for 'dot'.
-    
+    ./../OUTPUT_FILES/FIGURES/Fig_binning_test.pdf
+
     References:
     --------
     Maoz+ 2012: http://adsabs.harvard.edu/abs/2012MNRAS.426.3282M
     """
     
     def __init__(self, A, s, tau, show_fig, save_fig):
-
         self.A = A
         self.s = s
         self.tau = tau
@@ -102,8 +86,6 @@ class DTD_Approximations(object):
 
     def set_fig_frame(self):
 
-        #plt.subplots_adjust(hspace=0.01)
-
         x_label = r'Delay Time [Gyr]'
         y_label = r'$\langle \psi \rangle \,\,\,\, \mathrm{[10^{-10} \, SN\ yr^{-1}\ M_\odot^{-1}]}$'
         
@@ -112,7 +94,7 @@ class DTD_Approximations(object):
         self.ax1.set_xscale('log')
         self.ax1.set_yscale('log')
         self.ax1.set_xlim(1.e-2, 2.e1)
-        self.ax1.set_ylim(6.e-5, 4.e0)
+        self.ax1.set_ylim(5.e-4, 5.e-1)
         self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax1.tick_params(
@@ -122,12 +104,12 @@ class DTD_Approximations(object):
         self.ax1.xaxis.set_ticks_position('both')
         self.ax1.yaxis.set_ticks_position('both')
 
-        x_label = r'$\mathrm{log}\, A$'
+        x_label = r'$\mathrm{log}\, A\, [\rm{SN\ yr^{-1}\ M_\odot^{-1}}]$'
         y_label = r'$s$'
         self.ax2.set_xlabel(x_label, fontsize=fs)
         self.ax2.set_ylabel(y_label, fontsize=fs)
-        self.ax2.set_xlim(-12.1, -11.55)
-        self.ax2.set_ylim(-2.25, -1.8)
+        self.ax2.set_xlim(-12.05, -11.8)
+        self.ax2.set_ylim(-1.1, -.9)
         self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax2.tick_params(
@@ -139,7 +121,7 @@ class DTD_Approximations(object):
         self.ax2.xaxis.set_minor_locator(MultipleLocator(.05))
         self.ax2.xaxis.set_major_locator(MultipleLocator(.1))
         self.ax2.yaxis.set_minor_locator(MultipleLocator(.05))
-        self.ax2.yaxis.set_major_locator(MultipleLocator(.2))  
+        self.ax2.yaxis.set_major_locator(MultipleLocator(.1))  
 
         plt.axvline(x=np.log10(self.A), ls=':', lw=3., c='k')
         plt.axhline(y=self.s, ls=':', lw=3., c='k')
@@ -178,8 +160,7 @@ class DTD_Approximations(object):
     def manage_output(self):
         plt.tight_layout()
         if self.save_fig:
-            fname = 'Fig_binning_test.pdf'
-            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/' + fname
+            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/Fig_binning_test.pdf'
             plt.savefig(fpath, format='pdf')
         if self.show_fig:
             plt.show()
@@ -192,4 +173,4 @@ class DTD_Approximations(object):
 
 if __name__ == '__main__':
     DTD_Approximations(
-      A=1.e-12, s=-2., tau=1. * u.Gyr, show_fig=False, save_fig=True)
+      A=1.e-12, s=-1., tau=1. * u.Gyr, show_fig=False, save_fig=True)

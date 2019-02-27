@@ -60,7 +60,7 @@ class Abs_CMD(object):
 
     def retrieve_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_absmag.csv'
-        self.df = pd.read_csv(fpath, header=0)
+        self.df = pd.read_csv(fpath, header=0, low_memory=False)
         f1 = self.df['abs_' + self._inputs.filter_1].values
         f2 = self.df['abs_' + self._inputs.filter_2].values
         self.mag = f1

@@ -37,12 +37,19 @@ class Acquire_Hosts(object):
         self.df = pd.read_csv(
           fpath_all, header=0, low_memory=False, dtype={'objID': str})
         df_hosts = pd.read_csv(
-          fpath_hosts, header=0, dtype={'objID': str, 'CID': str})
+          fpath_hosts, header=0, dtype={'objID': str, 'CID': str, 'subtype': str})
 
         #Remove or keep hosts of SNe observed during engineering time (2004).
         if not self._inputs.hosts_from_2004:
             year = np.array([x[0:4] for x in df_hosts['IAUName'].values])
             cond = (year != '2004')
+            df_hosts = df_hosts[cond]
+
+        #Remove peculiar subtypes.
+        if not self._inputs.host_peculiar and self._inputs.hosts_from == 'S18':
+            st = df_hosts['subtype'].values
+            #Do not include 00cx, '02ci', '02cx'. See Table 4 in S18.
+            cond = ((st != '3') & (st != '4') & (st != '5'))
             df_hosts = df_hosts[cond]
 
         #Some values retrieved by SDSS might be 'null' strings, which are then
@@ -65,7 +72,7 @@ class Acquire_Hosts(object):
         #(True) or not (False).
         self.df['is_host'] = self.df.apply(
           lambda row: isinstance(row['CID'], str), axis=1)        
-                
+                        
     def save_output(self):
         fpath = self._inputs.subdir_fullpath + 'data_merged.csv'
         self.df.to_csv(fpath)

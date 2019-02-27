@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import os
-import sys
+import os, sys
 import numpy as np
 import pandas as pd
 from astropy.cosmology import FlatLambdaCDM

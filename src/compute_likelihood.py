@@ -4,12 +4,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 import numpy as np
 import pandas as pd
 from astropy import units as u
-from Dcolor2sSNRL_gen import Generate_Curve
 from multiprocessing import Pool
 from functools import partial
-from build_fsps_model import Build_Fsps
 import stats
 import core_funcs
+
+sys.path.append(os.path.join(os.environ['PATH_ssnarl'], 'src'))
+from Dcolor2sSNRL_gen import Generate_Curve
+from build_fsps_model import Build_Fsps
 
 #@profile
 def calculate_likelihood(mode, _inputs, _df, _N_obs, _D, _s1, _s2):
@@ -60,7 +62,7 @@ class Get_Likelihood(object):
         self.N_obs = None
         self.D = Build_Fsps(self._inputs).D
 
-        if self._inputs.subdir[:-1].split('_')[0] == 'M12':
+        if self._inputs.data_dir == './../INPUT_FILES/M12/':
             self.add_vespa = True
         else:
             self.add_vespa = False            
@@ -96,7 +98,7 @@ class Get_Likelihood(object):
           'absmag': abs_mag, 'Dcolor': Dcolor, 'z': redshift, 'is_host': hosts}
 
         if self.add_vespa:
-            mass_corr = .55 #.15 will give matching contours.
+            mass_corr = .55
             mass1 = (self.df['vespa1'].values + self.df['vespa2'].values) * mass_corr
             mass2 = self.df['vespa3'].values * mass_corr
             mass3 = self.df['vespa4'].values * mass_corr
@@ -175,7 +177,6 @@ class Get_Likelihood(object):
 
     #@profile
     def run_analysis(self):
-        #self.retrieve_data()
         self.subselect_data()
         self.write_sSNRL_output()
         if self.add_vespa:

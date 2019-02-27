@@ -9,6 +9,11 @@ import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from scipy.stats import norm
 
+mpl.rcParams['mathtext.fontset'] = 'stix'
+mpl.rcParams['mathtext.fontset'] = 'stix'
+mpl.rcParams['font.family'] = 'STIXGeneral'
+fs = 22.
+
 class Fit_RS(object):
     """
     Description:
@@ -23,14 +28,18 @@ class Fit_RS(object):
     -----------
     _inputs : ~instance
         Instance of the Input_Parameters class defined in input_params.py.
+    tol : ~float
+        When recursevely fitting the red sequence, tol is the tolerance window,
+        such that galaxies which lie outside tol * sigma are excluded.
      
     Outputs:
     --------
     ./../../OUTPUT_FILES/RUNS/$RUN_DIR/RS_fit.csv
     ./../../OUTPUT_FILES/RUNS/$RUN_DIR/data_Dcolor.csv
     """      
-    def __init__(self, _inputs):
+    def __init__(self, _inputs, tol=2.):
         self._inputs = _inputs
+        self.tol = tol
                 
         self.x_data, self.y_data, self.hosts = None, None, None
         self.x_rej, self.y_rej, self.hosts_rej = [], [], []
@@ -41,7 +50,7 @@ class Fit_RS(object):
         
     def retrieve_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_absmag.csv'
-        self.df = pd.read_csv(fpath, header=0)
+        self.df = pd.read_csv(fpath, header=0, low_memory=False)
         self.f1, self.f2 = self._inputs.filter_1, self._inputs.filter_2
         photo1, photo2 = self.df['abs_' + self.f1], self.df['abs_' + self.f2]
         self.x_data, self.y_data = photo1, photo2 - photo1  
@@ -73,7 +82,7 @@ class Fit_RS(object):
     def compute_std(self, _x, _y, _fit_func):
         dist = _y - _fit_func(_x)
         _std = (np.sum(np.power(dist, 2)) / (len(_y) - 1.))**0.5
-        _acc_cond = (np.absolute(dist) <= _std * self._inputs.tol)
+        _acc_cond = (np.absolute(dist) <= _std * self.tol)
         return _acc_cond.values
  
     def iterate_fit(self):
@@ -190,7 +199,6 @@ class Plot_Fit(object):
 
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
-        self.fs = self._inputs.fs
         
         if ((self._inputs.show_fig) or (self._inputs.save_fig)):
             self.make_plot()
@@ -202,12 +210,12 @@ class Plot_Fit(object):
 
         x_label = r'$M_{' + f1 + '}$'
         y_label = r'$M_{' + f2 + '} - M_{' + f1 + '}$'
-        self.ax.set_xlabel(x_label, fontsize=self.fs)
-        self.ax.set_ylabel(y_label, fontsize=self.fs)
+        self.ax.set_xlabel(x_label, fontsize=fs)
+        self.ax.set_ylabel(y_label, fontsize=fs)
         self.ax.set_xlim(-24., -16.)
         self.ax.set_ylim(-.2, 1.2)
-        self.ax.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)      
-        self.ax.tick_params(axis='x', which='major', labelsize=self.fs, pad=8)
+        self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
+        self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax.minorticks_off()
         self.ax.tick_params('both', length=8, width=1., which='major')
         self.ax.tick_params('both', length=4, width=1., which='minor')    
@@ -239,8 +247,8 @@ class Plot_Fit(object):
 
         self.ax.plot([np.nan], [np.nan], markersize=7., ls='None', marker='^',
                   color='b', label='Hosts')
-        plt.title('Iteration = ' + str(self.count), fontsize=self.fs - 4.)
-        self.ax.legend(frameon=True, fontsize=self.fs - 4., numpoints=1, loc=3)
+        plt.title('Iteration = ' + str(self.count), fontsize=fs - 4.)
+        self.ax.legend(frameon=True, fontsize=fs - 4., numpoints=1, loc=3)
 
     def manage_output(self):
         

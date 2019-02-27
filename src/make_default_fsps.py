@@ -42,6 +42,8 @@ class Make_FSPS(object):
     Z : ~float
         Metallicity of the stellar population.
         Default in H17 is 0.0190 (solar).
+    dust : ~int
+        Dust attenuation around old stars, default is 0 (I checked this).
     spec_lib : ~str
         'BASEL' or 'MILES'.
         Default in H17 is 'BASEL'.
@@ -91,7 +93,8 @@ class Make_FSPS(object):
     def make_directory(self):
         self.directory = (
           './../INPUT_FILES/fsps_FILES/' + self.imf_type + '_' + self.sfh_type
-          + '_' + self.Z  + '_' + str(self.fbhb) + '_' + str(self.dust) + '_'
+          #+ '_' + self.Z  + '_' + str(self.fbhb) + '_' + str(self.dust) + '_'
+          + '_' + self.Z  + '_' + str(self.fbhb) + '_'
           + self.spec_lib + '_' + self.isoc_lib + '/')
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)             
@@ -169,6 +172,7 @@ if __name__ == '__main__':
     
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='delayed-exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
+    Make_FSPS(imf='Kroupa', sfh='delayed-exponential', Z='0.0150', dust=0, fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0096', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0150', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0300', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')

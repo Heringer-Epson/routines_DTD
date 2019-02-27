@@ -57,7 +57,7 @@ class Plot_Dcolor(object):
 
     def retrieve_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'
-        df = pd.read_csv(fpath, header=0)
+        df = pd.read_csv(fpath, header=0, low_memory=False)
         f1, f2 = self._inputs.filter_1, self._inputs.filter_2
         self.Dcolor = df['Dcolor_' + f2 + f1].values           
         self.hosts = df['is_host'].values

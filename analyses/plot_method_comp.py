@@ -17,18 +17,35 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 fs = 24.
 c = ['#1b9e77','#d95f02','#7570b3']
 
+def fv(v):
+    if isinstance(v,float):
+        return str(format(v, '.2f'))
+    else:
+        return (str(format(v[0], '.2f')), str(format(v[1], '.2f')))
+
 def draw(_ax1, _ax2, _fpath, _c):
     N_obs, s1, s2, A, ln_L = stats.read_lnL(_fpath)
     x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
-    stats.plot_contour(_ax1, np.log10(x), y, z, c=_c, add_max=True)
-    stats.plot_contour(_ax2, s1, s2, ln_L, c=_c, add_max=True)          
-
+    nx, ny = len(np.unique(x)), len(np.unique(y))
+    X, Y, XErr, YErr = stats.plot_contour(
+      _ax1, np.log10(x), y, z, _c, nx, ny, add_max=True)
+    print '    ', fv(X), fv(Y), fv(XErr), fv(YErr)
+    nx, ny = len(np.unique(s1)), len(np.unique(s2))
+    stats.plot_contour(_ax2, s1, s2, ln_L, _c, nx, ny, add_max=True)
     
 class Make_Fig(object):
     """
     Description:
     ------------
-    TBW.
+    Makes Fig. 3 of the DTD paper. This routine applies both the
+    color-luminosity (CL) and the star formation recosntruction method to a 
+    sample of galaxies and plots their respective confidence contours in the
+    (A,s -- left panel) and (s1,s2 -- right panel) parameter spaces.
+    The dataset of galaxies is retrieved from M12 (provided to us by D. Maoz),
+    so that VESPA masses are available and uses photometry and redshifts cuts
+    similar to H17, so that the CL method can be applied. Currently, this
+    sample is produced through the 'M12_comp' option in input_params.py.
+    The 68% uncertainty values are printed by this run, but not stored.
   
     Parameters:
     -----------
@@ -40,6 +57,7 @@ class Make_Fig(object):
     Outputs:
     --------
     ./../OUTPUT_FILES/ANALYSES_FIGURES/Fig_method_comp.pdf
+    >> A, s, (A upper, A lower), (s upper, s lower)
 
     References:
     -----------
@@ -61,8 +79,8 @@ class Make_Fig(object):
         xlabel = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}\ M_\odot^{-1}]}$'
         self.ax1.set_xlabel(xlabel, fontsize=fs + 4)
         self.ax1.set_ylabel(r'$s=s_1=s_2$', fontsize=fs + 4)
-        self.ax1.set_xlim(-13.,-12.2)
-        self.ax1.set_ylim(-1.5,-0.7)
+        self.ax1.set_xlim(-13.,-12.)
+        self.ax1.set_ylim(-1.9,-0.8)
         self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax1.tick_params('both', length=12, width=2., which='major',
@@ -77,7 +95,7 @@ class Make_Fig(object):
         self.ax2.set_xlabel(r'$s_1$', fontsize=fs + 4)
         self.ax2.set_ylabel(r'$s_2$', fontsize=fs + 4)
         self.ax2.set_xlim(-3.,0.)
-        self.ax2.set_ylim(-2.,0.)
+        self.ax2.set_ylim(-3.,0.)
         self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax2.tick_params('both', length=12, width=2., which='major',
@@ -95,22 +113,15 @@ class Make_Fig(object):
 
     def add_contours(self):
         
-        fpath =  './../OUTPUT_FILES/RUNS/M12/likelihoods/sSNRL_s1_s2.csv'
+        print 'Method: color-luminosity'
+        fpath =  './../OUTPUT_FILES/RUNS/M12_comp/likelihoods/sSNRL_s1_s2.csv'
         draw(self.ax1, self.ax2, fpath, c[0])
 
-        fpath =  './../OUTPUT_FILES/RUNS/M12/likelihoods/vespa_s1_s2.csv'
+        print 'Method: SFH reconstruction'
+        fpath =  './../OUTPUT_FILES/RUNS/M12_comp/likelihoods/vespa_s1_s2.csv'
         draw(self.ax1, self.ax2, fpath, c[1])
 
-    def add_fit_results(self):
-        s, s_err = -1.23, 0.19
-        A, A_err = 3.00e-13, 0.79e-13
-        logA, logA_err = np.log10(A), np.log10(np.exp(1.)) / A * A_err 
-        self.ax1.axhspan(-1.12 + 0.08, -1.12 - 0.08, alpha=0.2, color='gray')
-
     def add_legend(self):
-
-        self.ax1.plot([np.nan], [np.nan], color='gray', ls='-', lw=15., alpha=0.2,
-                      marker='None', label=r'Maoz ${\it \, et\, al}$ (2012)')
         self.ax1.plot([np.nan], [np.nan], color=c[0], ls='-', lw=15., alpha=0.5,
                       marker='None', label=r'$sSNR_L$')
         self.ax1.plot([np.nan], [np.nan], color=c[1], ls='-', lw=15., alpha=0.5,
@@ -131,7 +142,6 @@ class Make_Fig(object):
     def run_plot(self):
         self.set_fig_frame()
         self.add_contours()
-        self.add_fit_results()
         self.add_legend()
         self.manage_output()    
 

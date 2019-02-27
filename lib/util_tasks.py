@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import os
-import sys
+import sys, os
 import warnings
 import numpy as np
-import pandas as pd
 from astropy import units as u
 
 class Utility_Routines(object):
@@ -18,10 +16,6 @@ class Utility_Routines(object):
     -----------
     _inputs : ~instance
         Instance of the Input_Parameters class defined in input_params.py.
-     
-    Outputs:
-    --------
-    ./../OUTPUT_FILES/RUNS/$RUN_DIR/record.dat'
     """ 
     def __init__(self, _inputs):
         self._inputs = _inputs

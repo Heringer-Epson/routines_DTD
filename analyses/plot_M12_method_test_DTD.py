@@ -8,14 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
-from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
-from scipy.integrate import cumtrapz
-
-from input_params import Input_Parameters as class_input
-from SN_rate import Model_Rates
-from generic_input_pars import Generic_Pars
-from build_fsps_model import Build_Fsps
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -25,29 +18,30 @@ t_onset = ['40', '70', '100']
 ls = ['--', '-.', ':']
 c = ['#e41a1c', '#377eb8', '#4daf4a']
 fs = 32.
-
-yoff = [0.95, 1., 1.05]
+yoff = [0.95, 1., 1.05] #Offset for plotting bins. For clarity purposes only.
 
 x_fit = np.array([0.03, 14.])
 def power_law(x,_A,_s):
     return _A + _s * x
 
 def leftbin1_to_xpos(_lb1):
-
+    """Given a choice of onset time, produce bin mean age for fitting purposes.
+    """
     bin1 = np.array([_lb1, 0.42])
     bin2 = np.array([0.42, 2.4])
     bin3 = np.array([2.4, 14.])
-    
     _x = np.array([np.mean(bin1), np.mean(bin2), np.mean(bin3)])
     _xErr = [
       [np.mean(bin1) - bin1[0], np.mean(bin2) - bin2[0], np.mean(bin3) - bin3[0]],
       [bin1[1] - np.mean(bin1), bin2[1] - np.mean(bin2), bin3[1] - np.mean(bin3)]] 
-
     return bin1, bin2, bin3, _x, _xErr
 
 def mean_DTD(s, A, t0, ti, tf):
-    return A * (tf**(s + 1.) - ti**(s + 1.)) / (s + 1.) / (tf - ti)
-    
+    #Below, I have tested that if s=1. or s=-1.01 converge to the same result.
+    if abs(s + 1.) > 1.e-3:
+        return A * (tf**(s + 1.) - ti**(s + 1.)) / (s + 1.) / (tf - ti)
+    else:
+        return A * np.log(tf / ti) / (tf - ti)
 
 class DTD_Approximations(object):
     """
@@ -57,34 +51,22 @@ class DTD_Approximations(object):
     Maoz+ 2012 are for fitting the DTD based on the the supernova rates per
     unit of mass (sSNRm).
     
-    The following is not true - check! In the original paper, the rates are
-    binned in three age bins. To fit these
-    rates, Maoz et al (arbitrarily) attribute an age to those bins, which
-    correspond to the simple age average in each bin. Note that for the
-    youngest bin, despite the original plot showing otherwise, the bin starts
-    at t=0. 
-    
     Parameters:
     -----------
     s, t_onset, t_break, sfh_type, tau
 
+    A : ~float
+        DTD scale factor. Suggested value is 1.e-12.
+        Implied physical unit is SN / M_sun / yr.
     s : ~float
-        DTD continuous slope.
-    t_onset : ~astropy float (time unit)
-        Time prior to which the supernova rate is null. (WDs not formed yet.)
-    t_onset : ~astropy float (time unit)
-        Inconsequential for this routine since it assumes a continuous DTD.
-    sfh_type : ~str
-        'exponential' or 'delayed-exponential'. Sets the input star formation
-        rate for computing the 'true' supernova rate.
+        DTD continuous slope. Suggested value is -1.
     tau : ~astropy float (time unit)
-        Timescale to be used in the star formation rate.
+        Timescale for an assumed exponential star formation rate.
+        Suggested values is 1. * u.Gyr
         
     Outputs:
     --------
-    ./../OUTPUT_FILES/FIGURES/Fig_DTD-fit-test_X_Y.pdf
-      where X is the input slope and Y is the input t_onset.
-      In the output files, 'd' stands for 'dot'.
+    ./../OUTPUT_FILES/ANALYSES_FIGURES/Fig_M12-method_test.pdf
     
     References:
     --------
@@ -104,11 +86,9 @@ class DTD_Approximations(object):
         self.make_plot()
 
     def set_fig_frame(self):
-
-        #plt.subplots_adjust(hspace=0.01)
-
         x_label = r'Delay Time [Gyr]'
-        y_label = r'$\langle \psi \rangle \,\,\,\, \mathrm{[10^{-10} \, SN\ yr^{-1}\ M_\odot^{-1}]}$'
+        y_label = (r'$\langle \psi \rangle \,\,\,\, \mathrm{[10^{-10}'
+                   + ' \, SN\ yr^{-1}\ M_\odot^{-1}]}$')
         
         self.ax1.set_xlabel(x_label, fontsize=fs)
         self.ax1.set_ylabel(y_label, fontsize=fs)
@@ -125,12 +105,15 @@ class DTD_Approximations(object):
         self.ax1.xaxis.set_ticks_position('both')
         self.ax1.yaxis.set_ticks_position('both')
 
-        x_label = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}\ M_\odot^{-1}]}$'
+        x_label = (r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}'
+                   + '\ M_\odot^{-1}]}$')
         y_label = r'$s$'
         self.ax2.set_xlabel(x_label, fontsize=fs)
         self.ax2.set_ylabel(y_label, fontsize=fs)
-        self.ax2.set_xlim(-12.1, -11.55)
-        self.ax2.set_ylim(-2.25, -1.8)
+        self.ax2.set_xlim(-12.05, -11.8)
+        self.ax2.set_ylim(-1.1, -0.9)
+        #self.ax2.set_xlim(-12.1, -11.55)
+        #self.ax2.set_ylim(-1.2, -0.8)
         self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax2.tick_params(
@@ -142,7 +125,7 @@ class DTD_Approximations(object):
         self.ax2.xaxis.set_minor_locator(MultipleLocator(.05))
         self.ax2.xaxis.set_major_locator(MultipleLocator(.1))
         self.ax2.yaxis.set_minor_locator(MultipleLocator(.05))
-        self.ax2.yaxis.set_major_locator(MultipleLocator(.2))  
+        self.ax2.yaxis.set_major_locator(MultipleLocator(.1))  
 
         plt.axvline(x=np.log10(self.A), ls=':', lw=3., c='k')
         plt.axhline(y=self.s, ls=':', lw=3., c='k')
@@ -183,8 +166,7 @@ class DTD_Approximations(object):
     def manage_output(self):
         plt.tight_layout()
         if self.save_fig:
-            fname = 'Fig_M12-method_test.pdf'
-            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/' + fname
+            fpath = './../OUTPUT_FILES/ANALYSES_FIGURES/Fig_M12-method_test.pdf'
             plt.savefig(fpath, format='pdf')
         if self.show_fig:
             plt.show()
@@ -197,4 +179,4 @@ class DTD_Approximations(object):
 
 if __name__ == '__main__':
     DTD_Approximations(
-      A=1.e-12, s=-2., tau=1. * u.Gyr, show_fig=False, save_fig=True)
+      A=1.e-12, s=-1., tau=1. * u.Gyr, show_fig=False, save_fig=True)

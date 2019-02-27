@@ -16,6 +16,8 @@ from scipy.optimize import curve_fit
 from SN_rate import Model_Rates
 import stats
 
+from scipy.odr import *
+
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
@@ -27,16 +29,18 @@ bin1 = np.array([0.04, 0.42])
 bin2 = np.array([0.42, 2.4])
 bin3 = np.array([2.4, 14.])
 x = np.array([np.mean(bin1), np.mean(bin2), np.mean(bin3)])
+#x = 10.**np.array([np.mean(np.log10(bin1)), np.mean(np.log10(bin2)), np.mean(np.log10(bin3))])
 xErr = [
   [np.mean(bin1) - bin1[0], np.mean(bin2) - bin2[0], np.mean(bin3) - bin3[0]],
   [bin1[1] - np.mean(bin1), bin2[1] - np.mean(bin2), bin3[1] - np.mean(bin3)]] 
-
 x_fit = np.array([0.03, 14.])
 x_ons = 0.04e9
 def power_law(x,_A,_s):
-    #return _A + _s * (x - np.log10(x_ons))
     return _A + _s * (x - 9.)
-    #return _A + _s * x
+
+def power_law2(p,x):
+    _A, _s = p
+    return _A + _s * (x - 9.)
 
 def write_pars(ax, A, A_unc, s, s_unc, pre, loc_x, loc_y):
 
@@ -131,7 +135,7 @@ class Plot_M12(object):
         self.hosts = df['is_host'].values        
 
     def get_likelihoods(self):
-        n_cells = 100
+        n_cells = 50
         r1 = np.logspace(-12, -11, n_cells)
         r2 = np.logspace(-13, -12, n_cells)
         r3 = np.logspace(-14, -13, n_cells)
@@ -174,6 +178,7 @@ class Plot_M12(object):
         popt, pcov = curve_fit(
           power_law, np.log10(x * 1.e9), np.log10(self.most_likely_rates))
         A, s = popt[0], popt[1]
+        print A, s
         y_fit = 10.**power_law(np.log10(x_fit * 1.e9), A, s)
         A_unc, s_unc = np.abs(np.sqrt(np.diag(pcov)))
         A = 10.**A
@@ -194,6 +199,7 @@ class Plot_M12(object):
           sigma=1. / rates_unc_in_log**2.)        
         
         A, s = popt[0], popt[1]
+        print A, s
         y_fit = 10.**power_law(np.log10(x_fit * 1.e9), A, s)
         A_unc, s_unc = np.abs(np.sqrt(np.diag(pcov)))
         A = 10.**A
@@ -204,6 +210,33 @@ class Plot_M12(object):
         write_pars(
           self.ax, 1.e13 * A, 1.e13 * A_unc, s, s_unc, 'Inc unc:', 0.02, 0.05)   
 
+    def fit_DTD_to_rates_inc_xyunc(self):
+        """Test where both the uncertainty in x and in y are taken into
+        account when producing the best fit.
+        See: https://stackoverflow.com/questions/22670057/linear-fitting-in-python-with-uncertainty-in-both-x-and-y-coordinates
+        """
+        
+        #Fit taking into account the rate's uncertainty.
+        rates_unc_in_log = np.divide(
+          self.rates_unc,self.most_likely_rates) * np.log10(np.e)
+        ages_unc_in_log = np.divide(
+          xErr[0],x) * np.log10(np.e)
+
+        quad_model = Model(power_law2)
+
+        # Create a RealData object using our initiated data from above.
+        data = RealData(
+          np.log10(x * 1.e9), np.log10(self.most_likely_rates),
+          sx=ages_unc_in_log, sy=rates_unc_in_log)
+
+        odr = ODR(data, quad_model, beta0=[-12.5, -1.25])
+
+        # Run the regression.
+        out = odr.run()
+
+        # Use the in-built pprint method to give us results.
+        out.pprint()
+        
     def add_legend(self):
         self.ax.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1, loc=1)  
               
@@ -221,9 +254,10 @@ class Plot_M12(object):
         self.get_likelihoods()
         self.fit_DTD_to_rates_no_unc()             
         self.fit_DTD_to_rates_inc_unc()
+        #self.fit_DTD_to_rates_inc_xyunc()
         self.add_legend()
         self.manage_output()
 
 if __name__ == '__main__':
     dirpath = './../OUTPUT_FILES/RUNS/M12/'
-    Plot_M12(dirpath=dirpath, show_fig=True, save_fig=True)
+    Plot_M12(dirpath=dirpath, show_fig=False, save_fig=True)

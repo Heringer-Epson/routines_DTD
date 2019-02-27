@@ -4,4 +4,5 @@
 ./OUTPUT_FILES/FILES/*.csv
 ./OUTPUT_FILES/FIGURES/delayed-exponential/*.pdf
 ./OUTPUT_FILES/FIGURES/exponential/*.pdf
+./INPUT_FILES/S18/temp/*
 

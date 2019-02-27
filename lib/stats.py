@@ -52,9 +52,14 @@ def binned_DTD_rate(s1, s2, t_ons, tc):
     #Assumes that t_cutoff happens in this bin. True for most sensible cases.
     #t_cutoff usually tested in the range 0.5--2 Gyr.
     B = tc**(s1 - s2)
-    psi1 = integ_DTD(s1, t_ons, t_ons, 0.42)
-    psi2 = integ_DTD(s1, t_ons, 0.42, tc) + B * integ_DTD(s2, t_ons, tc, 2.4)
-    psi3 = B * integ_DTD(s2, t_ons, 2.4, 14.)   
+    #psi1 = integ_DTD(s1, t_ons, t_ons, 0.42)
+    #psi2 = integ_DTD(s1, t_ons, 0.42, tc) + B * integ_DTD(s2, t_ons, tc, 2.4)
+    #psi3 = B * integ_DTD(s2, t_ons, 2.4, 14.)   
+
+    psi1 = ((t_ons + 0.42) / 2.)**s1
+    psi2 = B * ((0.42 + 2.4) / 2.)**s2 #Valid if tc < 1.41 Gyr. 
+    psi3 = B * ((2.4 + 14.) / 2.)**s2
+    
     return psi1, psi2, psi3
 
 def compute_L_from_DTDs(_s1, _s2, _t0, _tc, mass1, mass2, mass3, redshift,
@@ -77,11 +82,15 @@ def compute_L_from_DTDs(_s1, _s2, _t0, _tc, mass1, mass2, mass3, redshift,
     _ln_L = - N_obs + np.sum(_lambda)
     return _A, _ln_L
 
+def mag2lum(mag):
+    return 10.**(-0.4 * (mag - 4.65))
+
 def compute_L_using_sSNRL(sSNRL, Dcolor, absmag, redshift,
                           host_cond, N_obs, visibility_flag):
 
     def get_SN_rate(sSNRL, _Dcolor, _absmag, _redshift):
-        L = 10.**(-0.4 * (_absmag - 5.))
+        L = mag2lum(_absmag)
+        #L = 10.**(-0.4 * (_absmag - 4.65))
         SNR = np.multiply(sSNRL,L)
         if visibility_flag:
             vistime = survey_efficiency.visibility_time(_redshift) 
@@ -125,13 +134,17 @@ def make_A_s_space(N_obs, s1, s2, A, ln_L):
             ln_L_2D.append(_ln_L + N_obs * (1. - _f + np.log(_f)))
     return np.array(A_2D), np.array(s_2D), np.array(ln_L_2D) 
 
-def plot_contour(ax, x, y, z, c, label='', ao=0., ls=None, add_max=True):
+def plot_contour(ax, x, y, z, c, nx, ny, label='', ao=0., ls=None, add_max=True):
     contour_list = [0.95, 0.68, 0.] 
+    
+    
     z = clean_array(z)
-    _x, _y = np.unique(x), np.unique(y)       
-    X = x.reshape(len(_x),len(_y))
-    Y = y.reshape(len(_x),len(_y))
-    qtty = z.reshape((len(_x), len(_y)))
+    #_x, _y = np.unique(x), np.unique(y)       
+    #X = x.reshape(len(_x),len(_y))
+    #Y = y.reshape(len(_x),len(_y))
+    X = x.reshape(nx,ny)
+    Y = y.reshape(nx,ny)
+    qtty = z.reshape(nx,ny)
     levels = [get_contour_levels(z, contour) for contour in contour_list]
     ax.contourf(X, Y, qtty, levels[0:2], colors=c, alpha=0.4 + ao)	 
     cs = ax.contourf(X, Y, qtty, levels[1:3], colors=c, alpha=0.6 + ao)	 
@@ -161,15 +174,15 @@ def plot_A_contours(ax, x, y, z):
     qtty = np.log10(z).reshape((len(_x), len(_y)))
     
     #Levels with labels.
-    levels = np.arange(-13.4,-11.799,0.2)
+    levels = np.arange(-13.2,-11.799,0.2)
     CS = ax.contour(X, Y, qtty, levels, colors='k', linestyles=':', linewidths=1.)	 
     fmt = {}
     
     labels = []
-    xx = -.3
+    xx = -.35
     #manual = [(-.7, -.2), (xx, -0.55), (xx, -1.05), (xx, -1.5), (xx,-2.1)]
     manual = [(-.9, -.2), (-.7, -0.3), (xx, -0.55), (xx, -0.7), (xx, -1.05),
-              (xx, -1.2), (xx, -1.5), (xx, -1.7), (xx,-2.1)]
+              (xx, -1.2), (xx, -1.5), (xx, -1.7)]
     
     
     for i, l in enumerate(levels):
@@ -181,7 +194,7 @@ def plot_A_contours(ax, x, y, z):
             
     for l, s in zip(CS.levels, labels):
         fmt[l] = s
-    plt.clabel(CS, colors='k', fontsize=16, inline=1, fmt=fmt, manual=manual)
+    plt.clabel(CS, colors='k', fontsize=24, inline=1, fmt=fmt, manual=manual)
 
     #Contours with no labels
     #levels = np.arange(-13.6,-11.799,0.4)
@@ -191,8 +204,6 @@ def plot_A_contours(ax, x, y, z):
 
     #plt.clabel(CS, colors='k', fontsize=26, inline=1, fmt=r'$0.95$', manual=[(-1.5,-1.)])
 
-
-    
 def compute_rates_using_L(psi, masses, redshift, host_cond, visibility_flag):
     """Attempt to reproduce the method in M12. i.e. given the binned masses,
     compute the most likely rates that would explain the data. Then fit a 
@@ -223,3 +234,19 @@ def compute_curvature(j, k, psi, masses, redshift, host_cond, visibility_flag):
         #curv += vistime[i]**2. * (n[i] / rate[i] - 1.)**2. * masses[j][i] * masses[k][i]
         curv += correction_factor[i]**2. * (n[i] / rate[i] - 1.)**2. * masses[j][i] * masses[k][i]
     return curv
+
+class Write_Outpars(object):
+    def __init__(self, fpath, header):
+        self.fpath = fpath
+        self.header = header
+        with open(fpath, 'w') as out:
+            out.write(header)    
+    
+    def add_line(self, method, X, Y, XErr, YErr):
+        def fv(var):
+            return str(format(var, '.2f'))
+        with open(self.fpath, 'a+') as out:
+            out.write('\n' + method +',' + fv(X) + ',' + fv(XErr[0]) + ','
+                       + fv(XErr[1]) + ',' + fv(Y) + ',' + fv(YErr[0]) + ','
+                       + fv(YErr[1]))
+

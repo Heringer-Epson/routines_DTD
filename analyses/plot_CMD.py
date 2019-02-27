@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys, os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,14 +9,13 @@ from matplotlib.ticker import MultipleLocator
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
-fs = 36.
-#c = ['k', 'darkgray', 'dodgerblue']
-#c = ['#4daf4a', '#878787', '#377eb8']
+fs = 38.
 c = ['#fdae61', '#3288bd']
 
-left, width = 0.1, 0.65
-bottom, height = 0.1, 0.65
+left, width = 0.13, 0.62
+bottom, height = 0.13, 0.62
 bottom_h = left_h = left + width + 0.02
+x_range, y_range = (-0.55,.15), (-23.5,-17.5)
 
 rect_scatter = [left, bottom, width, height]
 rect_histx = [left, bottom_h, width, 0.2]
@@ -28,8 +26,9 @@ class Plot_CMD(object):
     Description:
     ------------
     Makes the Fig. 1 of the DTD paper, displaying the control and host galaxies 
-    in the  parameter space of absolute r vs absolute color. A bottom panel 
-    shows a histogram of colors. Data will be retrieved from a 'default' run.
+    in the  parameter space of absolute M_r vs color. Side panels 
+    shows histograms of the ploted variables.
+    Data is retrieved from a 'default' run.
 
     Parameters:
     -----------
@@ -42,13 +41,11 @@ class Plot_CMD(object):
     --------
     ./../OUTPUT_FILES/ANALYSES_FIGURES/Fig_CMD.pdf
     """        
-    def __init__(self, x_range, y_range, show_fig, save_fig):
+    def __init__(self, show_fig, save_fig):
         self.show_fig = show_fig
         self.save_fig = save_fig
-        self.x_range = x_range
-        self.y_range = y_range
 
-        self.fig = plt.figure(1, figsize=(14, 16))
+        self.fig = plt.figure(1, figsize=(12, 10))
         self.ax = plt.axes(rect_scatter)
         self.axx = plt.axes(rect_histx, sharex=self.ax)
         self.axy = plt.axes(rect_histy, sharey=self.ax)
@@ -63,8 +60,8 @@ class Plot_CMD(object):
         
         self.ax.set_xlabel(x_label, fontsize=fs)
         self.ax.set_ylabel(y1_label, labelpad=-8., fontsize=fs)
-        self.ax.set_xlim(self.x_range[0], self.x_range[1])
-        self.ax.set_ylim(self.y_range[0], self.y_range[1])
+        self.ax.set_xlim(x_range[0], x_range[1])
+        self.ax.set_ylim(y_range[0], y_range[1])
         self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax.tick_params('both', length=12, width=2., which='major',
@@ -101,8 +98,7 @@ class Plot_CMD(object):
         plt.setp(self.axy.get_yticklabels(), visible=False)
 
     def retrieve_data(self):
-        fpath = './../OUTPUT_FILES/RUNS/sys_Kroupa_exponential_0.0190_0.0'\
-                + '_PADOVA_BASEL_100_1/data_Dcolor.csv'
+        fpath = './../OUTPUT_FILES/RUNS/default/data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
     
     def plot_quantities(self):
@@ -122,23 +118,25 @@ class Plot_CMD(object):
 
         self.ax.errorbar(
           Dcolor[hosts], r_abs[hosts], xerr=r_err[hosts], capsize=0.,
-          elinewidth=3., markeredgecolor=c[1], zorder=2., ls='None', marker='*', markersize=16., color=c[1])      
+          elinewidth=3., markeredgecolor=c[1], zorder=2., ls='None',
+          marker='*', markersize=16., color=c[1])      
         
         #Draw histogram (on self.axx).
-        xbins = np.arange(self.x_range[0], self.x_range[1] + 1.e-5, 0.01)
+        xbins = np.arange(x_range[0], x_range[1] + 1.e-5, 0.01)
         Dcolor_hosts = np.repeat(Dcolor[hosts], 100)
         
         self.axx.hist(Dcolor, bins=xbins, align='mid', color=c[0])
         self.axx.hist(Dcolor_hosts, bins=xbins, align='mid', color=c[1])
 
         #Draw histogram (on self.axy).
-        ybins = np.arange(self.y_range[0], self.y_range[1] + 1.e-5, 0.1)
+        ybins = np.arange(y_range[0], y_range[1] + 1.e-5, 0.1)
         r_abs_hosts = np.repeat(r_abs[hosts], 100)
 
         self.axy.hist(
           r_abs, bins=ybins, align='mid', color=c[0],orientation='horizontal')
         self.axy.hist(
-          r_abs_hosts, bins=ybins, align='mid', color=c[1], orientation='horizontal')
+          r_abs_hosts, bins=ybins, align='mid', color=c[1],
+          orientation='horizontal')
 
     def make_legend(self):
         self.axx.plot(
@@ -147,7 +145,8 @@ class Plot_CMD(object):
         self.axx.plot(
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[1],
           label=r'Hosts $(\times\, 100)$')
-        self.axx.legend(frameon=False, fontsize=fs, numpoints=1, loc=2)
+        self.axx.legend(
+          frameon=False, fontsize=fs, labelspacing=.1, numpoints=1, loc=2)
 
     def manage_output(self):
         if self.save_fig:
@@ -165,4 +164,4 @@ class Plot_CMD(object):
         self.manage_output()             
 
 if __name__ == '__main__':
-    Plot_CMD(x_range=(-0.55,.15), y_range=(-23.5,-17.5), show_fig=False, save_fig=True)
+    Plot_CMD(show_fig=False, save_fig=True)

@@ -51,6 +51,11 @@ class Plot_s1s2(object):
         self.fig = plt.figure(figsize=(10,10))
         self.ax = self.fig.add_subplot(111)
         self.add_vespa = 'M12' in self._inputs.case.split('_')       
+
+        #Initialize output file with the best fit.
+        fpath = self._inputs.subdir_fullpath + 'likelihoods/Best_s1_s2.csv'
+        header = 'Method,s1,s1_unc_low,s1_unc_high,s2,s2_unc_low,s2_unc_high'
+        self.out = stats.Write_Outpars(fpath, header)
    
         self.run_plot()
 
@@ -76,13 +81,19 @@ class Plot_s1s2(object):
     def plot_contours(self):
         fpath = self._inputs.subdir_fullpath + 'likelihoods/sSNRL_s1_s2.csv'
         N_obs, s1, s2, A, ln_L = stats.read_lnL(fpath)    
-        stats.plot_contour(self.ax, s1, s2, ln_L, c[0], r'$sSNR_L$')          
+        nx, ny = len(np.unique(s1)), len(np.unique(s2))
+        X, Y, XErr, YErr = stats.plot_contour(
+          self.ax, s1, s2, ln_L, c[0], nx, ny, r'$sSNR_L$')          
+        self.out.add_line('sSNRL', X, Y, XErr, YErr)
 
-        #Implement M12 condition for vespa to exist
         try:
             fpath = self._inputs.subdir_fullpath + 'likelihoods/vespa_s1_s2.csv'
-            N_obs, s1, s2, A, ln_L = lib.stats.read_lnL(fpath)    
-            stats.plot_contour(self.ax, s1, s2, ln_L, c[1], r'$\tt{vespa}$')
+            N_obs, s1, s2, A, ln_L = stats.read_lnL(fpath)    
+            nx, ny = len(np.unique(s1)), len(np.unique(s2))
+            X, Y, XErr, YErr = stats.plot_contour(
+              self.ax, s1, s2, ln_L, c[1], nx, ny, r'$\tt{vespa}$')
+            self.out.add_line('VESPA', X, Y, XErr, YErr)
+
             
             self.ax.legend(
               frameon=False, fontsize=fs, numpoints=1, ncol=1,
