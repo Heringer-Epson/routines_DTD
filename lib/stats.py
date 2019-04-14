@@ -51,14 +51,30 @@ def binned_DTD_rate(s1, s2, t_ons, tc):
     """Computes the average SN rate in each time bin."""
     #Assumes that t_cutoff happens in this bin. True for most sensible cases.
     #t_cutoff usually tested in the range 0.5--2 Gyr.
-    B = tc**(s1 - s2)
-    #psi1 = integ_DTD(s1, t_ons, t_ons, 0.42)
-    #psi2 = integ_DTD(s1, t_ons, 0.42, tc) + B * integ_DTD(s2, t_ons, tc, 2.4)
-    #psi3 = B * integ_DTD(s2, t_ons, 2.4, 14.)   
 
-    psi1 = ((t_ons + 0.42) / 2.)**s1
-    psi2 = B * ((0.42 + 2.4) / 2.)**s2 #Valid if tc < 1.41 Gyr. 
-    psi3 = B * ((2.4 + 14.) / 2.)**s2
+    #Recall, A == 1. for these calculations.
+
+    if abs(s1 - s2) < 1.e-3:
+        s = s1 #B == A always in this case.
+        psi1 = ((t_ons + 0.42) / 2.)**s
+        psi2 = ((0.42 + 2.4) / 2.)**s #Valid if tc < 1.41 Gyr. 
+        psi3 = ((2.4 + 14.) / 2.)**s
+    else:
+        #If s1 != s2, then vespa rates can only be computed for the
+        #intermeddiate bin if tc is on either edge (i.e. 0.42 or 2.4 Gyr).
+        
+        B = tc**(s1 - s2)
+        psi1 = ((t_ons + 0.42) / 2.)**s1
+        if abs(tc - 0.42) < 1.e-3:
+            psi2 = B * ((0.42 + 2.4) / 2.)**s2
+        elif abs(tc - 2.4) < 1.e-3:
+            psi2 = ((0.42 + 2.4) / 2.)**s1 
+        elif abs(tc - 1.0) < 1.e-3:
+            #proceed with the s1-s2 calculation, but this should not be used.
+            psi2 = ((0.42 + 2.4) / 2.)**s1 
+        else:
+            raise ValueError('Cannot compute vespa')
+        psi3 = B * ((2.4 + 14.) / 2.)**s2
     
     return psi1, psi2, psi3
 
@@ -174,7 +190,7 @@ def plot_A_contours(ax, x, y, z):
     qtty = np.log10(z).reshape((len(_x), len(_y)))
     
     #Levels with labels.
-    levels = np.arange(-13.2,-11.799,0.2)
+    levels = np.arange(-13.2,-11.599,0.2)
     CS = ax.contour(X, Y, qtty, levels, colors='k', linestyles=':', linewidths=1.)	 
     fmt = {}
     
@@ -182,8 +198,7 @@ def plot_A_contours(ax, x, y, z):
     xx = -.35
     #manual = [(-.7, -.2), (xx, -0.55), (xx, -1.05), (xx, -1.5), (xx,-2.1)]
     manual = [(-.9, -.2), (-.7, -0.3), (xx, -0.55), (xx, -0.7), (xx, -1.05),
-              (xx, -1.2), (xx, -1.5), (xx, -1.7)]
-    
+              (xx, -1.2), (xx, -1.5), (xx, -1.7), (xx, -2.1)]
     
     for i, l in enumerate(levels):
         if i == 0:

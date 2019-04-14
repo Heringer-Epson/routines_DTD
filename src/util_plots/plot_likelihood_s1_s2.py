@@ -54,7 +54,7 @@ class Plot_s1s2(object):
 
         #Initialize output file with the best fit.
         fpath = self._inputs.subdir_fullpath + 'likelihoods/Best_s1_s2.csv'
-        header = 'Method,s1,s1_unc_low,s1_unc_high,s2,s2_unc_low,s2_unc_high'
+        header = 'Method,s1,s1_unc_high,s1_unc_low,s2,s2_unc_high,s2_unc_low'
         self.out = stats.Write_Outpars(fpath, header)
    
         self.run_plot()

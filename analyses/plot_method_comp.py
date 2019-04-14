@@ -27,9 +27,10 @@ def draw(_ax1, _ax2, _fpath, _c):
     N_obs, s1, s2, A, ln_L = stats.read_lnL(_fpath)
     x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
     nx, ny = len(np.unique(x)), len(np.unique(y))
-    X, Y, XErr, YErr = stats.plot_contour(
-      _ax1, np.log10(x), y, z, _c, nx, ny, add_max=True)
-    print '    ', fv(X), fv(Y), fv(XErr), fv(YErr)
+    if _ax1 is not None:
+        X, Y, XErr, YErr = stats.plot_contour(
+          _ax1, np.log10(x), y, z, _c, nx, ny, add_max=True)
+        print '    ', fv(X), fv(Y), fv(XErr), fv(YErr)
     nx, ny = len(np.unique(s1)), len(np.unique(s2))
     stats.plot_contour(_ax2, s1, s2, ln_L, _c, nx, ny, add_max=True)
     
@@ -37,7 +38,7 @@ class Make_Fig(object):
     """
     Description:
     ------------
-    Makes Fig. 3 of the DTD paper. This routine applies both the
+    Makes Fig. 4 of the DTD paper. This routine applies both the
     color-luminosity (CL) and the star formation recosntruction method to a 
     sample of galaxies and plots their respective confidence contours in the
     (A,s -- left panel) and (s1,s2 -- right panel) parameter spaces.
@@ -69,14 +70,15 @@ class Make_Fig(object):
         self.show_fig = show_fig
         self.save_fig = save_fig
         
-        fig = plt.figure(figsize=(16,8))
-        self.ax1 = fig.add_subplot(121)
-        self.ax2 = fig.add_subplot(122)
+        fig = plt.figure(figsize=(20,8))
+        self.ax1 = fig.add_subplot(131)
+        self.ax2 = fig.add_subplot(132)
+        self.ax3 = fig.add_subplot(133)
         self.run_plot()
 
     def set_fig_frame(self):
         
-        xlabel = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}\ M_\odot^{-1}]}$'
+        xlabel = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[yr^{-1}\ M_\odot^{-1}]}$'
         self.ax1.set_xlabel(xlabel, fontsize=fs + 4)
         self.ax1.set_ylabel(r'$s=s_1=s_2$', fontsize=fs + 4)
         self.ax1.set_xlim(-13.,-12.)
@@ -106,31 +108,60 @@ class Make_Fig(object):
         self.ax2.xaxis.set_major_locator(MultipleLocator(.5))
         self.ax2.yaxis.set_minor_locator(MultipleLocator(.1))
         self.ax2.yaxis.set_major_locator(MultipleLocator(.5))  
-
         self.ax2.plot([-3., 0.], [-3., 0.], ls='--', c='k', lw=1.)
 
-        plt.subplots_adjust(bottom=0.14, wspace=.3)
+        self.ax3.set_xlabel(r'$s_1$', fontsize=fs + 4)
+        self.ax3.set_ylabel(r'$s_2$', fontsize=fs + 4)
+        self.ax3.set_xlim(-3.,0.)
+        self.ax3.set_ylim(-3.,0.)
+        self.ax3.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
+        self.ax3.tick_params(axis='x', which='major', labelsize=fs, pad=8)
+        self.ax3.tick_params('both', length=12, width=2., which='major',
+                                 direction='in', right=True, top=True)
+        self.ax3.tick_params('both', length=6, width=2., which='minor',
+                                 direction='in', right=True, top=True) 
+        self.ax3.xaxis.set_minor_locator(MultipleLocator(.1))
+        self.ax3.xaxis.set_major_locator(MultipleLocator(.5))
+        self.ax3.yaxis.set_minor_locator(MultipleLocator(.1))
+        self.ax3.yaxis.set_major_locator(MultipleLocator(.5)) 
+        self.ax3.plot([-3., 0.], [-3., 0.], ls='--', c='k', lw=1.)
+
+        plt.subplots_adjust(bottom=0.14, wspace=.3, left=0.075, right=.95)
 
     def add_contours(self):
+
+        print 'Method: color-luminosity'
+        fpath =  './../OUTPUT_FILES/RUNS/M12_comp_tc/042/likelihoods/sSNRL_s1_s2.csv'
+        draw(None, self.ax2, fpath, c[0])
+        print 'Method: SFH reconstruction'
+        fpath =  './../OUTPUT_FILES/RUNS/M12_comp_tc/042/likelihoods/vespa_s1_s2.csv'
+        draw(None, self.ax2, fpath, c[1])
         
         print 'Method: color-luminosity'
-        fpath =  './../OUTPUT_FILES/RUNS/M12_comp/likelihoods/sSNRL_s1_s2.csv'
-        draw(self.ax1, self.ax2, fpath, c[0])
-
+        fpath =  './../OUTPUT_FILES/RUNS/M12_comp_tc/24/likelihoods/sSNRL_s1_s2.csv'
+        draw(self.ax1, self.ax3, fpath, c[0])
         print 'Method: SFH reconstruction'
-        fpath =  './../OUTPUT_FILES/RUNS/M12_comp/likelihoods/vespa_s1_s2.csv'
-        draw(self.ax1, self.ax2, fpath, c[1])
+        fpath =  './../OUTPUT_FILES/RUNS/M12_comp_tc/24/likelihoods/vespa_s1_s2.csv'
+        draw(self.ax1, self.ax3, fpath, c[1])
+
+
 
     def add_legend(self):
         self.ax1.plot([np.nan], [np.nan], color=c[0], ls='-', lw=15., alpha=0.5,
-                      marker='None', label=r'$sSNR_L$')
+                      marker='None', label=r'CL')
         self.ax1.plot([np.nan], [np.nan], color=c[1], ls='-', lw=15., alpha=0.5,
-                      marker='None', label=r'VESPA (direct)')
+                      marker='None', label=r'SFHR')
 
         handles, labels = self.ax1.get_legend_handles_labels()                             
         self.ax1.legend(
           handles[::-1], labels[::-1], frameon=False, fontsize=fs, numpoints=1,
           ncol=1, loc=1)  
+
+        self.ax2.plot([np.nan], [np.nan], color='w', label=r'$t_{\rm{c}}=0.42\,$Gyr')
+        self.ax2.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1, loc=1)  
+
+        self.ax3.plot([np.nan], [np.nan], color='w', label=r'$t_{\rm{c}}=2.4\,$Gyr')
+        self.ax3.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1, loc=1)  
 
     def manage_output(self):
         if self.save_fig:

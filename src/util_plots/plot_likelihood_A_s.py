@@ -54,7 +54,7 @@ class Plot_As(object):
 
         #Initialize output file with the best fit.
         fpath = self._inputs.subdir_fullpath + 'likelihoods/Best_A_s.csv'
-        header = 'Method,A,A_unc_low,A_unc_high,s,s_unc_low,s_unc_high'
+        header = 'Method,A,A_unc_high,A_unc_low,s,s_unc_high,s_unc_low'
         self.out = stats.Write_Outpars(fpath, header)
 
         self.run_plot()

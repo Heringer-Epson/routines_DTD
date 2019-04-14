@@ -2,7 +2,7 @@
 
 import itertools
 from input_params import Input_Parameters as class_input
-from acquire_hosts import Acquire_Hosts
+from collect_data import Collect_Data
 from process_data import Process_Data
 from fit_RS import Fit_RS
 from compute_likelihood import Get_Likelihood
@@ -51,7 +51,7 @@ class Master(object):
         Utility_Routines(self.inputs)
             
         if self.data_flag:
-            Acquire_Hosts(self.inputs)
+            Collect_Data(self.inputs)
             Process_Data(self.inputs)
             Fit_RS(self.inputs)
         if self.likelihood_flag:
@@ -62,26 +62,36 @@ class Master(object):
         Write_Record(self.inputs)
             
 if __name__ == '__main__':
-    pd = True
-    lf = True
+    pd = False
+    lf = False
     pf = True
 
-    Master(case='default_test', data_flag=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()  
+    Master(case='M12', data_flag=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master() 
+    #Master(case='default', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master() 
 
-    '''
-    Master(case='default', data_flag=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()  
-    Master(case='default_40', data_flag=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master() 
-    Master(case='M12_comp', data_flag=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master() 
-    Master(case='H17_updated_model', data_flag=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master() 
+    #Master(case='M12_zlimited', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master() 
+
+    #Master(case='M12_comp', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master() 
+           
+    #Master(case='M12', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master()  
+    #Master(case='default_40', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master() 
+    #Master(case='M12_comp', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master() 
+           
+    #Needs to be fixed.
+    #Master(case='H17_updated_model', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master() 
 
 
 
     #Individual tests.
+    '''
     Master(case='H17', data_flag=pd,
            likelihood_flag=lf, plots_flag=pf).run_master()
     Master(case='M12', data_flag=pd,
@@ -91,8 +101,17 @@ if __name__ == '__main__':
     Master(case='H17_interpolation', data_flag=pd,
            likelihood_flag=lf, plots_flag=pf).run_master()           
     Master(case='H17_Table', data_flag=pd,
-           likelihood_flag=lf, plots_flag=pf).run_master()    
+           likelihood_flag=lf, plots_flag=pf).run_master()   
+    '''
 
+
+    #Master(
+    #  case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+    #  custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'2','BASEL','PADOVA')).run_master()    
+    #Master(
+    #  case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+    #  custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'1','BASEL','PADOVA')).run_master()    
+    '''
     #Series of runs to analyse systematic uncertainties. Those use
     #fiducial parameters of 'H17', 'S18' (z)SN Ia and redshit_max=0.2.
     Master(
@@ -134,7 +153,8 @@ if __name__ == '__main__':
     Master(
       case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'MILES','PADOVA')).run_master()     
-
+    '''
+    '''
     #RUN several simulations for a suite of relevant parameters.
     ctrl = ['H17', 'M12']
     SN = ['native', 'S18']
@@ -143,10 +163,23 @@ if __name__ == '__main__':
     
     all_cases = list(itertools.product(ctrl, SN, SN_type, z))
     
-    for i, _pars in enumerate([all_cases[0]]):
+    for i, _pars in enumerate(all_cases):
         print 'Running simulation ' + str(i + 1) + '/' + str(len(all_cases))
-        print _pars
-        Master(case='custom', data_flag=pd,
+        Master(case='datasets', data_flag=pd,
                likelihood_flag=lf, plots_flag=pf, custom_pars=_pars
                ).run_master()    
+    '''
+    '''
+    #Run several datasets (no likelihoods needed) for understanding number of hosts.
+    ctrl = ['H17', 'M12']
+    SN = ['H17', 'M12', 'S18']
+    matching = ['View', 'Table']
+    PC = [True, False]
+    
+    all_cases = list(itertools.product(ctrl, SN, matching, PC))
+    for i, _pars in enumerate(all_cases):
+        print 'Running simulation ' + str(i + 1) + '/' + str(len(all_cases))
+        Master(
+          case='hosts', data_flag=True, likelihood_flag=False, plots_flag=False,
+          custom_pars=_pars).run_master()    
     '''

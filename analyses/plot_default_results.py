@@ -75,11 +75,11 @@ class Make_Fig(object):
         plt.subplots_adjust(left=0.1, bottom=0.135, right=0.95, top=0.95,
                             wspace=0.3)
                                     
-        xlabel = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}\ M_\odot^{-1}]}$'
+        xlabel = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[yr^{-1}\ M_\odot^{-1}]}$'
         self.ax1.set_xlabel(xlabel, fontsize=fs + 4)
         self.ax1.set_ylabel(r'$s=s_1=s_2$', fontsize=fs + 4)
-        self.ax1.set_xlim(-12.4,-11.8)
-        self.ax1.set_ylim(-1.9,-1.)
+        self.ax1.set_xlim(-12.6,-11.8)
+        self.ax1.set_ylim(-1.9,-.9)
         self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax1.tick_params('both', length=12, width=2., which='major',
@@ -109,8 +109,8 @@ class Make_Fig(object):
         self.ax2.plot([-3., 0.], [-3., 0.], ls='--', c='k', lw=1.)
 
     def add_contours(self):
-        fpath =  './../OUTPUT_FILES/RUNS/default/likelihoods/sSNRL_s1_s2.csv'
-        draw(self.fig, self.ax1, self.ax2, fpath, 'dimgray')
+        fpath =  './../OUTPUT_FILES/RUNS/default/standard/likelihoods/sSNRL_s1_s2.csv'
+        draw(self.fig, self.ax1, self.ax2, fpath, '#1b9e77')
 
     def manage_output(self):
         if self.save_fig:

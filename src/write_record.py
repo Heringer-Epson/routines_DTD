@@ -130,13 +130,11 @@ class Write_Record(object):
         df = pd.read_csv(fpath, header=0, dtype=self.data_type, low_memory=False)
         f1, f2 = self._inputs.filter_1, self._inputs.filter_2
         Dcolor = df['Dcolor_' + f2 + f1].values
-        Dcolor_cond = ((Dcolor >= self._inputs.Dcolor_min)
-                       & (Dcolor <= 2. * RS_std))        
-
-        df = df[Dcolor_cond]
         count_objs(df, fpath, 'Dcolor trimmed', self._inputs.host_class, self.out)
-        self.out.write('Criterion: ' + str(self._inputs.Dcolor_min) + ' <= '\
-                       + 'Dcolor(' + f2 + '-' + f1 + ') <= ' + str(2. * RS_std))
+        
+        if self._inputs.data_Drange == 'limited':
+            self.out.write('Criterion: ' + str(self._inputs.Dcolor_min) + ' <= '\
+                           + 'Dcolor(' + f2 + '-' + f1 + ') <= ' + str(2. * RS_std))
         self.out.write('\n\n\n')
         
     def run_record(self):

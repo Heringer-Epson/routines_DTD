@@ -14,7 +14,7 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-t_onset = ['40', '70', '100']
+t_onset = ['40', '60', '100']
 ls = ['--', '-.', ':']
 c = ['#e41a1c', '#377eb8', '#4daf4a']
 fs = 32.
@@ -88,7 +88,7 @@ class DTD_Approximations(object):
     def set_fig_frame(self):
         x_label = r'Delay Time [Gyr]'
         y_label = (r'$\langle \psi \rangle \,\,\,\, \mathrm{[10^{-10}'
-                   + ' \, SN\ yr^{-1}\ M_\odot^{-1}]}$')
+                   + ' \, yr^{-1}\ M_\odot^{-1}]}$')
         
         self.ax1.set_xlabel(x_label, fontsize=fs)
         self.ax1.set_ylabel(y_label, fontsize=fs)
@@ -105,15 +105,13 @@ class DTD_Approximations(object):
         self.ax1.xaxis.set_ticks_position('both')
         self.ax1.yaxis.set_ticks_position('both')
 
-        x_label = (r'$\mathrm{log}\, A\,\,\,\, \mathrm{[SN\ yr^{-1}'
+        x_label = (r'$\mathrm{log}\, A\,\,\,\, \mathrm{[yr^{-1}'
                    + '\ M_\odot^{-1}]}$')
         y_label = r'$s$'
         self.ax2.set_xlabel(x_label, fontsize=fs)
         self.ax2.set_ylabel(y_label, fontsize=fs)
         self.ax2.set_xlim(-12.05, -11.8)
         self.ax2.set_ylim(-1.1, -0.9)
-        #self.ax2.set_xlim(-12.1, -11.55)
-        #self.ax2.set_ylim(-1.2, -0.8)
         self.ax2.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax2.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax2.tick_params(

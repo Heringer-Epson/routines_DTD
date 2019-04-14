@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+#Add comments %EH note, to be checked.
+#We take petromag from sdss (fact). This petromag is converted to AB maggies when computing KCorrection (IF petromag is the default input). Now, are the Kcorrected magnitudes in AB or petro? The predicted model rates are for SDSS bands in the FSPS list, which are AB mags.
+#See:
+#Kcorrect routine sdss_to_maggies: https://cosmo.nyu.edu/blanton/kcorrect/kcorrect_help.html#SDSS_TO_MAGGIES
+#Kcorrect routine SDSS_KCORRECT: https://cosmo.nyu.edu/blanton/kcorrect/kcorrect_help.html#SDSS_TO_MAGGIES
+#FSPS note: http://dfm.io/python-fsps/current/stellarpop_api/
+
 import os, sys
 import numpy as np
 import pandas as pd
@@ -103,7 +110,8 @@ class Process_Data(object):
     def read_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_merged.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False, dtype='str')
-        keys_str = ['CID', 'IAUName', 'Classification', 'objID', 'specobjID', 'is_host', 'zErr']
+        keys_str = ['CID', 'IAUName', 'Classification', 'objID', 'specobjID',
+                    'is_host', 'zErr', 'subtype']
         for key in self.df.keys():
             if key not in keys_str:
                 self.df[key] = self.df[key].astype(float) 
@@ -129,7 +137,7 @@ class Process_Data(object):
         if self._inputs.matching is not 'File':
             ra = self.df['ra'].values
             ra_neg, ra_pos = ra[(ra > 200.)] - 360., ra[(ra < 200.)]
-            #print 'dec', min(self.df['dec'].values), max(self.df['dec'].values)
+            print 'dec', min(self.df['dec'].values), max(self.df['dec'].values)
             #print 'ra', min(ra_neg), max(ra_pos)
             self.df = self.df[(self.df['ra'] > self._inputs.ra_min)
                               | (self.df['ra'] < self._inputs.ra_max)]

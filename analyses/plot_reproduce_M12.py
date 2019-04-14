@@ -12,9 +12,11 @@ import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
 from scipy.optimize import curve_fit
-
-from SN_rate import Model_Rates
 import stats
+
+
+sys.path.append(os.path.join(os.environ['PATH_ssnarl'], 'src'))
+from SN_rate import Model_Rates
 
 from scipy.odr import *
 
@@ -135,7 +137,7 @@ class Plot_M12(object):
         self.hosts = df['is_host'].values        
 
     def get_likelihoods(self):
-        n_cells = 50
+        n_cells = 20
         r1 = np.logspace(-12, -11, n_cells)
         r2 = np.logspace(-13, -12, n_cells)
         r3 = np.logspace(-14, -13, n_cells)
