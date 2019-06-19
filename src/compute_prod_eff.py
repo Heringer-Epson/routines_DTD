@@ -9,7 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 import stats
 
 def v2str(v):
-    return str(format(v, '.4f'))
+    return str(format(v, '.3f'))
 
 def calculate_PE(_A,_s,_to):
     return _A / (_s + 1.) * (13.7**(_s + 1.) - _to**(_s + 1.)) * 1.e9
@@ -45,7 +45,7 @@ class Get_Prodeff(object):
     """       
     def __init__(self, _inputs):
         to = _inputs.t_onset.to(u.Gyr).value
-        add_vespa = 'M12' in _inputs.case.split('_')
+        add_vespa = 'M12' in _inputs.data_dir.split('/')       
         out = open(
           _inputs.subdir_fullpath + 'likelihoods/production_eff.csv', 'w')
         out.write('method,PE,PE_unc_high,PE_unc_low')

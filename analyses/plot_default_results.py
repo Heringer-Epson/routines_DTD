@@ -78,8 +78,8 @@ class Make_Fig(object):
         xlabel = r'$\mathrm{log}\, A\,\,\,\, \mathrm{[yr^{-1}\ M_\odot^{-1}]}$'
         self.ax1.set_xlabel(xlabel, fontsize=fs + 4)
         self.ax1.set_ylabel(r'$s=s_1=s_2$', fontsize=fs + 4)
-        self.ax1.set_xlim(-12.6,-11.8)
-        self.ax1.set_ylim(-1.9,-.9)
+        self.ax1.set_xlim(-12.7,-11.9)
+        self.ax1.set_ylim(-1.7,-0.9)
         self.ax1.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.ax1.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax1.tick_params('both', length=12, width=2., which='major',

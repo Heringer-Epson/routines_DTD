@@ -36,14 +36,6 @@ class Utility_Routines(object):
               'Variable tau_list must contain 1 Gyr for a Dcolor limit to be '
               'compute. This value was added to the passed list.')
             warnings.warn(warning_msg)
-        if (self._inputs.filter_1 is not 'r' or
-            self._inputs.filter_2 is not 'g'):
-            warning_msg = (
-              'The observational data is currently only available in the '\
-              'g-r color and therefore likelihoods cannot be computed for the '\
-              'choice of "%s"-"%s"'\
-              %(self._inputs.filter_2, self._inputs.filter_1))            
-            warnings.warn(warning_msg)
 
     def initialize_outfolder(self):
         """Create the directory if it doesn't already exist and dd a copy of

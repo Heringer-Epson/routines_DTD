@@ -92,21 +92,22 @@ def compute_L_from_DTDs(_s1, _s2, _t0, _tc, mass1, mass2, mass3, redshift,
         correction_factor = np.multiply(vistime,detect_eff)
         rate = np.multiply(rate,correction_factor)
         
+
     _N_expected = np.sum(rate)
     _A = N_obs / _N_expected
+
     _lambda = np.log(_A * rate[host_cond])
     _ln_L = - N_obs + np.sum(_lambda)
     return _A, _ln_L
 
-def mag2lum(mag):
-    return 10.**(-0.4 * (mag - 4.65))
+def mag2lum(mag, sunmag):
+    return 10.**(-0.4 * (mag - sunmag))
 
 def compute_L_using_sSNRL(sSNRL, Dcolor, absmag, redshift,
-                          host_cond, N_obs, visibility_flag):
+                          host_cond, N_obs, visibility_flag, sunmag):
 
     def get_SN_rate(sSNRL, _Dcolor, _absmag, _redshift):
-        L = mag2lum(_absmag)
-        #L = 10.**(-0.4 * (_absmag - 4.65))
+        L = mag2lum(_absmag, sunmag)
         SNR = np.multiply(sSNRL,L)
         if visibility_flag:
             vistime = survey_efficiency.visibility_time(_redshift) 
@@ -125,7 +126,6 @@ def compute_L_using_sSNRL(sSNRL, Dcolor, absmag, redshift,
     _A = N_obs / _N_expected
     _lambda = np.log(_A * SNR_host)
     _ln_L = - N_obs + np.sum(_lambda)
-
     return _A, _ln_L
 
 #Tools for plotting likelihood contours.
@@ -139,7 +139,6 @@ def read_lnL(_fpath):
 def make_A_s_space(N_obs, s1, s2, A, ln_L):
     A_2D, s_2D, ln_L_2D = [], [], []
     cond = (abs(s1 - s2) < 1.e-6)
-    #A_target = np.logspace(-12.5, -10., len(s1[cond]))
     A_target = np.logspace(-13.5, -11.5, len(s1[cond]))
         
     for (_s,_A,_ln_L) in zip(s1[cond],A[cond],ln_L[cond]):
@@ -153,11 +152,7 @@ def make_A_s_space(N_obs, s1, s2, A, ln_L):
 def plot_contour(ax, x, y, z, c, nx, ny, label='', ao=0., ls=None, add_max=True):
     contour_list = [0.95, 0.68, 0.] 
     
-    
     z = clean_array(z)
-    #_x, _y = np.unique(x), np.unique(y)       
-    #X = x.reshape(len(_x),len(_y))
-    #Y = y.reshape(len(_x),len(_y))
     X = x.reshape(nx,ny)
     Y = y.reshape(nx,ny)
     qtty = z.reshape(nx,ny)
@@ -190,14 +185,14 @@ def plot_A_contours(ax, x, y, z):
     qtty = np.log10(z).reshape((len(_x), len(_y)))
     
     #Levels with labels.
-    levels = np.arange(-13.2,-11.599,0.2)
+    levels = np.arange(-13.,-11.599,0.2)
     CS = ax.contour(X, Y, qtty, levels, colors='k', linestyles=':', linewidths=1.)	 
     fmt = {}
     
     labels = []
     xx = -.35
     #manual = [(-.7, -.2), (xx, -0.55), (xx, -1.05), (xx, -1.5), (xx,-2.1)]
-    manual = [(-.9, -.2), (-.7, -0.3), (xx, -0.55), (xx, -0.7), (xx, -1.05),
+    manual = [(-.9, -0.3), (xx, -0.55), (xx, -0.7), (xx, -1.05),
               (xx, -1.2), (xx, -1.5), (xx, -1.7), (xx, -2.1)]
     
     for i, l in enumerate(levels):

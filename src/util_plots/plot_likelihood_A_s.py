@@ -50,7 +50,7 @@ class Plot_As(object):
 
         self.fig = plt.figure(figsize=(10,10))
         self.ax = self.fig.add_subplot(111)
-        self.add_vespa = 'M12' in self._inputs.case.split('_')       
+        self.add_vespa = 'M12' in self._inputs.data_dir.split('/')       
 
         #Initialize output file with the best fit.
         fpath = self._inputs.subdir_fullpath + 'likelihoods/Best_A_s.csv'

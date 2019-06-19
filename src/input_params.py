@@ -118,13 +118,15 @@ class Input_Parameters(object):
     t_cutoff : ~astropy float (unit of time)
         Sets the time at which the slope of the DTD may change. Determined by
         theoretical models. Default is 1.*u.Gyr.
-    filter_1 : ~str
+    filter_2 : ~str
         filter_1 and filter_2 determine the color to be used as
         (filter_2 - filter_1). A list of available filters can be shown by
         calling fsps.list_filters() under run_fsps.py. Only g and r are
-        currently supported. Default is 'r'.
-    filter_2 : ~str
-        Same as above. Default is 'g'.
+        currently supported. Default is 'g'.
+    filter_1 : ~str
+        Same as above. Default is 'r'.
+    filter_0 : ~str
+        The band used to for the luminosity unit. Default is 'r'.
     spec_lib : ~str
         Which spectral library to be used for FSPS simulations. Options are
         'BASEL' or 'MILES', depending on the availability of FSPS files.
@@ -137,12 +139,6 @@ class Input_Parameters(object):
         Fraction of blue horizontal branch stars. Options are 0.0 and 0.2, 
         depending on the availability of FSPS files. Default is 0.0.
   
-    slope_guess : float
-        Initial slope guess for fitting the slope of the red sequence.
-        Default is -0.0188 (for filter_1='r' and filter_2='g'; based on H17).
-    intercept_guess : float
-        Initial intercept guess for fitting the slope of the red sequence.
-        Default is 0.346 (for filter_1='r' and filter_2='g'; based on H17).
     Dcolor_range : list
         Used to fit the red sequence only. Determines the Dcolor range of the
         red sequence that is to be fitted, so that the shape of the histogram
@@ -205,13 +201,13 @@ class Input_Parameters(object):
       data_Drange='full', model_Drange='extended',
       ra_min=309., ra_max=57., dec_min=-1.25, dec_max=1.25, redshift_min=0.01,
       redshift_max=0.2, petroMag_u_min=-1000., petroMag_u_max=1000.,
-      petroMag_g_min=-1000., petroMag_g_max=22.2, ext_r_min=14.,
-      ext_r_max=17.77, uERR_max=1000., gERR_max=0.05, rERR_max=0.05,
+      petroMag_g_min=-1000., petroMag_g_max=1000., ext_r_min=-1000.,
+      ext_r_max=1000., uERR_max=1000., gERR_max=0.1, rERR_max=0.1,
       Dcolor_min=None,  
       Z='0.0190', imf_type='Kroupa', sfh_type='exponential', t_onset=.1*u.Gyr,
-      t_cutoff=1.*u.Gyr, filter_1='r', filter_2='g', spec_lib='BASEL',
+      t_cutoff=1.*u.Gyr, filter_2='g', filter_1='r', filter_0='r', spec_lib='BASEL',
       isoc_lib='PADOVA', fbhb=0.0, dust='0',
-      slope_guess=-0.0188, intercept_guess=0.346, Dcolor_range=[-0.08, .1],
+      Dcolor_range=[-0.08, .1],
       bin_size=0.005, bin_range=[-.8, .4],
       visibility_flag=True,
       tau_list=np.array([1., 1.5, 2., 3., 4., 5., 7., 10.]) * u.Gyr,
@@ -253,17 +249,15 @@ class Input_Parameters(object):
         self.sfh_type = sfh_type
         self.t_onset = t_onset
         self.t_cutoff = t_cutoff
-        self.filter_1 = filter_1
         self.filter_2 = filter_2
+        self.filter_1 = filter_1
+        self.filter_0 = filter_0
         self.spec_lib = spec_lib
         self.isoc_lib = isoc_lib
         self.fbhb = fbhb
         self.dust = dust
 
         #Red sequence fitting parameters
-        ##self.x_ref = 0. #Not used at all?
-        self.slope_guess = slope_guess
-        self.intercept_guess = intercept_guess 
         self.Dcolor_range = Dcolor_range
         self.bin_size = bin_size
         self.bin_range = bin_range
@@ -272,8 +266,8 @@ class Input_Parameters(object):
         self.visibility_flag = visibility_flag 
         self.tau_list = tau_list   
         self.slopes = slopes
-        #self.slopes = np.arange(-3., 0.0001, 0.01) #Coarse for testing.        
-        self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.        
+        self.slopes = np.arange(-3., 0.0001, 0.01) #Coarse for testing.        
+        #self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.        
         
         self.custom_pars = custom_pars
         self.show_fig = show_fig
@@ -298,6 +292,12 @@ class Input_Parameters(object):
             self.t_onset = 1.e8 * u.yr
             self.kcorr_type = 'simple'
             self.ra_min, self.ra_max = 360. - 60., 60.
+            self.petroMag_g_max=22.2
+            self.ext_r_min=14.
+            self.ext_r_max=17.77
+            self.gERR_max=0.05
+            self.rERR_max=0.05
+
             self.visibility_flag = False
             self.hosts_from_2004 = True
             self.host_peculiar = True
@@ -305,63 +305,139 @@ class Input_Parameters(object):
             self.model_Drange = 'reduced'
             self.Dcolor_min = -0.4
 
+        #=-=-=-=-=-=-=-=-=-=-=-=-Sample size tests=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.case == 'M12': #Same data set as in Maoz+ 2012.  
+            subdir = 'M12/original/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'M12'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.kcorr_type = 'none'
+            self.t_onset = 40.e6 * u.yr
+            self.redshift_min, self.redshift_max = 0., 0.4
+            self.gERR_max = 1000.
+            self.rERR_max = 1000.
+
+        elif self.case == 'M12_zlim': #Same data set as in Maoz+ 2012.  
+            subdir = 'M12/zlim/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'M12'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.kcorr_type = 'none'
+            self.t_onset = 40.e6 * u.yr
+            self.gERR_max = 1000.
+            self.rERR_max = 1000.
+
+        elif self.case == 'M12_zunclim': #Same data set as in Maoz+ 2012.  
+            subdir = 'M12/zunclim/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'M12'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.kcorr_type = 'none'
+            self.t_onset = 40.e6 * u.yr
+
+        elif self.case == 'M12_zunclim_S18': #Same data set as in Maoz+ 2012.  
+            subdir = 'M12/zunclim_S18/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'S18'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.kcorr_type = 'none'
+            self.t_onset = 40.e6 * u.yr
+
+        elif self.case == 'M12_zunclim_S18': #Same data set as in Maoz+ 2012.  
+            subdir = 'M12/zunclim_S18/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'S18'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.kcorr_type = 'none'
+            self.t_onset = 40.e6 * u.yr
+
+        elif self.case == 'M12_zunclim_S18pec': #Same data set as in Maoz+ 2012.  
+            subdir = 'M12/zunclim_S18pec/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'S18'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.kcorr_type = 'none'
+            self.t_onset = 40.e6 * u.yr
+            self.host_peculiar = True
+
+        elif self.case == 'M12_zunclim_S18SNIa': #Same data set as in Maoz+ 2012.  
+            subdir = 'M12/zunclim_S18SNIa/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'S18'
+            self.host_class = ['SNIa']
+            self.kcorr_type = 'none'
+            self.t_onset = 40.e6 * u.yr
+
+        #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         elif self.case == 'default':  
             subdir = 'default/standard/'  
-            self.matching = 'View'
-            self.data_dir = './../INPUT_FILES/H17/'
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
             self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
 
-        elif self.case == 'default_nog':  
-            #Check how many galaxies are being excluded by the g limit of 22.2
-            subdir = 'default/standard_nog/'  
-            self.matching = 'View'
-            self.data_dir = './../INPUT_FILES/H17/'
+        #For SN counting only.
+        elif self.case == 'default_pechost':  
+            subdir = 'default/standard_pechost/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
             self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
-            self.petroMag_g_max = 1000.
+            self.host_peculiar = True
 
-        elif self.case == 'default_40': #Same data set as in Maoz+ 2012.  
-            subdir = 'default/standard_40/' 
-            self.matching = 'View'
-            self.data_dir = './../INPUT_FILES/H17/'
+        #For SN counting only.
+        elif self.case == 'default_nozSNIa':  
+            subdir = 'default/standard_nozSNIa/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'S18'
+            self.host_class = ['SNIa']
+
+        elif self.case == 'default_40':  
+            subdir = 'default/standard_40/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
             self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
             self.t_onset = 40.e6 * u.yr
 
-        elif self.case == 'M12_comp': #Same data set as in Maoz+ 2012.  
-            #All we want here is M12 dataset with photometry cuts from H17. All rest
-            #is standard, aside from tonset being 40 Myr.
-            subdir = 'M12_comp/'  
+        elif self.case == 'default_40_24':  
+            subdir = 'default/standard_40_24/'  
             self.matching = 'Table'
             self.data_dir = './../INPUT_FILES/M12/'
-            self.hosts_from = 'M12'
-            self.host_class = ['SNIa', 'zSNIa']
-            self.t_onset = 40.e6 * u.yr
-
-        elif self.case == 'M12_comp_24': #Same data set as in Maoz+ 2012.  
-            #All we want here is M12 dataset with photometry cuts from H17. All rest
-            #is standard, aside from tonset being 40 Myr.
-            #subdir = 'M12_comp/'  
-            subdir = 'M12_comp_tc/24/'  
-            self.matching = 'Table'
-            self.data_dir = './../INPUT_FILES/M12/'
-            self.hosts_from = 'M12'
+            self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
             self.t_onset = 40.e6 * u.yr
             self.t_cutoff = 2.4 * u.Gyr
-
-        elif self.case == 'M12_comp_042': #Same data set as in Maoz+ 2012.  
-            #All we want here is M12 dataset with photometry cuts from H17. All rest
-            #is standard, aside from tonset being 40 Myr.
-            #subdir = 'M12_comp/'  
-            subdir = 'M12_comp_tc/042/'  
+            
+        elif self.case == 'default_40_042':  
+            subdir = 'default/standard_40_042/'  
             self.matching = 'Table'
             self.data_dir = './../INPUT_FILES/M12/'
-            self.hosts_from = 'M12'
+            self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
             self.t_onset = 40.e6 * u.yr
             self.t_cutoff = 0.42 * u.Gyr
+
+        elif self.case == 'default_test':  
+            subdir = 'default/standard_test/'  
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
+            self.hosts_from = 'S18'
+            self.host_class = ['SNIa', 'zSNIa']
+            self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
+            self.filter_1 = 'i'        
+            self.filter_0 = 'r'     
+
+        #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         elif self.case == 'H17_updated_model':
             #Same data set as in Heringer+ 2017, but updated methods.
@@ -396,50 +472,6 @@ class Input_Parameters(object):
             self.hosts_from_2004 = True
             self.data_Drange = 'limited'
             self.model_Drange = 'extended'
-
-        #=-=-=-=-=-=-=-=-=-=-=-=-=-=-= M12 tests =-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-
-        elif self.case == 'M12': #Same data set as in Maoz+ 2012.  
-            subdir = 'M12/'  
-            self.matching = 'Table'
-            self.data_dir = './../INPUT_FILES/M12/'
-            self.hosts_from = 'M12'
-            self.host_class = ['SNIa', 'zSNIa']
-            self.kcorr_type = 'none'
-            self.t_onset = 40.e6 * u.yr
-            self.redshift_min, self.redshift_max = 0., 0.4
-            self.petroMag_g_min, self.petroMag_g_max = -1000., 1000.
-            self.ext_r_min, self.ext_r_max = -1000., 1000.
-            self.gERR_max = 1000.
-            self.rERR_max = 1000.
-
-        elif self.case == 'M12_rlimited': #Same data set as in Maoz+ 2012.  
-            subdir = 'M12_rlimited/'  
-            self.matching = 'Table'
-            self.data_dir = './../INPUT_FILES/M12/'
-            self.hosts_from = 'M12'
-            self.host_class = ['SNIa', 'zSNIa']
-            self.kcorr_type = 'none'
-            self.t_onset = 40.e6 * u.yr
-            self.redshift_min, self.redshift_max = 0., 0.4
-            self.petroMag_g_min, self.petroMag_g_max = -1000., 1000.
-            #self.ext_r_min, self.ext_r_max = -1000., 1000.
-            self.gERR_max = 1000.
-            self.rERR_max = 1000.
-       
-        elif self.case == 'M12_zlimited': #Same data set as in Maoz+ 2012.  
-            subdir = 'M12_zlimited/'  
-            self.matching = 'Table'
-            self.data_dir = './../INPUT_FILES/M12/'
-            self.hosts_from = 'M12'
-            self.host_class = ['SNIa', 'zSNIa']
-            self.kcorr_type = 'none'
-            self.t_onset = 40.e6 * u.yr
-            #self.redshift_min, self.redshift_max = 0., 0.4
-            self.petroMag_g_min, self.petroMag_g_max = -1000., 1000.
-            self.ext_r_min, self.ext_r_max = -1000., 1000.
-            self.gERR_max = 1000.
-            self.rERR_max = 1000.
             
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= CUSTOM =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         #Uses all default parameters, except those specifiec here.
@@ -465,7 +497,7 @@ class Input_Parameters(object):
 
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-= SYSTEMATICS =-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.case == 'sys':
-            Q, t_o, t_c, sfh, imf, Z, fbhb, dust, spec_lib, isoc_lib =\
+            Q, t_o, t_c, sfh, imf, Z, fbhb, dust, spec_lib, isoc_lib, f2, f1, f0 =\
               self.custom_pars
 
             self.Q = float(Q)
@@ -478,16 +510,20 @@ class Input_Parameters(object):
             self.dust = dust
             self.t_cutoff = float(t_c) * u.Gyr
             self.t_onset = float(t_o) * u.Myr
+            self.filter_2 = f2        
+            self.filter_1 = f1        
+            self.filter_0 = f0   
 
             #Default parameters for the analysis of systematic uncertainties. 
-            self.data_dir = './../INPUT_FILES/H17/'
+            self.matching = 'Table'
+            self.data_dir = './../INPUT_FILES/M12/'
             self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
-            self.matching = 'View'
 
             subdir = (
               'sys/' + imf + '_' + sfh + '_' + Z + '_' + str(fbhb) + '_' + dust + '_'
-              + isoc_lib + '_' + spec_lib + '_' + t_o + '_' + t_c + '_' + Q + '/')        
+              + isoc_lib + '_' + spec_lib + '_' + t_o + '_' + t_c + '_' + Q
+              + '_' + f2 + f1 + f0 + '/')        
 
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-= HOST CUSTOM =-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         #Similar to above, but this will not apply the default photometry cuts.

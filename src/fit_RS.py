@@ -59,7 +59,16 @@ class Fit_RS(object):
     def remove_nonRS(self):
         """Rough color cut to remove objects that clearly do not belong to
         the RS. This prevents the fit being skewed towards these galaxies."""
-        trim_cond = ((self.y_data > 0.6) & (self.y_data < 1.1))
+        if self._inputs.filter_2 == 'g' and self._inputs.filter_1 == 'r':
+            trim_cond = ((self.y_data > 0.6) & (self.y_data < 1.1))
+            self.slope_guess, self.intercept_guess=-0.0188, 0.346 #From paper I.
+        elif self._inputs.filter_2 == 'g' and self._inputs.filter_1 == 'i':
+            trim_cond = ((self.y_data > 0.8) & (self.y_data < 1.3))
+            self.slope_guess, self.intercept_guess=-0.0188, 0.65 #From paper I.
+        else:
+            raise ValueError('Red seqeunce fitting parameters for the choice '
+                              + 'of filters not implemented.')
+        
         rej_cond = np.logical_not(trim_cond)
         
         #For plotting purposes only.
@@ -89,8 +98,7 @@ class Fit_RS(object):
         
         #Use guess--if the first fit were poor, RS galaxies could be rejected.
         counter = 1
-        guess_func = np.poly1d([self._inputs.slope_guess,
-                                self._inputs.intercept_guess])
+        guess_func = np.poly1d([self.slope_guess,self.intercept_guess])
         
         acc_cond = self.compute_std(self.x_data, self.y_data, guess_func)
         new_x, new_y = self.x_data[acc_cond], self.y_data[acc_cond]

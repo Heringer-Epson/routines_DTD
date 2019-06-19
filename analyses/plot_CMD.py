@@ -9,13 +9,13 @@ from matplotlib.ticker import MultipleLocator
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
-fs = 38.
+fs = 36.
 c = ['#fdae61', '#3288bd']
 
-left, width = 0.13, 0.62
+left, width = 0.14, 0.58
 bottom, height = 0.13, 0.62
 bottom_h = left_h = left + width + 0.02
-x_range, y_range = (-0.55,.15), (-23.5,-17.5)
+x_range, y_range = (-0.65,.15), (-23.5,-17.)
 
 rect_scatter = [left, bottom, width, height]
 rect_histx = [left, bottom_h, width, 0.2]
@@ -59,7 +59,7 @@ class Plot_CMD(object):
         hist_label = r'Count'
         
         self.ax.set_xlabel(x_label, fontsize=fs)
-        self.ax.set_ylabel(y1_label, labelpad=-8., fontsize=fs)
+        self.ax.set_ylabel(y1_label, labelpad=0., fontsize=fs)
         self.ax.set_xlim(x_range[0], x_range[1])
         self.ax.set_ylim(y_range[0], y_range[1])
         self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
@@ -69,36 +69,36 @@ class Plot_CMD(object):
         self.ax.tick_params('both', length=6, width=2., which='minor',
                              direction='in', right=True, top=True) 
         self.ax.xaxis.set_minor_locator(MultipleLocator(.05))
-        self.ax.xaxis.set_major_locator(MultipleLocator(.1))
+        self.ax.xaxis.set_major_locator(MultipleLocator(.2))
         self.ax.yaxis.set_minor_locator(MultipleLocator(.5))
-        self.ax.yaxis.set_major_locator(MultipleLocator(1.))  
+        self.ax.yaxis.set_major_locator(MultipleLocator(2.))  
     
-        self.axx.set_ylabel(hist_label, labelpad=-15., fontsize=fs)
-        self.axx.set_ylim(0., 1100.)
+        self.axx.set_ylabel(hist_label, labelpad=0., fontsize=fs)
+        self.axx.set_ylim(0., 2100.)
         self.axx.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.axx.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.axx.tick_params('both', length=12, width=2., which='major',
                              direction='in', right=True, top=True)
         self.axx.tick_params('both', length=6, width=2., which='minor',
                              direction='in', right=True, top=True)   
-        self.axx.yaxis.set_minor_locator(MultipleLocator(100.))
-        self.axx.yaxis.set_major_locator(MultipleLocator(500.))  
+        self.axx.yaxis.set_minor_locator(MultipleLocator(500.))
+        self.axx.yaxis.set_major_locator(MultipleLocator(1000.))  
         plt.setp(self.axx.get_xticklabels(), visible=False)
 
         self.axy.set_xlabel(hist_label, fontsize=fs)
-        self.axy.set_xlim(0., 1100.)
+        self.axy.set_xlim(0., 2100.)
         self.axy.tick_params(axis='y', which='major', labelsize=fs, pad=8)      
         self.axy.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.axy.tick_params('both', length=12, width=2., which='major',
                              direction='in', right=True, top=True)
         self.axy.tick_params('both', length=6, width=2., which='minor',
                              direction='in', right=True, top=True)   
-        self.axy.xaxis.set_minor_locator(MultipleLocator(100.))
-        self.axy.xaxis.set_major_locator(MultipleLocator(500.))  
+        self.axy.xaxis.set_minor_locator(MultipleLocator(500.))
+        self.axy.xaxis.set_major_locator(MultipleLocator(1000.))  
         plt.setp(self.axy.get_yticklabels(), visible=False)
 
     def retrieve_data(self):
-        fpath = './../OUTPUT_FILES/RUNS/default/data_Dcolor.csv'
+        fpath = './../OUTPUT_FILES/RUNS/default/standard/data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
     
     def plot_quantities(self):
@@ -107,13 +107,12 @@ class Plot_CMD(object):
         Dcolor = self.df['Dcolor_gr'].values
         r_abs = self.df['abs_r'].values
         hosts = self.df['is_host'].values
-                
         r_err = self.df['petroMagErr_g'].values
         Dcolor_err = np.sqrt(self.df['petroMagErr_g'].values**2.
                              + self.df['petroMagErr_r'].values**2.)
 
         #Draw CMD (on self.ax).
-        self.ax.plot(Dcolor, r_abs, ls='None', marker='o', markersize=2.7,
+        self.ax.plot(Dcolor, r_abs, ls='None', marker='o', markersize=2.,
                      markeredgecolor=c[0], color=c[0], zorder=1.)
 
         self.ax.errorbar(
@@ -146,7 +145,8 @@ class Plot_CMD(object):
           [np.nan], [np.nan], ls='-', marker='None', lw=15., color=c[1],
           label=r'Hosts $(\times\, 100)$')
         self.axx.legend(
-          frameon=False, fontsize=fs, labelspacing=.1, numpoints=1, loc=2)
+          frameon=False, fontsize=fs, labelspacing=.1, numpoints=1, loc=2,
+          handlelength=1.5, bbox_to_anchor=(0.,1.1))
 
     def manage_output(self):
         if self.save_fig:

@@ -94,7 +94,6 @@ class Make_FSPS(object):
         self.directory = (
           './../INPUT_FILES/fsps_FILES/' + self.imf_type + '_' + self.sfh_type
           + '_' + self.Z  + '_' + str(self.fbhb) + '_' + str(self.dust) + '_'
-          #+ '_' + self.Z  + '_' + str(self.fbhb) + '_'
           + self.spec_lib + '_' + self.isoc_lib + '/')
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)             
@@ -102,15 +101,14 @@ class Make_FSPS(object):
     def make_output(self, sp, fname):
         """Given a FSPS object (sp), write an output file."""
         header = ('log_age,instantaneous_sfr,integrated_stellar_mass,'\
-                  + 'integrated_formed_mass,' + self.filter_2 + ','\
-                  + self.filter_1)
+                  + 'integrated_formed_mass,u,g,r,i,z')
 
         #Data needs to be transposed, otherwise arrays are written as
         #lines rather than columns.
-        mag_1, mag_2 = zip(*sp.get_mags(
-          bands=['sdss_' + self.filter_1, 'sdss_' + self.filter_2]))
+        mag_u, mag_g, mag_r, mag_i, mag_z = zip(*sp.get_mags(
+          bands=['sdss_u', 'sdss_g', 'sdss_r', 'sdss_i', 'sdss_z']))
         out_data = (sp.log_age, sp.sfr, sp.stellar_mass, sp.formed_mass,
-          mag_2, mag_1)
+          mag_u, mag_g, mag_r, mag_i, mag_z)
         np.savetxt(self.directory + fname, np.transpose(out_data), header=header,
           delimiter=',')          
 
@@ -167,15 +165,11 @@ class Make_FSPS(object):
         
 if __name__ == '__main__':
     
+    #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, dust=0, spec_lib='BASEL', isoc_lib='PADOVA')
+    #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, dust=1, spec_lib='BASEL', isoc_lib='PADOVA')
+    #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, dust=2, spec_lib='BASEL', isoc_lib='PADOVA')
     
-    #Updated cosmology.
-    
-    #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
-    Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, dust=0, spec_lib='BASEL', isoc_lib='PADOVA')
-    Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, dust=1, spec_lib='BASEL', isoc_lib='PADOVA')
-    Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0190', fbhb=0.0, dust=2, spec_lib='BASEL', isoc_lib='PADOVA')
-    
-    #Make_FSPS(imf='Kroupa', sfh='delayed-exponential', Z='0.0190', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
+    Make_FSPS(imf='Kroupa', sfh='delayed-exponential', Z='0.0190', fbhb=0.0, dust=0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='delayed-exponential', Z='0.0150', dust=0, fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0096', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')
     #Make_FSPS(imf='Kroupa', sfh='exponential', Z='0.0150', fbhb=0.0, spec_lib='BASEL', isoc_lib='PADOVA')

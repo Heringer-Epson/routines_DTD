@@ -62,28 +62,36 @@ class Master(object):
         Write_Record(self.inputs)
             
 if __name__ == '__main__':
-    pd = False
-    lf = False
+    pd = True
+    lf = True
     pf = True
 
-    Master(case='M12', data_flag=pd,
+    #Master(case='default_test', data_flag=pd,
+    #       likelihood_flag=lf, plots_flag=pf).run_master() 
+
+    '''
+    Master(case='default', data_flag=pd,
            likelihood_flag=lf, plots_flag=pf).run_master() 
-    #Master(case='default', data_flag=pd,
-    #       likelihood_flag=lf, plots_flag=pf).run_master() 
+    Master(case='default_40', data_flag=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master() 
+    Master(case='default_40_24', data_flag=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master() 
+    Master(case='default_40_042', data_flag=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master() 
 
-    #Master(case='M12_zlimited', data_flag=pd,
-    #       likelihood_flag=lf, plots_flag=pf).run_master() 
-
+           
+    Master(case='M12', data_flag=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master()  
+    Master(case='default_40', data_flag=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master() 
+    '''
     #Master(case='M12_comp', data_flag=pd,
     #       likelihood_flag=lf, plots_flag=pf).run_master() 
-           
-    #Master(case='M12', data_flag=pd,
-    #       likelihood_flag=lf, plots_flag=pf).run_master()  
-    #Master(case='default_40', data_flag=pd,
+    #Master(case='M12_comp_24', data_flag=pd,
     #       likelihood_flag=lf, plots_flag=pf).run_master() 
-    #Master(case='M12_comp', data_flag=pd,
+    #Master(case='M12_comp_042', data_flag=pd,
     #       likelihood_flag=lf, plots_flag=pf).run_master() 
-           
+                      
     #Needs to be fixed.
     #Master(case='H17_updated_model', data_flag=pd,
     #       likelihood_flag=lf, plots_flag=pf).run_master() 
@@ -104,57 +112,78 @@ if __name__ == '__main__':
            likelihood_flag=lf, plots_flag=pf).run_master()   
     '''
 
-
-    #Master(
-    #  case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-    #  custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'2','BASEL','PADOVA')).run_master()    
-    #Master(
-    #  case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-    #  custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'1','BASEL','PADOVA')).run_master()    
-    '''
     #Series of runs to analyse systematic uncertainties. Those use
     #fiducial parameters of 'H17', 'S18' (z)SN Ia and redshit_max=0.2.
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('0.0', '100','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '40','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '70','1','exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()     
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','delayed-exponential','Kroupa','0.0190',0.0,'BASEL','PADOVA')).run_master()                                                           
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Chabrier','0.0190',0.0,'BASEL','PADOVA')).run_master()  
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Salpeter','0.0190',0.0,'BASEL','PADOVA')).run_master()  
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0150',0.0,'BASEL','PADOVA')).run_master()  
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0300',0.0,'BASEL','PADOVA')).run_master()  
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.1,'BASEL','PADOVA')).run_master()     
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.2,'BASEL','PADOVA')).run_master() 
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'BASEL','MIST')).run_master() 
-    Master(
-      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
-      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'MILES','PADOVA')).run_master()     
     '''
-    '''
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'i', 'r')).run_master()  
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'i', 'i')).run_master()  
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'2',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()    
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'1',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()    
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('0.0', '100','1','exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()     
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()     
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '40','1','exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()     
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '70','1','exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()     
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','delayed-exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()                                                           
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Chabrier','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()  
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Salpeter','0.0190',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()  
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0150',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()  
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0300',0.0,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()  
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.1,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master()     
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.2,'0',
+      'BASEL','PADOVA', 'g', 'r', 'r')).run_master() 
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'0',
+      'BASEL','MIST', 'g', 'r', 'r')).run_master() 
+    Master(
+      case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
+      custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'0',
+      'MILES','PADOVA', 'g', 'r', 'r')).run_master()     
+
     #RUN several simulations for a suite of relevant parameters.
     ctrl = ['H17', 'M12']
     SN = ['native', 'S18']
@@ -168,8 +197,7 @@ if __name__ == '__main__':
         Master(case='datasets', data_flag=pd,
                likelihood_flag=lf, plots_flag=pf, custom_pars=_pars
                ).run_master()    
-    '''
-    '''
+    
     #Run several datasets (no likelihoods needed) for understanding number of hosts.
     ctrl = ['H17', 'M12']
     SN = ['H17', 'M12', 'S18']
