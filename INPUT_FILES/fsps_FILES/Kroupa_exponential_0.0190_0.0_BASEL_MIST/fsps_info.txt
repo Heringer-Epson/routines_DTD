@@ -1,7 +1,0 @@
-Files created on: 23/11/2018
-FSPS version: 0.3.0
-Isochrones: mist
-Spectral library: basel
-IMF: Kroupa
-SFH: exponential
-Metallicity: 0.0190
