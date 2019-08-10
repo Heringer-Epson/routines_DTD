@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
-#from SN_rate_gen import Model_Rates
+
 from SN_rate import Model_Rates
+from build_fsps_model import Build_Fsps
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -157,9 +158,10 @@ class Make_Panels(object):
             
     def collect_data(self):
         for tau in self._taus:
-            tau_suffix = str(tau.to(u.yr).value / 1.e9)
+            TS = str(tau.to(u.yr).value / 1.e9)
+            _D = Build_Fsps(self._inputs).D
             self.M['model' + tau_suffix] = Model_Rates(
-              self._inputs, self._s1, self._s2, tau)
+              self._inputs, _D, TS, s1, s2)
         
         #Collect the boolean array of where the array ages from fsps matches
         #the require ages where markers should be placed. Since all the fsps

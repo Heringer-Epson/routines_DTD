@@ -66,10 +66,9 @@ if __name__ == '__main__':
     lf = True
     pf = True
 
-    #Master(case='default_test', data_flag=pd,
-    #       likelihood_flag=lf, plots_flag=pf).run_master() 
+    Master(case='default', data_flag=pd,
+           likelihood_flag=lf, plots_flag=pf).run_master() 
 
-    '''
     Master(case='default', data_flag=pd,
            likelihood_flag=lf, plots_flag=pf).run_master() 
     Master(case='default_40', data_flag=pd,
@@ -84,7 +83,7 @@ if __name__ == '__main__':
            likelihood_flag=lf, plots_flag=pf).run_master()  
     Master(case='default_40', data_flag=pd,
            likelihood_flag=lf, plots_flag=pf).run_master() 
-    '''
+
     #Master(case='M12_comp', data_flag=pd,
     #       likelihood_flag=lf, plots_flag=pf).run_master() 
     #Master(case='M12_comp_24', data_flag=pd,
@@ -114,7 +113,7 @@ if __name__ == '__main__':
 
     #Series of runs to analyse systematic uncertainties. Those use
     #fiducial parameters of 'H17', 'S18' (z)SN Ia and redshit_max=0.2.
-    '''
+
     Master(
       case='sys', data_flag=pd, likelihood_flag=lf, plots_flag=pf,
       custom_pars=('1.6', '100','1','exponential','Kroupa','0.0190',0.0,'0',
@@ -210,4 +209,3 @@ if __name__ == '__main__':
         Master(
           case='hosts', data_flag=True, likelihood_flag=False, plots_flag=False,
           custom_pars=_pars).run_master()    
-    '''

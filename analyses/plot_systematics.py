@@ -35,7 +35,8 @@ def plot_arrow(ax, fpath, A_max, s_max, color, label, add_contours):
                       marker='None', color=color)
         ax.plot([np.nan],[np.nan],color=color,lw=4.,ls='-',label=label)        
         if add_contours:
-            stats.plot_contour(ax, np.log10(x), y, z, c=color)
+            nx, ny = len(np.unique(x)), len(np.unique(y))
+            stats.plot_contour(ax, np.log10(x), y, z, color, nx, ny)
             ax.plot([np.nan],[np.nan],color=color,lw=10.,ls='-',label=label)
 
 class Make_Fig(object):

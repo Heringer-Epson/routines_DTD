@@ -118,14 +118,14 @@ class Input_Parameters(object):
     t_cutoff : ~astropy float (unit of time)
         Sets the time at which the slope of the DTD may change. Determined by
         theoretical models. Default is 1.*u.Gyr.
-    filter_2 : ~str
-        filter_1 and filter_2 determine the color to be used as
-        (filter_2 - filter_1). A list of available filters can be shown by
+    f2 : ~str
+        f1 and f2 determine the color to be used as
+        (f2 - f1). A list of available filters can be shown by
         calling fsps.list_filters() under run_fsps.py. Only g and r are
         currently supported. Default is 'g'.
-    filter_1 : ~str
+    f1 : ~str
         Same as above. Default is 'r'.
-    filter_0 : ~str
+    f0 : ~str
         The band used to for the luminosity unit. Default is 'r'.
     spec_lib : ~str
         Which spectral library to be used for FSPS simulations. Options are
@@ -143,15 +143,15 @@ class Input_Parameters(object):
         Used to fit the red sequence only. Determines the Dcolor range of the
         red sequence that is to be fitted, so that the shape of the histogram
         of galaxies can be fitted by a gaussian. [Dcolor_min, Dcolor_max].
-        Default is [-0.08, .1] (for filter_1='r' and filter_2='g').
+        Default is [-0.08, .1] (for f1='r' and f2='g').
     bin_size : float
         Size of the Dcolor bin used to build the histogram of galaxies, so
-        that the red sequence can be fitted. Default is 0.005 (for filter_1='r'
-        and filter_2='g').
+        that the red sequence can be fitted. Default is 0.005 (for f1='r'
+        and f2='g').
     bin_range : list
         Used to bin the Dcolor data when fitting the red sequence. Format of 
         the list is [Dcolor_min, Dcolor_max]. Default is [-.8, .4] (for
-        filter_1='r' and filter_2='g').
+        f1='r' and f2='g').
 
     visibility_flag : boolean
         Whether or not to correct rates acording to the redshift of the
@@ -205,7 +205,7 @@ class Input_Parameters(object):
       ext_r_max=1000., uERR_max=1000., gERR_max=0.1, rERR_max=0.1,
       Dcolor_min=None,  
       Z='0.0190', imf_type='Kroupa', sfh_type='exponential', t_onset=.1*u.Gyr,
-      t_cutoff=1.*u.Gyr, filter_2='g', filter_1='r', filter_0='r', spec_lib='BASEL',
+      t_cutoff=1.*u.Gyr, f2='g', f1='r', f0='r', spec_lib='BASEL',
       isoc_lib='PADOVA', fbhb=0.0, dust='0',
       Dcolor_range=[-0.08, .1],
       bin_size=0.005, bin_range=[-.8, .4],
@@ -249,9 +249,9 @@ class Input_Parameters(object):
         self.sfh_type = sfh_type
         self.t_onset = t_onset
         self.t_cutoff = t_cutoff
-        self.filter_2 = filter_2
-        self.filter_1 = filter_1
-        self.filter_0 = filter_0
+        self.f2 = f2
+        self.f1 = f1
+        self.f0 = f0
         self.spec_lib = spec_lib
         self.isoc_lib = isoc_lib
         self.fbhb = fbhb
@@ -434,8 +434,8 @@ class Input_Parameters(object):
             self.hosts_from = 'S18'
             self.host_class = ['SNIa', 'zSNIa']
             self.slopes = np.arange(-3., 0.0001, 0.05) #Coarse for testing.
-            self.filter_1 = 'i'        
-            self.filter_0 = 'r'     
+            self.f1 = 'i'        
+            self.f0 = 'r'     
 
         #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -510,9 +510,9 @@ class Input_Parameters(object):
             self.dust = dust
             self.t_cutoff = float(t_c) * u.Gyr
             self.t_onset = float(t_o) * u.Myr
-            self.filter_2 = f2        
-            self.filter_1 = f1        
-            self.filter_0 = f0   
+            self.f2 = f2        
+            self.f1 = f1        
+            self.f0 = f0   
 
             #Default parameters for the analysis of systematic uncertainties. 
             self.matching = 'Table'

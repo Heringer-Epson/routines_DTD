@@ -14,7 +14,8 @@ c = ['#fdae61', '#3288bd']
 
 left, width = 0.14, 0.58
 bottom, height = 0.13, 0.62
-bottom_h = left_h = left + width + 0.02
+bottom_h = bottom + height + 0.01
+left_h = left + width + 0.01
 x_range, y_range = (-0.65,.15), (-23.5,-17.)
 
 rect_scatter = [left, bottom, width, height]

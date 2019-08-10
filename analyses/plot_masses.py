@@ -14,12 +14,14 @@ import stats
 sys.path.append(os.path.join(os.environ['PATH_ssnarl'], 'src'))
 from Dcolor2sSNRL_gen import Generate_Curve
 from build_fsps_model import Build_Fsps
-from generic_input_pars import Generic_Pars
+from input_pars import Pars
 
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 fs = 28.
+
+filter2sunmag = {'u': 6.39, 'g': 5.12, 'r': 4.65, 'i': 4.53, 'z': 4.51}      
 
 class Plot_Masses(object):
     """
@@ -56,8 +58,9 @@ class Plot_Masses(object):
     Tojeiro+ 2009: http://adsabs.harvard.edu/abs/2009ApJS..185....1T (VESPA 2)
     Chang+ 2015: http://adsabs.harvard.edu/abs/2015ApJS..219....8C
     """        
-    def __init__(self, tau, show_fig, save_fig):
+    def __init__(self, tau, filter_0, show_fig, save_fig):
         self.tau = tau
+        self.filter_0 = filter_0
         self.show_fig = show_fig
         self.save_fig = save_fig
 
@@ -111,7 +114,7 @@ class Plot_Masses(object):
                      lw=3., color='m', zorder=2.)
 
     def retrieve_data(self):
-        fpath = './../OUTPUT_FILES/RUNS/M12_comp/data_Dcolor.csv'
+        fpath = './../OUTPUT_FILES/RUNS/default/standard/data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
 
         #Calculate binned masses as in M12.
@@ -137,32 +140,44 @@ class Plot_Masses(object):
         """Compute the mass (stellar - present day) to light ratio using FSPS.
         These assume a Chabrier IMF so that it can be compared to Chang+ 2015.
         """
-        _inputs = Generic_Pars('exponential', 'Chabrier', '0.0190', 40. * u.Myr)
+             
+        _inputs = Pars(
+          sfh_type='exponential', imf_type='Chabrier', Z='0.0190',
+          t_onset=40. * u.Myr, f0=self.filter_0)
         _D = Build_Fsps(_inputs).D
         TS = str(self.tau.to(u.yr).value / 1.e9)
         age = _D['age_' + TS] * 1.e9
-        cond = ((age >= 2.4e9) & (age <= 14.e9))
+        age_l, age_u = 8.e9, 14.e9
+        cond_l = (abs(age - age_l)).argmin()
+        cond_u = (abs(age - age_u)).argmin()
+                        
+        sunmag = filter2sunmag[self.filter_0]
+        L_fsps = stats.mag2lum(_D['mag0_' + TS],sunmag)
                 
-        Lr_fsps = stats.mag2lum(_D['mag1_' + TS])
-        ML_aux = np.divide(_D['int_stellar_mass_' + TS],Lr_fsps)
+        ML_aux = np.divide(_D['int_stellar_mass_' + TS],L_fsps)
         ML_at10 = ML_aux[(age == 10.e9)][0]
-        ML_l, ML_u = (ML_aux[cond])[0], (ML_aux[cond])[-1]
+        ML_l, ML_u = ML_aux[cond_l], ML_aux[cond_u]
         self.MsL = (ML_at10,ML_l,ML_u) 
  
     def compute_Mt_to_light(self):
         """Compute the mass (integrated) to light ratio using FSPS.
         These assume a Kroupa IMF so that it can be compared to M12.
         """
-        _inputs = Generic_Pars('exponential', 'Kroupa', '0.0190', 40. * u.Myr)
+        _inputs = Pars(
+          sfh_type='exponential', imf_type='Kroupa', Z='0.0190',
+          t_onset=40. * u.Myr, f0=self.filter_0)
         _D = Build_Fsps(_inputs).D
         TS = str(self.tau.to(u.yr).value / 1.e9)
         age = _D['age_' + TS] * 1.e9
-        cond = ((age >= 2.4e9) & (age <= 14.e9))
-                
-        Lr_fsps = stats.mag2lum(_D['mag1_' + TS])
-        ML_aux = np.divide(_D['int_mass_' + TS],Lr_fsps)
+        age_l, age_u = 8.e9, 14.e9
+        cond_l = (abs(age - age_l)).argmin()
+        cond_u = (abs(age - age_u)).argmin()
+                        
+        sunmag = filter2sunmag[self.filter_0]
+        L_fsps = stats.mag2lum(_D['mag0_' + TS],sunmag)
+        ML_aux = np.divide(_D['int_mass_' + TS],L_fsps)
         ML_at10 = ML_aux[(age == 10.e9)][0]
-        ML_l, ML_u = (ML_aux[cond])[0], (ML_aux[cond])[-1]
+        ML_l, ML_u = ML_aux[cond_l], ML_aux[cond_u]
         self.MtL = (ML_at10,ML_l,ML_u) 
         
     def get_masses(self):
@@ -172,14 +187,14 @@ class Plot_Masses(object):
         plate, mjd, fiber, lmass_025, lmass_50, lmass_975 = np.loadtxt(
           fpath,skiprows=66, delimiter='|', usecols=(4,5,6,9,11,13),
           dtype=str, unpack=True)
-        
+        sunmag = filter2sunmag[self.filter_0]        
         
         Ms_fsps_at10, Ms_fsps_l, Ms_fsps_u = [], [], []
         Mt_fsps_at10, Mt_fsps_l, Mt_fsps_u = [], [], []
         M_vespa, M_C15, M_C15_l, M_C15_u = [], [], [], []
         for k, (plate_V, mjd_V, fiber_V, Mr, Dcolor, M_v) in enumerate(zip(
           self.df['plateID'].values, self.df['mjd'].values,
-          self.df['fiberID'].values, self.df['abs_r'].values,
+          self.df['fiberID'].values, self.df['abs_' + self.filter_0].values,
           self.df['Dcolor_gr'].values, self.df['mass'].values)):
             
             print k, len(self.df['plateID'].values)
@@ -192,7 +207,7 @@ class Plot_Masses(object):
                   & (int(fiber_C.strip()) == int(fiber_V))
                   & (Dcolor > -0.05) & (Dcolor < 0.05)):
 
-                    L = stats.mag2lum(Mr) 
+                    L = stats.mag2lum(Mr,sunmag) 
                     
                     #Compute stellar mass in sSNRL.
                     Ms_fsps_at10.append(self.MsL[0] * L)
@@ -255,5 +270,5 @@ class Plot_Masses(object):
 
 if __name__ == '__main__':
 
-    Plot_Masses(tau=1. * u.Gyr, show_fig=False, save_fig=True)
+    Plot_Masses(tau=1. * u.Gyr, filter_0='r', show_fig=False, save_fig=True)
 

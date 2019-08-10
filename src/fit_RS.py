@@ -51,18 +51,17 @@ class Fit_RS(object):
     def retrieve_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_absmag.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
-        self.f1, self.f2 = self._inputs.filter_1, self._inputs.filter_2
-        photo1, photo2 = self.df['abs_' + self.f1], self.df['abs_' + self.f2]
+        photo1, photo2 = self.df['abs_' + self._inputs.f1], self.df['abs_' + self._inputs.f2]
         self.x_data, self.y_data = photo1, photo2 - photo1  
         self.hosts = self.df['is_host']       
 
     def remove_nonRS(self):
         """Rough color cut to remove objects that clearly do not belong to
         the RS. This prevents the fit being skewed towards these galaxies."""
-        if self._inputs.filter_2 == 'g' and self._inputs.filter_1 == 'r':
+        if self._inputs.f2 == 'g' and self._inputs.f1 == 'r':
             trim_cond = ((self.y_data > 0.6) & (self.y_data < 1.1))
             self.slope_guess, self.intercept_guess=-0.0188, 0.346 #From paper I.
-        elif self._inputs.filter_2 == 'g' and self._inputs.filter_1 == 'i':
+        elif self._inputs.f2 == 'g' and self._inputs.f1 == 'i':
             trim_cond = ((self.y_data > 0.8) & (self.y_data < 1.3))
             self.slope_guess, self.intercept_guess=-0.0188, 0.65 #From paper I.
         else:
@@ -143,13 +142,13 @@ class Fit_RS(object):
         self.x_out, self.y_out = new_x, new_y
 
     def compute_dcolor(self):
-        mag = self.df['abs_' + self.f1]
-        color = self.df['abs_' + self.f2] - self.df['abs_' + self.f1]
-        self.df['Dcolor_' + self.f2 + self.f1]  = color - self.fit_func(mag)
+        mag = self.df['abs_' + self._inputs.f1]
+        color = self.df['abs_' + self._inputs.f2] - self.df['abs_' + self._inputs.f1]
+        self.df['Dcolor_' + self._inputs.f2 + self._inputs.f1]  = color - self.fit_func(mag)
 
     def fit_RS_hist(self):
 
-        Dcolor = self.df['Dcolor_' + self.f2 + self.f1]
+        Dcolor = self.df['Dcolor_' + self._inputs.f2 + self._inputs.f1]
         acc_cond = ((Dcolor >= self._inputs.Dcolor_range[0]) &
                     (Dcolor <= self._inputs.Dcolor_range[1]))
         Dcolor_acc = Dcolor[acc_cond]
@@ -213,8 +212,8 @@ class Plot_Fit(object):
         
     def set_fig_frame(self):
         
-        f1 = self._inputs.filter_1
-        f2 = self._inputs.filter_2
+        f1 = self._inputs.f1
+        f2 = self._inputs.f2
 
         x_label = r'$M_{' + f1 + '}$'
         y_label = r'$M_{' + f2 + '} - M_{' + f1 + '}$'

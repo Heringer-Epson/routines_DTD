@@ -39,8 +39,8 @@ class Abs_CMD(object):
         
     def set_fig_frame(self):
         
-        f1 = self._inputs.filter_1
-        f2 = self._inputs.filter_2
+        f1 = self._inputs.f1
+        f2 = self._inputs.f2
 
         x_label = r'$M_' + f1 + '$'
         y_label = r'$M_' + f2 + '- M_' + f1 + '$'
@@ -61,8 +61,8 @@ class Abs_CMD(object):
     def retrieve_data(self):
         fpath = self._inputs.subdir_fullpath + 'data_absmag.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
-        f1 = self.df['abs_' + self._inputs.filter_1].values
-        f2 = self.df['abs_' + self._inputs.filter_2].values
+        f1 = self.df['abs_' + self._inputs.f1].values
+        f2 = self.df['abs_' + self._inputs.f2].values
         self.mag = f1
         self.color = f2 - f1  
         self.hosts = self.df['is_host'].values

@@ -22,6 +22,7 @@ def fv(v):
 
 def draw(fig, _ax1, _ax2, _fpath, _c):
     N_obs, s1, s2, A, ln_L = stats.read_lnL(_fpath)
+    print N_obs
     x, y, z = stats.make_A_s_space(N_obs, s1, s2, A, ln_L)
     nx, ny = len(np.unique(x)), len(np.unique(y))
     X, Y, XErr, YErr = stats.plot_contour(

@@ -28,5 +28,6 @@ class Main_Plotter(object):
         Plot_Dcolor(_inputs)
         Plot_As(_inputs)  
         Plot_s1s2(_inputs)
+        #FSPS_Plotter(_inputs)
         #Redshift_Bias(_inputs)
         #Bias_Ratios(_inputs)

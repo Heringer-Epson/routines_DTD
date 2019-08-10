@@ -18,7 +18,7 @@ filter2sunmag = {'u': 6.39, 'g': 5.12, 'r': 4.65, 'i': 4.53, 'z': 4.51}
 #@profile
 def calculate_likelihood(mode, _inputs, _df, _N_obs, _D, _s1, _s2):
     if mode == 'sSNRL':
-        sunmag = filter2sunmag[_inputs.filter_0]
+        sunmag = filter2sunmag[_inputs.f0]
         Sgen = Generate_Curve(_inputs, _D, _s1, _s2)
         if _inputs.model_Drange == 'reduced':
             x, y = Sgen.Dcolor_at10Gyr[::-1], Sgen.sSNRL_at10Gyr[::-1]
@@ -78,7 +78,7 @@ class Get_Likelihood(object):
         fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'
         self.df = pd.read_csv(fpath, header=0, low_memory=False)
 
-        f2, f1, f0 = self._inputs.filter_2, self._inputs.filter_1, self._inputs.filter_0
+        f2, f1, f0 = self._inputs.f2, self._inputs.f1, self._inputs.f0
         Dcolor = self.df['Dcolor_' + f2 + f1]
 
         fpath = self._inputs.subdir_fullpath + 'RS_fit.csv'

@@ -61,8 +61,8 @@ class Write_Record(object):
         self.out.write('--------------------')
         self.out.write('\n\n')
         self.out.write('---------------------Model params---------------------\n')
-        self.out.write('Colour: ' + self._inputs.filter_2 + '-'\
-                  + self._inputs.filter_1 + '\n')
+        self.out.write('Colour: ' + self._inputs.f2 + '-'\
+                  + self._inputs.f1 + '\n')
         self.out.write('Spectral_library: ' + self._inputs.spec_lib + '\n')
         self.out.write('Isochrone_library: ' + self._inputs.isoc_lib + '\n')
         self.out.write('IMF: ' + self._inputs.imf_type + '\n')
@@ -128,7 +128,7 @@ class Write_Record(object):
 
         fpath = self._inputs.subdir_fullpath + 'data_Dcolor.csv'
         df = pd.read_csv(fpath, header=0, dtype=self.data_type, low_memory=False)
-        f1, f2 = self._inputs.filter_1, self._inputs.filter_2
+        f1, f2 = self._inputs.f1, self._inputs.f2
         Dcolor = df['Dcolor_' + f2 + f1].values
         count_objs(df, fpath, 'Dcolor trimmed', self._inputs.host_class, self.out)
         
